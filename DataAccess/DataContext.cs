@@ -13,13 +13,15 @@ namespace Infrascructure.DataAccess
     public class DataContext
         :DbContext
     {
-        //TODO: нужен набор для заказа и сотрудника
+        //TODO: нужен набор для заказа
         public DbSet<Client> Clients { get; set; }
+        public DbSet<Employee> Employees { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new ClientConfiguration());
+            modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
         }
         
         public DataContext(DbContextOptions<DataContext> options)
