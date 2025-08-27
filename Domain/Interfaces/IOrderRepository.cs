@@ -27,11 +27,6 @@ namespace Domain.Interfaces
         /// <returns></returns>
         Task<IEnumerable<Order>> GetByClientIdAsync(Guid ClientId);
         /// <summary>
-        /// Чтение всех заказов Мастера
-        /// </summary>
-        /// <returns></returns>
-        Task<IEnumerable<Order>> GetByMasterIdAsync(Guid MasterId);
-        /// <summary>
         /// Редактирование Заказа
         /// </summary>
         /// <param name="order"></param>
