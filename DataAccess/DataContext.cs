@@ -15,15 +15,17 @@ namespace Infrascructure.DataAccess
     {
         //TODO: нужен набор для заказа
         public DbSet<Client> Clients { get; set; }
+        public DbSet<Order> Orders { get; set; }
         public DbSet<Employee> Employees { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new ClientConfiguration());
+            modelBuilder.ApplyConfiguration(new OrderConfiguration());
             modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
         }
-        
+
         public DataContext(DbContextOptions<DataContext> options)
         :base(options)
         {

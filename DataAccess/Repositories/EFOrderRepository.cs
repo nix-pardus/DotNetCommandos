@@ -1,0 +1,60 @@
+﻿using Domain.Interfaces;
+using Domain.Aggregates;
+using Microsoft.EntityFrameworkCore;
+
+
+namespace Infrascructure.DataAccess.Repositories
+{
+    public class EFOrderRepository:IOrderRepository
+    {
+        private readonly DataContext _context;
+        public EFOrderRepository(DataContext context)
+        {
+            _context = context;
+        }
+
+        /// <summary>
+        /// Создание нового заказа
+        /// </summary>
+       public async Task AddAsync(Order order)
+        {
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+        }
+        /// <summary>
+        /// Чтение заказа по идентификатору
+        /// </summary>
+        public async Task<Order> GetByIdAsync(long id)
+        {
+            return await _context.Orders.FindAsync(id);
+        }
+        /// <summary>
+        /// Чтение всех заказов
+        /// </summary>
+        public async Task<IEnumerable<Order>> GetAllAsync()
+        {
+            return await _context.Orders.ToListAsync();
+
+        }
+        /// <summary>
+        /// Чтение всех заказов клиента
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<Order>> GetByClientIdAsync(Guid ClientId)
+        {
+            return await _context.Orders.Where(x => x.ClientId == ClientId).ToListAsync();
+        }
+
+        /// <summary>
+        /// Редактирование Заказа
+        /// </summary>
+        /// <param name="order">новое состояние заказа</param>
+        /// <returns></returns>
+        public async Task UpdateAsync(Order order)
+        {
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+        }
+
+    }
+}
