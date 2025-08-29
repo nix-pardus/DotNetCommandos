@@ -62,16 +62,18 @@ namespace Domain.Entities
         /// <summary>
         /// Приоритет
         /// </summary>
-        public int Proirity { get; set; }
+        public int Priority { get; set; }
         /// <summary>
         /// Признак "Запись удалена"
         /// </summary>
         public bool IsDeleted { get; set; }
         /// <summary>
-        /// Дата время визита мастера
+        /// Начало возможного интервала визита мастера
         /// </summary>
-        public DateTime VisitTime { get; set; }
-        //timestamp StartDate //???
-        //timestamp EndDate //???
+        public DateTime StartDate { get; set; }
+        /// <summary>
+        /// Окончание возможного интервала визита мастера
+        /// </summary>
+        public DateTime EndDate { get; set; }
     }
 }
