@@ -21,8 +21,13 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddScoped<IClientRepository, EFClientRepository>();
 builder.Services.AddScoped<IClientService, ClientService>();
+
 builder.Services.AddScoped<IOrderRepository, EFOrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+
+builder.Services.AddScoped<IEmployeeRepository, EFEmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
