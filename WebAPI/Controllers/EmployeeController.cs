@@ -21,4 +21,11 @@ public class EmployeeController : ControllerBase
         await _employeeService.CreateAsync(employeeDto);
         return Ok();
     }
+
+    [HttpGet("getAll")]
+    public async Task<IActionResult> GetAll()
+    {
+        var employees = await _employeeService.GetAllAsync();
+        return Ok(employees);
+    }
 }

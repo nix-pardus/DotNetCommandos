@@ -25,6 +25,25 @@ public class EmployeeService : IEmployeeService
         return await _repository.DeleteAsync(id);
     }
 
+    public async Task<IEnumerable<EmployeeDto>> GetAllAsync()
+    {
+        var employees = await _repository.GetAllAsync();
+        return employees.Select(employee => new EmployeeDto
+        {
+            Address = employee.Address,
+            CreatedDate = employee.CreatedDate,
+            Creator = employee.Creator,
+            Email = employee.Email,
+            Id = employee.Id,
+            IsDeleted = employee.IsDeleted,
+            LastName = employee.LastName,
+            Name = employee.Name,
+            Patronymic = employee.Patronymic,
+            PhoneNumber = employee.PhoneNumber,
+            Role = employee.Role,
+        });
+    }
+
     public Task<EmployeeDto> UpdateAsync(EmployeeDto dto)
     {
         throw new NotImplementedException();
