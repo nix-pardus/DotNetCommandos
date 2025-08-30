@@ -29,16 +29,19 @@ public class EFEmployeeRepository : IEmployeeRepository
     /// </summary>
     /// <param name="id">Id удаляемого сотрудника</param>
     /// <returns></returns>
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
         var employee = await _context.Employees.SingleOrDefaultAsync(x => x.Id == id);
         if (employee != null)
         {
-            _context.Employees.Remove(employee);
+            employee.IsDeleted = true;
+            _context.Employees.Update(employee!);
             await _context.SaveChangesAsync();
-            return true;
         }
-        return false;
+        else
+        {
+            throw new ArgumentNullException("Employee is not exist.");
+        }
     }
 
     /// <summary>

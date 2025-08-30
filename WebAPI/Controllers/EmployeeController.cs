@@ -35,4 +35,11 @@ public class EmployeeController : ControllerBase
         await _employeeService.UpdateAsync(employeeDto);
         return Ok();
     }
+
+    [HttpDelete("delete")]
+    public async Task<IActionResult> Delete([FromBody] Guid id)
+    {
+        await _employeeService.DeleteAsync(id);
+        return Ok();
+    }
 }
