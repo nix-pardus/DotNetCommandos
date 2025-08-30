@@ -44,8 +44,21 @@ public class EmployeeService : IEmployeeService
         });
     }
 
-    public Task<EmployeeDto> UpdateAsync(EmployeeDto dto)
+    public async Task UpdateAsync(EmployeeDto dto)
     {
-        throw new NotImplementedException();
+        await _repository.UpdateAsync(new Employee
+        {
+            Address = dto.Address,
+            CreatedDate = dto.CreatedDate,
+            Creator = dto.Creator,
+            Email = dto.Email,
+            Id = dto.Id,
+            IsDeleted = dto.IsDeleted,
+            LastName = dto.LastName,
+            Name = dto.Name,
+            Patronymic = dto.Patronymic,
+            PhoneNumber = dto.PhoneNumber,
+            Role = dto.Role,
+        });
     }
 }

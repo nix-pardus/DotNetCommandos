@@ -28,4 +28,11 @@ public class EmployeeController : ControllerBase
         var employees = await _employeeService.GetAllAsync();
         return Ok(employees);
     }
+
+    [HttpPut("update")]
+    public async Task<IActionResult> Update([FromBody] EmployeeDto employeeDto)
+    {
+        await _employeeService.UpdateAsync(employeeDto);
+        return Ok();
+    }
 }
