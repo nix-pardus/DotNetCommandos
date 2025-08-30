@@ -20,9 +20,9 @@ public class EmployeeService : IEmployeeService
         await _repository.AddAsync(employee);
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
-        return await _repository.DeleteAsync(id);
+        await _repository.DeleteAsync(id);
     }
 
     public async Task<IEnumerable<EmployeeDto>> GetAllAsync()
