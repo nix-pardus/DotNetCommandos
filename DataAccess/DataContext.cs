@@ -29,7 +29,7 @@ namespace Infrascructure.DataAccess
         public DataContext(DbContextOptions<DataContext> options)
         :base(options)
         {
-            Database.EnsureCreated();
+            //Database.EnsureCreated();
         }
     }
 }
