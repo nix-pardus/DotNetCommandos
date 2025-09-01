@@ -1,0 +1,69 @@
+﻿@page "/employees"
+@using UI.Models
+@using UI.Services
+@inject IEmployeeService EmployeeService
+
+<h3>Employees</h3>
+
+@if(employees == null)
+{
+    <p>Loading employees...</p>
+}
+else if(employees.Count == 0)
+{
+    <p>No employees found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>LastName</th>
+                <th>Patronymic</th>
+                <th>Address</th>
+                <th>Email</th>
+                <th>PhoneNumber</th>
+                <th>CreatedDate</th>
+                <th>Creator</th>
+                <th>Role</th>
+                <th>IsDeleted</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var employee in employees)
+            {
+                <tr>
+                    <td>@employee.Id</td>
+                    <td>@employee.Name</td>
+                    <td>@employee.LastName</td>
+                    <td>@employee.Patronymic</td>
+                    <td>@employee.Address</td>
+                    <td>@employee.Email</td>
+                    <td>@employee.PhoneNumber</td>
+                    <td>@employee.CreatedDate</td>
+                    <td>@employee.Creator</td>
+                    <td>@employee.Role</td>
+                    <td>@employee.IsDeleted</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Employee> employees;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            employees = await EmployeeService.GetAllEmployeesAsync();
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Error loading employees: {ex.Message}");
+        }
+    }
+}
