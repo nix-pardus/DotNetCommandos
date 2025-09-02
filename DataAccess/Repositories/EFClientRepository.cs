@@ -25,8 +25,14 @@ namespace Infrascructure.DataAccess.Repositories
         public async Task DeleteAsync(Guid id)
         {
             var client = await _context.Clients.SingleOrDefaultAsync(x=>x.Id == id);
-            //TODO: Обрабатывать  null
-            _context.Clients.Remove(client);
+            if (client != null)
+            {
+                client.IsDeleted = true;
+            }
+            else
+            {
+                throw new ArgumentNullException(@$"Client ""{id}"" is not exists");
+            }
             await _context.SaveChangesAsync();
         }
         //TODO: будем реалистами - нужна пагинация

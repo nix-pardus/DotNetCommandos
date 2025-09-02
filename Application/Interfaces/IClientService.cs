@@ -12,8 +12,7 @@ namespace Application.Interfaces
         //TODO: пока так, но в итоге надо сделать отденьные dto
         Task CreateAsync(ClientDto dto);
         Task<ClientDto> UpdateAsync(ClientDto dto);
-        Task<ClientDto> DeleteAsync(Guid id);
-
+        Task DeleteAsync(Guid id);
 
     }
 }

@@ -22,9 +22,9 @@ namespace Application.Services
             await _repository.AddAsync(client);
         }
 
-        public Task<ClientDto> DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
-            throw new NotImplementedException();
+            await _repository.DeleteAsync(id);
         }
 
         public Task<ClientDto> UpdateAsync(ClientDto dto)
