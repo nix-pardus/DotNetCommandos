@@ -1,38 +1,38 @@
-﻿using Domain.Aggregates;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ServiceCenter.Domain.Entities;
 
-namespace Domain.Interfaces
+namespace ServiceCenter.Domain.Interfaces;
+
+/// <summary>
+/// Репозиторий для работы с сущностью Заказ
+/// </summary>
+public interface IOrderRepository
 {
-    public interface IOrderRepository
-    {
-        /// <summary>
-        /// Создание нового заказа
-        /// </summary>
-        Task AddAsync(Order order);
-        /// <summary>
-        /// Чтение заказа по идентификатору
-        /// </summary>
-        Task<Order> GetByIdAsync(long id);
-        /// <summary>
-        /// Чтение всех заказов
-        /// </summary>
-        Task<IEnumerable<Order>> GetAllAsync();
-        /// <summary>
-        /// Чтение всех заказов клиента
-        /// </summary>
-        /// <returns></returns>
-        Task<IEnumerable<Order>> GetByClientIdAsync(Guid ClientId);
-        /// <summary>
-        /// Редактирование Заказа
-        /// </summary>
-        /// <param name="order"></param>
-        /// <returns></returns>
-        Task UpdateAsync(Order order);
-        
-        //Может ли заказ удаляться из БД?
-    }
+    /// <summary>
+    /// Добавить новый заказ
+    /// </summary>
+    /// <param name="order">Сущность заказа</param>
+    Task AddAsync(Order order);
+
+    /// <summary>
+    /// Получить заказ по идентификатору
+    /// </summary>
+    /// <param name="id">Идентификатор заказа</param>
+    Task<Order> GetByIdAsync(Guid id);
+
+    /// <summary>
+    /// Получить все заказы
+    /// </summary>
+    Task<IEnumerable<Order>> GetAllAsync();
+
+    /// <summary>
+    /// Получить все заказы клиента
+    /// </summary>
+    /// <param name="clientId">Идентификатор клиента</param>
+    Task<IEnumerable<Order>> GetByClientIdAsync(Guid clientId);
+
+    /// <summary>
+    /// Обновить существующий заказ
+    /// </summary>
+    /// <param name="order">Сущность заказа</param>
+    Task UpdateAsync(Order order);
 }

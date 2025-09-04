@@ -1,25 +1,18 @@
-﻿using Application.Interfaces;
-using Domain.DTO.Order;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Domain.DTO.Order;
 
-namespace WebAPI.Controllers
+namespace ServiceCenter.WebAPI.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class OrderController(IOrderService orderService) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class OrderController : ControllerBase
+    // POST api/<ClientController>
+    [HttpPost("create")]
+    public async Task<IActionResult> Post([FromBody] OrderDto order)
     {
-        private readonly IOrderService orderService;
-        public OrderController(IOrderService orderService)
-        {
-            this.orderService = orderService;
-        }
-
-        // POST api/<ClientController>
-        [HttpPost("create")]
-        public async Task<IActionResult> Post([FromBody] OrderDto order)
-        {
-            await orderService.CreateAsync(order);
-            return Ok();
-        }
+        await orderService.CreateAsync(order);
+        return Ok();
     }
 }
