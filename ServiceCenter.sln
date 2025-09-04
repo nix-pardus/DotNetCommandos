@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPI", ".\WebAPI\WebAPI.csproj", "{E58CF0A1-6C70-4961-B285-F76350744620}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceCenter.WebAPI", "WebAPI\ServiceCenter.WebAPI.csproj", "{E58CF0A1-6C70-4961-B285-F76350744620}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", ".\Application\Application.csproj", "{2B59257F-DA3A-4151-9F75-7E24C79C90AA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceCenter.Application", "Application\ServiceCenter.Application.csproj", "{2B59257F-DA3A-4151-9F75-7E24C79C90AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrascructure.DataAccess", ".\DataAccess\Infrascructure.DataAccess.csproj", "{4F1E9491-8C10-4F13-BAE6-AC01BEFE76DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceCenter.Infrascructure.DataAccess", "DataAccess\ServiceCenter.Infrascructure.DataAccess.csproj", "{4F1E9491-8C10-4F13-BAE6-AC01BEFE76DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", ".\Domain\Domain.csproj", "{DFFAC1D9-27DE-4380-A8C6-CFB9FDBBBC91}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceCenter.Domain", "Domain\ServiceCenter.Domain.csproj", "{DFFAC1D9-27DE-4380-A8C6-CFB9FDBBBC91}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,17 +1,12 @@
-﻿using Domain.Aggregates;
-using Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using ServiceCenter.Domain.Entities;
+using ServiceCenter.Domain.Interfaces;
 
-namespace Infrascructure.DataAccess.Repositories;
+namespace ServiceCenter.Infrascructure.DataAccess.Repositories;
 
-public class EFEmployeeRepository : IEmployeeRepository
+public class EFEmployeeRepository(DataContext context) : IEmployeeRepository
 {
-    private readonly DataContext _context;
-
-    public EFEmployeeRepository(DataContext context)
-    {
-        _context = context;
-    }
+    private readonly DataContext _context = context;
 
     /// <summary>
     /// Добавить сотрудника
@@ -48,7 +43,7 @@ public class EFEmployeeRepository : IEmployeeRepository
     /// Получить список всех актуальных сотрудников
     /// </summary>
     /// <returns></returns>
-    public async Task<IEnumerable<Employee>> GetAllActiveEmployeesAsync()
+    public async Task<IEnumerable<Employee>> GetAllActiveAsync()
     {
         return await _context.Employees.Where(x => x.IsDeleted == false).ToArrayAsync();
     }
