@@ -1,15 +1,13 @@
-﻿using Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ServiceCenter.Domain.Entities;
 
-namespace Infrascructure.DataAccess.Configuration
+namespace Infrascructure.DataAccess.Configuration;
+
+public class OrderConfiguration:IEntityTypeConfiguration<Order>
 {
-    public class OrderConfiguration:IEntityTypeConfiguration<Order>
+    public void Configure(EntityTypeBuilder<Order> builder)
     {
-        public void Configure(EntityTypeBuilder<Order> builder)
-        {
-            builder.HasKey(x => x.Id);
-        }
-
+        builder.HasKey(x => x.Id);
     }
 }

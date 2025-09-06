@@ -1,17 +1,13 @@
-﻿using Domain.Aggregates;
-using Infrascructure.DataAccess.Configuration;
+﻿using Infrascructure.DataAccess.Configuration;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ServiceCenter.Domain.Entities;
+using ServiceCenter.Infrascructure.DataAccess.Configuration;
 
-namespace Infrascructure.DataAccess
+
+namespace ServiceCenter.Infrascructure.DataAccess
 {
-    public class DataContext
-        :DbContext
+    public class DataContext(DbContextOptions<DataContext> options)
+                : DbContext(options)
     {
         //TODO: нужен набор для заказа
         public DbSet<Client> Clients { get; set; }
@@ -24,12 +20,6 @@ namespace Infrascructure.DataAccess
             modelBuilder.ApplyConfiguration(new ClientConfiguration());
             modelBuilder.ApplyConfiguration(new OrderConfiguration());
             modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
-        }
-
-        public DataContext(DbContextOptions<DataContext> options)
-        :base(options)
-        {
-            Database.EnsureCreated();
         }
     }
 }

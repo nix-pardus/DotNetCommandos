@@ -1,32 +1,38 @@
-﻿using Application.Interfaces;
-using Domain.Aggregates;
-using Domain.DTO.Employee;
-using Domain.Interfaces;
+﻿using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Application.Mappers;
+using ServiceCenter.Domain.Interfaces;
 
-namespace Application.Services;
+namespace ServiceCenter.Application.Services;
 
-public class EmployeeService : IEmployeeService
+/// <summary>
+/// Сервис для работы с сотрудниками
+/// Реализует <see cref="IEmployeeService"/>
+/// </summary>
+public class EmployeeService(IEmployeeRepository repository) : IEmployeeService
 {
-    public readonly IEmployeeRepository _repository;
-
-    public EmployeeService(IEmployeeRepository repository)
-    {
-        _repository = repository;
-    }
-
+    /// <inheritdoc />
     public async Task CreateAsync(EmployeeDto dto)
     {
-        var employee = new Employee(dto);
-        await _repository.AddAsync(employee);
+        await repository.AddAsync(EmployeeMapper.ToEntity(dto));
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    /// <inheritdoc />
+    public async Task DeleteAsync(Guid id)
     {
-        return await _repository.DeleteAsync(id);
+        await repository.DeleteAsync(id);
     }
 
-    public Task<EmployeeDto> UpdateAsync(EmployeeDto dto)
+    /// <inheritdoc />
+    public async Task<IEnumerable<EmployeeDto>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        var employees = await repository.GetAllAsync();
+        return employees.Select(EmployeeMapper.ToDto);
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateAsync(EmployeeDto dto)
+    {
+        await repository.UpdateAsync(EmployeeMapper.ToEntity(dto));
     }
 }

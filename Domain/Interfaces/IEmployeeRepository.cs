@@ -1,13 +1,43 @@
-﻿using Domain.Aggregates;
+﻿using ServiceCenter.Domain.Entities;
 
-namespace Domain.Interfaces;
+namespace ServiceCenter.Domain.Interfaces;
 
+/// <summary>
+/// Репозиторий для работы с сущностью Сотрудник
+/// </summary>
 public interface IEmployeeRepository
 {
+    /// <summary>
+    /// Получить всех сотрудников
+    /// </summary>
     Task<IEnumerable<Employee>> GetAllAsync();
-    Task<IEnumerable<Employee>> GetAllActiveEmployeesAsync();
+
+    /// <summary>
+    /// Получить всех активных сотрудников
+    /// </summary>
+    Task<IEnumerable<Employee>> GetAllActiveAsync();
+
+    /// <summary>
+    /// Получить сотрудника по идентификатору
+    /// </summary>
+    /// <param name="id">Идентификатор сотрудника</param>
     Task<Employee> GetByIdAsync(Guid id);
+
+    /// <summary>
+    /// Добавить нового сотрудника
+    /// </summary>
+    /// <param name="employee">Сущность сотрудника</param>
     Task AddAsync(Employee employee);
+
+    /// <summary>
+    /// Обновить существующего сотрудника
+    /// </summary>
+    /// <param name="employee">Сущность сотрудника</param>
     Task UpdateAsync(Employee employee);
-    Task<bool> DeleteAsync(Guid id);
+
+    /// <summary>
+    /// Удалить сотрудника по идентификатору
+    /// </summary>
+    /// <param name="id">Идентификатор сотрудника</param>
+    Task DeleteAsync(Guid id);
 }

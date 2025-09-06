@@ -1,29 +1,31 @@
-﻿using Application.Interfaces;
-using Domain.DTO.Order;
-using Domain.Interfaces;
+﻿using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Application.Mappers;
+using ServiceCenter.Domain.DTO.Order;
+using ServiceCenter.Domain.Interfaces;
 
-namespace Application.Services
+namespace ServiceCenter.Application.Services;
+
+/// <summary>
+/// Сервис для работы с заказами
+/// Реализует <see cref="IOrderService"/>
+/// </summary>
+public class OrderService(IOrderRepository repository) : IOrderService
 {
-    public class OrderService:IOrderService
+    /// <inheritdoc />
+    public async Task CreateAsync(OrderDto dto)
     {
-        public readonly IOrderRepository _repository;
-        public OrderService(IOrderRepository repository)
-        {
-            _repository = repository;
-        }
-        public async Task CreateAsync(OrderDto dto)
-        {
-            await _repository.AddAsync(new Domain.Aggregates.Order(dto));
-        }
+        await repository.AddAsync(OrderMapper.ToEntity(dto));
+    }
 
-        public Task<OrderDto> UpdateAsync(OrderDto dto)
-        {
-            throw new NotImplementedException();
-        }
+    /// <inheritdoc />
+    public Task<OrderDto> UpdateAsync(OrderDto dto)
+    {
+        throw new NotImplementedException();
+    }
 
-        public Task GetAsync(long id)
-        {
-            throw new NotImplementedException();
-        }
+    /// <inheritdoc />
+    Task<OrderDto> IOrderService.GetAsync(Guid id)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -1,24 +1,38 @@
-﻿using Application.Interfaces;
-using Domain.DTO.Employee;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.Interfaces;
 
-namespace WebAPI.Controllers;
+namespace ServiceCenter.WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class EmployeeController : ControllerBase
+public class EmployeeController(IEmployeeService employeeService) : ControllerBase
 {
-    private readonly IEmployeeService _employeeService;
-
-    public EmployeeController(IEmployeeService employeeService)
-    {
-        _employeeService = employeeService;
-    }
-
     [HttpPost("create")]
     public async Task<IActionResult> Post([FromBody] EmployeeDto employeeDto)
     {
-        await _employeeService.CreateAsync(employeeDto);
+        await employeeService.CreateAsync(employeeDto);
+        return Ok();
+    }
+
+    [HttpGet("getAll")]
+    public async Task<IActionResult> GetAll()
+    {
+        var employees = await employeeService.GetAllAsync();
+        return Ok(employees);
+    }
+
+    [HttpPut("update")]
+    public async Task<IActionResult> Update([FromBody] EmployeeDto employeeDto)
+    {
+        await employeeService.UpdateAsync(employeeDto);
+        return Ok();
+    }
+
+    [HttpDelete("delete")]
+    public async Task<IActionResult> Delete([FromBody] Guid id)
+    {
+        await employeeService.DeleteAsync(id);
         return Ok();
     }
 }

@@ -1,12 +1,12 @@
-﻿using Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ServiceCenter.Domain.Entities;
 
-namespace Infrascructure.DataAccess.Configuration;
+namespace ServiceCenter.Infrascructure.DataAccess.Configuration;
 
-public class EmployeeConfiguration : IEntityTypeConfiguration<EmployeeEntity>
+public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
 {
-    public void Configure(EntityTypeBuilder<EmployeeEntity> builder)
+    public void Configure(EntityTypeBuilder<Employee> builder)
     {
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).IsRequired().HasMaxLength(100);
