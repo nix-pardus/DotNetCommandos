@@ -27,4 +27,11 @@ public interface IOrderService
     /// <param name="id">Идентификатор заказа</param>
     /// <returns>DTO заказа</returns>
     Task<OrderDto> GetAsync(Guid id);
+
+    /// <summary>
+    /// Удаление заказа по идентификатору
+    /// </summary>
+    /// <param name="id">Идентификатор заказа</param>
+    /// <returns>DTO заказа</returns>
+    Task DeleteAsync(Guid id);
 }

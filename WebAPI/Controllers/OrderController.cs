@@ -8,11 +8,19 @@ namespace ServiceCenter.WebAPI.Controllers;
 [ApiController]
 public class OrderController(IOrderService orderService) : ControllerBase
 {
-    // POST api/<ClientController>
+    // POST api/<OrderController>
     [HttpPost("create")]
-    public async Task<IActionResult> Post([FromBody] OrderDto order)
+    public async Task<IActionResult> Create([FromBody] OrderDto order)
     {
         await orderService.CreateAsync(order);
+        return Ok();
+    }
+
+    // POST api/<OrderController>
+    [HttpPost("delete")]
+    public async Task<IActionResult> Delete([FromBody] Guid orderId)
+    {
+        await orderService.DeleteAsync(orderId);
         return Ok();
     }
 }
