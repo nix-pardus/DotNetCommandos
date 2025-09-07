@@ -1,11 +1,11 @@
-﻿using Domain.DTO.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ServiceCenter.Application.DTO.Client;
 
-namespace Application.Interfaces
+namespace ServiceCenter.Application.Interfaces;
+
+/// <summary>
+/// Сервис для работы с клиентами
+/// </summary>
+public interface IClientService
 {
     public interface IClientService
     {
@@ -14,5 +14,11 @@ namespace Application.Interfaces
         Task<ClientDto> UpdateAsync(ClientDto dto);
         Task DeleteAsync(Guid id);
 
-    }
+
+    /// <summary>
+    /// Удаление клиента по идентификатору
+    /// </summary>
+    /// <param name="id">Идентификатор клиента</param>
+    /// <returns>Удалённый клиент</returns>
+    Task<ClientDto> DeleteAsync(Guid id);
 }

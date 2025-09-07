@@ -1,26 +1,18 @@
-﻿using Domain.Aggregates;
-using Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
+using ServiceCenter.Domain.Entities;
+using ServiceCenter.Domain.Interfaces;
 
-namespace Infrascructure.DataAccess.Repositories
+namespace ServiceCenter.Infrascructure.DataAccess.Repositories;
+
+public class EFClientRepository(DataContext context) : IClientRepository
 {
-    public class EFClientRepository : IClientRepository
+    private readonly DataContext _context = context;
+
+    public async Task AddAsync(Client client)
     {
-        private readonly DataContext _context;
-        public EFClientRepository(DataContext context)
-        {
-            _context = context;
-        }
-        public async Task AddAsync(Client client)
-        {
-            _context.Clients.Add(client);
-            await _context.SaveChangesAsync();
-        }
+        _context.Clients.Add(client);
+        await _context.SaveChangesAsync();
+    }
 
         public async Task DeleteAsync(Guid id)
         {
@@ -41,15 +33,14 @@ namespace Infrascructure.DataAccess.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<Client> GetByIdAsync(Guid id)
-        {
-            return await _context.Clients.SingleOrDefaultAsync(x => x.Id == id);
-        }
+    public async Task<Client> GetByIdAsync(Guid id)
+    {
+        return await _context.Clients.SingleOrDefaultAsync(x => x.Id == id);
+    }
 
-        public async Task UpdateAsync(Client client)
-        {
-            _context.Clients.Update(client);
-            await _context.SaveChangesAsync();
-        }
+    public async Task UpdateAsync(Client client)
+    {
+        _context.Clients.Update(client);
+        await _context.SaveChangesAsync();
     }
 }

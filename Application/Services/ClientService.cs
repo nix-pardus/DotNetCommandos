@@ -1,35 +1,30 @@
-﻿using Application.Interfaces;
-using Domain.DTO.Client;
-using Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ServiceCenter.Application.DTO.Client;
+using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Application.Mappers;
+using ServiceCenter.Domain.Interfaces;
 
-namespace Application.Services
+namespace ServiceCenter.Application.Services;
+
+/// <summary>
+/// Сервис для работы с клиентами
+/// Реализует <see cref="IClientService"/>
+/// </summary>
+public class ClientService(IClientRepository repository) : IClientService
 {
-    public class ClientService : IClientService
+    /// <inheritdoc />
+    public async Task CreateAsync(ClientDto dto)
     {
-        public readonly IClientRepository _repository;
-        public ClientService(IClientRepository repository) 
-        {  
-            _repository = repository; 
-        }
-        public async Task CreateAsync(ClientDto dto)
-        {
-            var client = new Domain.Aggregates.Client(dto);
-            await _repository.AddAsync(client);
-        }
+        await repository.AddAsync(ClientMapper.ToEntity(dto));
+    }
 
         public async Task DeleteAsync(Guid id)
         {
             await _repository.DeleteAsync(id);
         }
 
-        public Task<ClientDto> UpdateAsync(ClientDto dto)
-        {
-            throw new NotImplementedException();
-        }
+    /// <inheritdoc />
+    public Task<ClientDto> UpdateAsync(ClientDto dto)
+    {
+        throw new NotImplementedException();
     }
 }

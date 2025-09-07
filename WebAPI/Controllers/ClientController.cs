@@ -1,15 +1,16 @@
-﻿using Application.Interfaces;
-using Domain.DTO.Client;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using ServiceCenter.Application.DTO.Client;
+using ServiceCenter.Application.Interfaces;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+namespace ServiceCenter.WebAPI.Controllers;
 
-namespace WebAPI.Controllers
+[Route("api/[controller]")]
+[ApiController]
+public class ClientController(IClientService clientService) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ClientController : ControllerBase
+    // POST api/<ClientController>
+    [HttpPost("create")]
+    public async Task<IActionResult> Post([FromBody] ClientDto client)
     {
         private readonly IClientService _clientService;
         public ClientController(IClientService clientService)

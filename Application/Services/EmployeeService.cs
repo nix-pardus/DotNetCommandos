@@ -1,64 +1,38 @@
-﻿using Application.Interfaces;
-using Domain.Aggregates;
-using Domain.DTO.Employee;
-using Domain.Interfaces;
+﻿using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Application.Mappers;
+using ServiceCenter.Domain.Interfaces;
 
-namespace Application.Services;
+namespace ServiceCenter.Application.Services;
 
-public class EmployeeService : IEmployeeService
+/// <summary>
+/// Сервис для работы с сотрудниками
+/// Реализует <see cref="IEmployeeService"/>
+/// </summary>
+public class EmployeeService(IEmployeeRepository repository) : IEmployeeService
 {
-    public readonly IEmployeeRepository _repository;
-
-    public EmployeeService(IEmployeeRepository repository)
-    {
-        _repository = repository;
-    }
-
+    /// <inheritdoc />
     public async Task CreateAsync(EmployeeDto dto)
     {
-        var employee = new Employee(dto);
-        await _repository.AddAsync(employee);
+        await repository.AddAsync(EmployeeMapper.ToEntity(dto));
     }
 
+    /// <inheritdoc />
     public async Task DeleteAsync(Guid id)
     {
-        await _repository.DeleteAsync(id);
+        await repository.DeleteAsync(id);
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<EmployeeDto>> GetAllAsync()
     {
-        var employees = await _repository.GetAllAsync();
-        return employees.Select(employee => new EmployeeDto
-        {
-            Address = employee.Address,
-            CreatedDate = employee.CreatedDate,
-            Creator = employee.Creator,
-            Email = employee.Email,
-            Id = employee.Id,
-            IsDeleted = employee.IsDeleted,
-            LastName = employee.LastName,
-            Name = employee.Name,
-            Patronymic = employee.Patronymic,
-            PhoneNumber = employee.PhoneNumber,
-            Role = employee.Role,
-        });
+        var employees = await repository.GetAllAsync();
+        return employees.Select(EmployeeMapper.ToDto);
     }
 
+    /// <inheritdoc />
     public async Task UpdateAsync(EmployeeDto dto)
     {
-        await _repository.UpdateAsync(new Employee
-        {
-            Address = dto.Address,
-            CreatedDate = dto.CreatedDate,
-            Creator = dto.Creator,
-            Email = dto.Email,
-            Id = dto.Id,
-            IsDeleted = dto.IsDeleted,
-            LastName = dto.LastName,
-            Name = dto.Name,
-            Patronymic = dto.Patronymic,
-            PhoneNumber = dto.PhoneNumber,
-            Role = dto.Role,
-        });
+        await repository.UpdateAsync(EmployeeMapper.ToEntity(dto));
     }
 }
