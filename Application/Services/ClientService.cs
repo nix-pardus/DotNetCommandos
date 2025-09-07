@@ -17,11 +17,10 @@ public class ClientService(IClientRepository repository) : IClientService
         await repository.AddAsync(ClientMapper.ToEntity(dto));
     }
 
-    /// <inheritdoc />
-    public Task<ClientDto> DeleteAsync(Guid id)
-    {
-        throw new NotImplementedException();
-    }
+        public async Task DeleteAsync(Guid id)
+        {
+            await _repository.DeleteAsync(id);
+        }
 
     /// <inheritdoc />
     public Task<ClientDto> UpdateAsync(ClientDto dto)

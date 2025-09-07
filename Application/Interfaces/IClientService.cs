@@ -7,19 +7,13 @@ namespace ServiceCenter.Application.Interfaces;
 /// </summary>
 public interface IClientService
 {
-    /// <summary>
-    /// Создание нового клиента
-    /// </summary>
-    /// <param name="dto">DTO клиента</param>
-    /// <returns>Задача выполнения операции</returns>
-    Task CreateAsync(ClientDto dto);
+    public interface IClientService
+    {
+        //TODO: пока так, но в итоге надо сделать отденьные dto
+        Task CreateAsync(ClientDto dto);
+        Task<ClientDto> UpdateAsync(ClientDto dto);
+        Task DeleteAsync(Guid id);
 
-    /// <summary>
-    /// Обновление данных клиента
-    /// </summary>
-    /// <param name="dto">DTO клиента с обновлёнными данными</param>
-    /// <returns>Обновлённый клиент</returns>
-    Task<ClientDto> UpdateAsync(ClientDto dto);
 
     /// <summary>
     /// Удаление клиента по идентификатору
