@@ -19,7 +19,7 @@ public class ClientService(IClientRepository repository) : IClientService
 
         public async Task DeleteAsync(Guid id)
         {
-            await _repository.DeleteAsync(id);
+            await repository.DeleteAsync(id);
         }
 
     /// <inheritdoc />

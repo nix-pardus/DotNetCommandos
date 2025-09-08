@@ -35,6 +35,5 @@ public interface IClientRepository
     /// </summary>
     /// <param name="id">Идентификатор клиента</param>
     Task DeleteAsync(Guid id);
-    Task AddAsync(ServiceCenter.Application.DTO.Client.ClientDto dto);
 }
 
