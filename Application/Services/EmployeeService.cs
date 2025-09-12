@@ -2,6 +2,7 @@
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Interfaces;
+using ServiceCenter.Domain.Queries;
 
 namespace ServiceCenter.Application.Services;
 
@@ -28,6 +29,12 @@ public class EmployeeService(IEmployeeRepository repository) : IEmployeeService
     {
         var employees = await repository.GetAllAsync();
         return employees.Select(EmployeeMapper.ToDto);
+    }
+
+    public async Task<(IEnumerable<EmployeeDto> Employees, int TotalCount)> GetEmployeesAsync(GetEmployeesQuery query)
+    {
+        var employees = await repository.GetEmployeesAsync(query);
+        return (employees.Employees.Select(EmployeeMapper.ToDto), employees.TotalCount);
     }
 
     /// <inheritdoc />

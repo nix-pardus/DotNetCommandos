@@ -1,4 +1,6 @@
 ﻿using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Domain.Queries;
+using ServiceCenter.Domain.ValueObjects.Enums;
 
 namespace ServiceCenter.Application.Interfaces;
 
@@ -33,4 +35,11 @@ public interface IEmployeeService
     /// </summary>
     /// <returns>Список DTO сотрудников</returns>
     Task<IEnumerable<EmployeeDto>> GetAllAsync();
+
+    /// <summary>
+    /// Метод получения списка сотрудников, поддерживающий пагинацию, фильтрацию и сортировку
+    /// </summary>
+    /// <param name="query">Параметры запроса</param>
+    /// <returns></returns>
+    Task<(IEnumerable<EmployeeDto> Employees, int TotalCount)> GetEmployeesAsync(GetEmployeesQuery query);
 }

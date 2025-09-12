@@ -4,6 +4,7 @@ using ServiceCenter.Application.Services;
 using ServiceCenter.Domain.Interfaces;
 using ServiceCenter.Infrascructure.DataAccess;
 using ServiceCenter.Infrascructure.DataAccess.Repositories;
+using ServiceCenter.Infrascructure.DataAccess.Repositories.Employees;
 
 var builder = WebApplication.CreateBuilder(args);
 

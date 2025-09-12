@@ -9,10 +9,10 @@ using ServiceCenter.Infrascructure.DataAccess;
 
 #nullable disable
 
-namespace Infrascructure.DataAccess.Migrations
+namespace ServiceCenter.Infrascructure.DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250830170143_InitialCreate")]
+    [Migration("20250905161854_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -25,22 +25,29 @@ namespace Infrascructure.DataAccess.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain.Aggregates.Client", b =>
+            modelBuilder.Entity("ServiceCenter.Domain.Entities.Client", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Address")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("CompanyName")
+                        .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
@@ -51,12 +58,16 @@ namespace Infrascructure.DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("Patronymic")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -65,6 +76,7 @@ namespace Infrascructure.DataAccess.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Region")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -72,7 +84,7 @@ namespace Infrascructure.DataAccess.Migrations
                     b.ToTable("Clients");
                 });
 
-            modelBuilder.Entity("Domain.Aggregates.Employee", b =>
+            modelBuilder.Entity("ServiceCenter.Domain.Entities.Employee", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -82,11 +94,11 @@ namespace Infrascructure.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("Creator")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -100,6 +112,9 @@ namespace Infrascructure.DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -123,13 +138,11 @@ namespace Infrascructure.DataAccess.Migrations
                     b.ToTable("Employees");
                 });
 
-            modelBuilder.Entity("Domain.Aggregates.Order", b =>
+            modelBuilder.Entity("ServiceCenter.Domain.Entities.Order", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ClientId")
                         .HasColumnType("uuid");
@@ -137,8 +150,8 @@ namespace Infrascructure.DataAccess.Migrations
                     b.Property<string>("Comment")
                         .HasColumnType("text");
 
-                    b.Property<long>("CreateBy")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -162,10 +175,10 @@ namespace Infrascructure.DataAccess.Migrations
                     b.Property<string>("Lead")
                         .HasColumnType("text");
 
-                    b.Property<long>("ModifyBy")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("ModifiedById")
+                        .HasColumnType("uuid");
 
-                    b.Property<DateTime>("ModifyDate")
+                    b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Note")

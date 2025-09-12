@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ServiceCenter.Application.DTO.Employee;
 using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Domain.Queries;
 
 namespace ServiceCenter.WebAPI.Controllers;
 
@@ -34,5 +35,12 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
     {
         await employeeService.DeleteAsync(id);
         return Ok();
+    }
+
+    [HttpGet("getEmployees")]
+    public async Task<IActionResult> GetEmployees([FromQuery]GetEmployeesQuery query)
+    {
+        var (employees, totalCount) = await employeeService.GetEmployeesAsync(query);
+        return Ok(new { Employees = employees, TotalCount = totalCount});
     }
 }

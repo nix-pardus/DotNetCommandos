@@ -1,4 +1,6 @@
 ﻿using ServiceCenter.Domain.Entities;
+using ServiceCenter.Domain.Queries;
+using ServiceCenter.Domain.ValueObjects.Enums;
 
 namespace ServiceCenter.Domain.Interfaces;
 
@@ -16,6 +18,13 @@ public interface IEmployeeRepository
     /// Получить всех активных сотрудников
     /// </summary>
     Task<IEnumerable<Employee>> GetAllActiveAsync();
+
+    /// <summary>
+    /// Получить список сотрудников с фильтрацией и пагинацией
+    /// </summary>
+    /// <param name="query">Обект с параметрами запроса</param>
+    /// <returns>Кортеж, содержащий список сотрудников и общее количество найденых сотрудников</returns>
+    Task<(IEnumerable<Employee> Employees, int TotalCount)> GetEmployeesAsync(GetEmployeesQuery query);
 
     /// <summary>
     /// Получить сотрудника по идентификатору
