@@ -1,53 +1,49 @@
-﻿using Domain.ValueObjects.Enums;
+﻿using ServiceCenter.Domain.ValueObjects.Enums;
 
-namespace Domain.Entities;
+namespace ServiceCenter.Domain.Entities;
+
 /// <summary>
-/// Сущность сотрудника
-/// </summary>
-public class EmployeeEntity
+/// Сущность сотрудника сервиса.
+/// Наследуется от <see cref="EntityBase"/>, который содержит общие поля для всех сущностей (например, Id, CreatedDate, ModifiedDate).
+public class Employee : EntityBase
 {
     /// <summary>
-    /// Id
+    /// Имя сотрудника.
     /// </summary>
-    public Guid Id { get; set; }
+    public string Name { get; set; } = null!;
+
     /// <summary>
-    /// Имя
+    /// Фамилия сотрудника.
     /// </summary>
-    public string Name { get; set; }
+    public string LastName { get; set; } = null!;
+
     /// <summary>
-    /// Фамилия
+    /// Отчество сотрудника.
     /// </summary>
-    public string LastName { get; set; }
+    public string Patronymic { get; set; } = null!;
+
     /// <summary>
-    /// Отчество
+    /// Домашний адрес сотрудника.
     /// </summary>
-    public string Patronymic { get; set; }
+    public string Address { get; set; } = null!;
+
     /// <summary>
-    /// Домашний адрес
+    /// Электронная почта сотрудника.
     /// </summary>
-    public string Address { get; set; }
+    public string Email { get; set; } = null!;
+
     /// <summary>
-    /// Электронная почта
+    /// Контактный телефон сотрудника.
     /// </summary>
-    public string Email { get; set; }
+    public string PhoneNumber { get; set; } = null!;
+
     /// <summary>
-    /// Номер телефона
+    /// Идентификатор сотрудника, который создал данного сотрудника.
     /// </summary>
-    public string PhoneNumber { get; set; }
+    public Guid CreatedById { get; set; }
+
     /// <summary>
-    /// Дата создания сотрудника
-    /// </summary>
-    public DateTime CreatedDate { get; set; }
-    /// <summary>
-    /// Id сотрудника, создавшего этого сотрудника
-    /// </summary>
-    public Guid Creator { get; set; }
-    /// <summary>
-    /// Роль в системе
+    /// Роль сотрудника в системе.
     /// </summary>
     public RoleType Role { get; set; }
-    /// <summary>
-    /// Актуальность сотрудника
-    /// </summary>
-    public bool IsDeleted { get; set; }
 }

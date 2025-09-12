@@ -1,8 +1,8 @@
-﻿using Domain.Aggregates;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ServiceCenter.Domain.Entities;
 
-namespace Infrascructure.DataAccess.Configuration;
+namespace ServiceCenter.Infrascructure.DataAccess.Configuration;
 
 public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
 {

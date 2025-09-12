@@ -1,9 +1,9 @@
-using Application.Interfaces;
-using Application.Services;
-using Domain.Interfaces;
-using Infrascructure.DataAccess;
-using Infrascructure.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
+using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Application.Services;
+using ServiceCenter.Domain.Interfaces;
+using ServiceCenter.Infrascructure.DataAccess;
+using ServiceCenter.Infrascructure.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 

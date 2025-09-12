@@ -1,29 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ServiceCenter.Domain.Entities;
 
-namespace Domain.Entities
+/// <summary>
+/// Сущность клиента сервиса.
+/// Наследуется от <see cref="EntityBase"/>, который содержит общие поля для всех сущностей (например, Id, CreatedDate, ModifiedDate).
+/// </summary>
+public class Client : EntityBase
 {
     /// <summary>
-    /// Клиент
+    /// Имя клиента.
     /// </summary>
-    public class Client
-    {
-        /// <summary>
-        /// UID
-        /// </summary>
-        public Guid Id { get; set; }//Я всё-равно не считаю long хорошим выбором для ID
-        public string Name { get; set; }
-        public string LastName { get; set; }
-        public string Patronymic { get; set; }
-        public string Address { get; set; }
-        public string City { get; set; }
-        public string Region { get; set; }
-        public string CompanyName { get; set; }
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
-        public bool IsDeleted { get; set; }
-    }
+    public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Фамилия клиента.
+    /// </summary>
+    public string LastName { get; set; } = null!;
+
+    /// <summary>
+    /// Отчество клиента.
+    /// </summary>
+    public string Patronymic { get; set; } = null!;
+
+    /// <summary>
+    /// Адрес проживания клиента.
+    /// </summary>
+    public string Address { get; set; } = null!;
+
+    /// <summary>
+    /// Город проживания клиента.
+    /// </summary>
+    public string City { get; set; } = null!;
+
+    /// <summary>
+    /// Регион/область проживания клиента.
+    /// </summary>
+    public string Region { get; set; } = null!;
+
+    /// <summary>
+    /// Название компании клиента, если применимо.
+    /// </summary>
+    public string CompanyName { get; set; } = null!;
+
+    /// <summary>
+    /// Электронная почта клиента.
+    /// </summary>
+    public string Email { get; set; } = null!;
+
+    /// <summary>
+    /// Контактный телефон клиента.
+    /// </summary>
+    public string PhoneNumber { get; set; } = null!;
 }
