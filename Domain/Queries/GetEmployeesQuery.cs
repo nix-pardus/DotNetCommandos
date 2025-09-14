@@ -2,10 +2,11 @@
 
 namespace ServiceCenter.Domain.Queries;
 
-public class GetEmployeesQuery
+/// <summary>
+/// 
+/// </summary>
+public class GetEmployeesQuery : QueryParameters<EmployeeSortBy>
 {
-    public int PageNumber { get; set; } = 1;
-    public int PageSize { get; set; } = 10;
     public string? Name { get; set; }
     public string? LastName { get; set; }
     public string? Patronymic { get; set; }
@@ -14,9 +15,4 @@ public class GetEmployeesQuery
     public string? PhoneNumber { get; set; }
     public RoleType? Role { get; set; }
     public Guid? CreatedById { get; set; }
-    public DateTime? CreatedDateAfter { get; set; }
-    public DateTime? CreatedDateBefore { get; set; }
-    public bool? IsDeleted { get; set; }
-    public EmployeeSortBy SortBy { get; set; } = EmployeeSortBy.FullName;
-    public bool IsSortDescending { get; set; } = false;
 }
