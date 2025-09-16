@@ -46,4 +46,6 @@ public class Employee : EntityBase
     /// Роль сотрудника в системе.
     /// </summary>
     public RoleType Role { get; set; }
+
+    public IEnumerable<Schedule> Schedules { get; set; }
 }

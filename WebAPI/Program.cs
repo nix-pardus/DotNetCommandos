@@ -36,7 +36,8 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IEmployeeRepository, EFEmployeeRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
-
+builder.Services.AddScoped<IScheduleRepository, EFScheduleRepository>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
