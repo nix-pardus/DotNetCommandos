@@ -48,4 +48,5 @@ public class Employee : EntityBase
     public RoleType Role { get; set; }
 
     public IEnumerable<Schedule> Schedules { get; set; }
+    public IEnumerable<ScheduleException> ScheduleExceptions { get; set; }
 }

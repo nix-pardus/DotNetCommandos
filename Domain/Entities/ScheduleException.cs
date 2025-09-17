@@ -16,10 +16,12 @@ public class ScheduleException : EntityBase
     /// <summary>
     /// Дата начала действия.
     /// </summary>
-    public DateTime EffectiveFrom { get; set; }
+    public DateOnly EffectiveFrom { get; set; }
 
     /// <summary>
     /// Дата окончания действия.
     /// </summary>
-    public DateTime EffectiveTo { get; set; }
+    public DateOnly EffectiveTo { get; set; }
+    public Employee Employee { get; set; }
+    public Guid EmployeeId { get; set; }
 }
