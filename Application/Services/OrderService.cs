@@ -23,8 +23,13 @@ public class OrderService(IOrderRepository repository) : IOrderService
         throw new NotImplementedException();
     }
 
+    public async Task DeleteAsync(Guid id)
+    {
+        await repository.DeleteAsync(id);
+    }
+
     /// <inheritdoc />
-    Task<OrderDto> IOrderService.GetAsync(Guid id)
+    public Task<OrderDto> GetAsync(Guid id)
     {
         throw new NotImplementedException();
     }
