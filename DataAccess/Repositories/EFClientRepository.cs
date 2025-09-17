@@ -14,18 +14,24 @@ public class EFClientRepository(DataContext context) : IClientRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid id)
-    {
-        var client = await _context.Clients.SingleOrDefaultAsync(x=>x.Id == id);
-        //TODO: Обрабатывать  null
-        _context.Clients.Remove(client);
-        await _context.SaveChangesAsync();
-    }
-    //TODO: будем реалистами - нужна пагинация
-    public async Task<IEnumerable<Client>> GetAllAsync()
-    {
-        throw new NotImplementedException();
-    }
+        public async Task DeleteAsync(Guid id)
+        {
+            var client = await _context.Clients.SingleOrDefaultAsync(x=>x.Id == id);
+            if (client != null)
+            {
+                client.IsDeleted = true;
+            }
+            else
+            {
+                throw new ArgumentNullException(@$"Client ""{id}"" is not exists");
+            }
+            await _context.SaveChangesAsync();
+        }
+        //TODO: будем реалистами - нужна пагинация
+        public async Task<IEnumerable<Client>> GetAllAsync()
+        {
+            throw new NotImplementedException();
+        }
 
     public async Task<Client> GetByIdAsync(Guid id)
     {

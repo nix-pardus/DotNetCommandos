@@ -15,4 +15,19 @@ public class ClientController(IClientService clientService) : ControllerBase
         await clientService.CreateAsync(client);
         return Ok();
     }
+    [HttpDelete("delete")]
+    public async Task<IActionResult> DeleteById([FromBody] Guid id)
+    {
+        try
+        {
+            await clientService.DeleteAsync(id);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            //TODO: сделать отдельный Exception, пока - так
+            return BadRequest(ex);
+        }
+
+    }
 }
