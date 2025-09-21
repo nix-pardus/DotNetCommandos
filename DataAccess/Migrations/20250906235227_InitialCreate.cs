@@ -1,10 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Infrascructure.DataAccess.Migrations
+namespace ServiceCenter.Infrascructure.DataAccess.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -19,13 +18,15 @@ namespace Infrascructure.DataAccess.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Patronymic = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    Address = table.Column<string>(type: "text", nullable: true),
-                    City = table.Column<string>(type: "text", nullable: true),
-                    Region = table.Column<string>(type: "text", nullable: true),
-                    CompanyName = table.Column<string>(type: "text", nullable: true),
-                    Email = table.Column<string>(type: "text", nullable: true),
+                    Patronymic = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: false),
+                    City = table.Column<string>(type: "text", nullable: false),
+                    Region = table.Column<string>(type: "text", nullable: false),
+                    CompanyName = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
                     PhoneNumber = table.Column<string>(type: "text", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ModifiedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -44,9 +45,10 @@ namespace Infrascructure.DataAccess.Migrations
                     Address = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "character varying(254)", maxLength: 254, nullable: false),
                     PhoneNumber = table.Column<string>(type: "text", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Creator = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
                     Role = table.Column<int>(type: "integer", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ModifiedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -58,12 +60,9 @@ namespace Infrascructure.DataAccess.Migrations
                 name: "Orders",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreateBy = table.Column<long>(type: "bigint", nullable: false),
-                    ModifyDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ModifyBy = table.Column<long>(type: "bigint", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: false),
                     ClientId = table.Column<Guid>(type: "uuid", nullable: false),
                     EquipmentType = table.Column<string>(type: "text", nullable: false),
                     EquipmentModel = table.Column<string>(type: "text", nullable: true),
@@ -73,9 +72,11 @@ namespace Infrascructure.DataAccess.Migrations
                     Comment = table.Column<string>(type: "text", nullable: true),
                     Lead = table.Column<string>(type: "text", nullable: true),
                     Priority = table.Column<int>(type: "integer", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ModifiedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {

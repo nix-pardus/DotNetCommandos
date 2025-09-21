@@ -13,6 +13,8 @@ namespace ServiceCenter.Infrascructure.DataAccess
         public DbSet<Client> Clients { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<Schedule> Schedules { get; set; }
+        public DbSet<ScheduleException> ScheduleExceptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -20,6 +22,7 @@ namespace ServiceCenter.Infrascructure.DataAccess
             modelBuilder.ApplyConfiguration(new ClientConfiguration());
             modelBuilder.ApplyConfiguration(new OrderConfiguration());
             modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
+            modelBuilder.ApplyConfiguration(new ScheduleConfiguration());
         }
     }
 }

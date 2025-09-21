@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceCenter.Infrascructure.DataAccess;
@@ -11,9 +12,11 @@ using ServiceCenter.Infrascructure.DataAccess;
 namespace ServiceCenter.Infrascructure.DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250916150916_ScheduleChange")]
+    partial class ScheduleChange
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -246,14 +249,11 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateOnly>("EffectiveFrom")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("EffectiveFrom")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateOnly>("EffectiveTo")
-                        .HasColumnType("date");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid");
+                    b.Property<DateTime>("EffectiveTo")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("ExceptionType")
                         .HasColumnType("integer");
@@ -265,8 +265,6 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId");
 
                     b.ToTable("ScheduleExceptions");
                 });
@@ -282,21 +280,8 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("ServiceCenter.Domain.Entities.ScheduleException", b =>
-                {
-                    b.HasOne("ServiceCenter.Domain.Entities.Employee", "Employee")
-                        .WithMany("ScheduleExceptions")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-                });
-
             modelBuilder.Entity("ServiceCenter.Domain.Entities.Employee", b =>
                 {
-                    b.Navigation("ScheduleExceptions");
-
                     b.Navigation("Schedules");
                 });
 #pragma warning restore 612, 618

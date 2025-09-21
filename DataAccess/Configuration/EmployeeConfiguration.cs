@@ -13,5 +13,13 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(x => x.LastName).IsRequired().HasMaxLength(100);
         builder.Property(x => x.Patronymic).HasMaxLength(100);
         builder.Property(x => x.Email).IsRequired().HasMaxLength(254);
+        builder.HasMany(x=>x.Schedules)
+            .WithOne(x=>x.Employee)
+            .HasForeignKey(x=>x.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(x => x.ScheduleExceptions)
+            .WithOne(x => x.Employee)
+            .HasForeignKey(x => x.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
