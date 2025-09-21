@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Services;
 using ServiceCenter.Domain.Interfaces;
@@ -36,10 +39,28 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IEmployeeRepository, EFEmployeeRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
+builder.Services.AddScoped<IScheduleRepository, EFScheduleRepository>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
+builder.Services.AddScoped<IScheduleExceptionRepository, EFScheduleExceptionRepository>();
+builder.Services.AddScoped<IScheduleExceptionService, ScheduleExceptionService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(opt=> 
+{
+    opt.MapType<DateOnly>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "date",
+        Example = new OpenApiString(DateTime.Today.ToString("yyyy-MM-dd"))
+    });
+    opt.MapType<TimeOnly>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "time",
+        Example = new OpenApiString(DateTime.Today.ToString("HH-mm-ss.ff"))
+    });
+});
 
 var app = builder.Build();
 

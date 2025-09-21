@@ -9,5 +9,7 @@ public static partial class EmployeeMapper
 {
     // Mapperly автоматически создаст методы маппинга
     public static partial EmployeeDto ToDto(Employee employee);
+    public static partial EmployeeMinimalDto ToMinimalDto(Employee employee);
     public static partial Employee ToEntity(EmployeeDto dto);
+    
 }
