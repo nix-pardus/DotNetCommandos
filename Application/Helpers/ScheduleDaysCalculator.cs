@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ServiceCenter.Application.Helpers
 {
-    public static class ScheduleDaysCalculator
+    internal static class ScheduleDaysCalculator
     {
         public static bool IsWorkDay(DateOnly date, DateOnly scheduleStartDate, int workDays, int restDays)
         {

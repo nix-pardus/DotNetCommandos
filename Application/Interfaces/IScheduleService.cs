@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Schedule;
+﻿using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Schedule;
 
 namespace ServiceCenter.Application.Interfaces;
 
@@ -17,4 +18,5 @@ public interface IScheduleService
     /// <param name="id">Идентификатор графика</param>
     Task DeleteAsync(Guid id);
     Task<IEnumerable<ScheduleDayDto>> GetScheduleByEmployee(Guid employeeId, DateOnly startDate, DateOnly endDate);
+    Task<IDictionary<EmployeeMinimalDto, IEnumerable<ScheduleDayDto>>> GetSchedule(DateOnly startDate, DateOnly endDate);
 }

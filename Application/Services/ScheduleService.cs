@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Schedule;
+﻿using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Schedule;
 using ServiceCenter.Application.Helpers;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
@@ -11,7 +12,7 @@ namespace ServiceCenter.Application.Services;
 /// Сервис для работы с графиком работы
 /// Реализует <see cref="IScheduleService"/>
 /// </summary>
-public class ScheduleService(IScheduleRepository repository, IScheduleExceptionRepository exceptionRepository) : IScheduleService
+public class ScheduleService(IScheduleRepository repository, IScheduleExceptionRepository exceptionRepository, IEmployeeRepository employeeRepository) : IScheduleService
 {
     /// <inheritdoc />
     public async Task CreateAsync(ScheduleDto dto)
@@ -24,49 +25,61 @@ public class ScheduleService(IScheduleRepository repository, IScheduleExceptionR
         await repository.DeleteAsync(id);
     }
 
+    public async Task<IDictionary<EmployeeMinimalDto, IEnumerable<ScheduleDayDto>>> GetSchedule(DateOnly startDate, DateOnly endDate)
+    {
+        var schedules = (await repository.GetAllByIntervalAsync(startDate, endDate)).OrderBy(x => x.EffectiveFrom).ToList();
+        var exceptions = (await exceptionRepository.GetAllByIntervalAsync(startDate, endDate)).OrderBy(x => x.EffectiveFrom).ToList();
+        var employeeIds = schedules
+               .Select(s => s.EmployeeId)
+               .Concat(exceptions.Select(e => e.EmployeeId))
+               .Distinct()
+               .ToList();
+        var employees = await employeeRepository.GetAllAsync();
+        var employeesDict = employees.ToDictionary(e => e.Id);
+        var result = new Dictionary<EmployeeMinimalDto, IEnumerable<ScheduleDayDto>>();
+        foreach (var employeeId in employeeIds)
+        {
+            if (!employeesDict.TryGetValue(employeeId, out var employee))
+                continue;
+
+            var employeeSchedules = schedules
+                .Where(x => x.EmployeeId == employeeId)
+                .OrderBy(x => x.EffectiveFrom)
+                .ToList();
+
+            var employeeExceptions = exceptions
+                .Where(x => x.EmployeeId == employeeId)
+                .OrderBy(x => x.EffectiveFrom)
+                .ToList();
+
+            if (!employeeSchedules.Any())
+                continue;
+
+            var scheduleDays = CalculateEmployeeSchedule.Calculate(
+                employeeSchedules,
+                employeeExceptions,
+                startDate,
+                endDate
+            );
+
+            var employeeDto = EmployeeMapper.ToMinimalDto(employee);
+            result[employeeDto] = scheduleDays;
+        }
+
+        return result;
+    }
+
     public async Task<IEnumerable<ScheduleDayDto>> GetScheduleByEmployee(Guid employeeId, DateOnly startDate, DateOnly endDate)
     {
         var schedules = (await repository.GetAllByIntervalAsync(employeeId, startDate, endDate)).OrderBy(x => x.EffectiveFrom).ToList();
         var exceptions = (await exceptionRepository.GetAllByIntervalAsync(employeeId, startDate, endDate)).OrderBy(x => x.EffectiveFrom).ToList();
 
-        if (!schedules.Any())
-            return Enumerable.Empty<ScheduleDayDto>();
-
-        var intervalStart = startDate < schedules.FirstOrDefault()?.EffectiveFrom ? schedules.FirstOrDefault()?.EffectiveFrom ?? startDate : startDate;
-        var exceptionDates = exceptions
-        .SelectMany(ex =>
-        {
-            if (ex.EffectiveTo != default && ex.EffectiveTo >= ex.EffectiveFrom)
-            {
-                var days = ex.EffectiveTo.DayNumber - ex.EffectiveFrom.DayNumber + 1;
-                return Enumerable.Range(0, days).Select(offset => ex.EffectiveFrom.AddDays(offset));
-            }
-            return new[] { ex.EffectiveFrom };
-        })
-        .ToHashSet();
-        //TODO: это демонстрация ради демонстрации, переделать
-        return Enumerable.Range(0, (endDate.DayNumber - startDate.DayNumber) + 1)
-            .Select(x => intervalStart.AddDays(x))
-            .Where(date => date <= endDate)
-            //.Where(date => !exceptionDates.Contains(date))
-        .Select(date =>
-        {
-            var schedule = schedules.LastOrDefault(x => x.EffectiveFrom <= date && (x.EffectiveTo >= date || x.EffectiveTo == null));
-            var workDays = schedule.Pattern.Split('/').Select(x => int.Parse(x)).ToArray();
-            return new ScheduleDayDto
-            (
-                exceptionDates.Contains(date)?"Исключение":ScheduleDaysCalculator.GetDayType(
-                date,
-                schedule.EffectiveFrom,
-                workDays[0],
-                workDays[1]
-            ),
-                //date.DayOfWeek >= DayOfWeek.Monday && date.DayOfWeek <= DayOfWeek.Friday ? "Рабочий" : "Выходной",
-                schedule?.StartTime ?? TimeOnly.MinValue,
-                schedule?.EndTime ?? TimeOnly.MinValue,
-                date
+        return CalculateEmployeeSchedule.Calculate(
+                schedules,
+                exceptions,
+                startDate,
+                endDate
             );
-        }).ToList();
     }
 
     /// <inheritdoc />

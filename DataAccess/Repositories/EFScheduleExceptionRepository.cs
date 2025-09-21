@@ -27,9 +27,13 @@ public class EFScheduleExceptionRepository(DataContext context) : IScheduleExcep
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<ScheduleException>> GetAllByIntervalAsync(Guid employeeId, DateOnly startDate, DateOnly endDate)
+    public async Task<IEnumerable<ScheduleException>> GetAllByIntervalAsync(Guid? employeeId, DateOnly startDate, DateOnly endDate)
     {
-        return await _context.ScheduleExceptions.Where(x => x.EmployeeId == employeeId && ((x.EffectiveTo != null && x.EffectiveTo > startDate && x.EffectiveFrom <= endDate) || (x.EffectiveTo == null))).ToListAsync();
+        return await _context.ScheduleExceptions.Where(x => employeeId != null? x.EmployeeId == employeeId : true && ((x.EffectiveTo != null && x.EffectiveTo > startDate && x.EffectiveFrom <= endDate) || (x.EffectiveTo == null))).ToListAsync();
+    }
+    public async Task<IEnumerable<ScheduleException>> GetAllByIntervalAsync(DateOnly startDate, DateOnly endDate)
+    {
+        return await GetAllByIntervalAsync(null, startDate, endDate);
     }
 
     public async Task<IEnumerable<ScheduleException>> GetByEmployeePaged(Guid employeeId, int page, int pageSize)

@@ -11,7 +11,8 @@ public interface IScheduleExceptionRepository
     /// Получить все исключения сотрудника за период
     /// </summary>
     Task<IEnumerable<ScheduleException>> GetByEmployeePaged(Guid employeeId, int page, int pageSize);
-    Task<IEnumerable<ScheduleException>> GetAllByIntervalAsync(Guid employeeId, DateOnly startDate, DateOnly endDate);
+    Task<IEnumerable<ScheduleException>> GetAllByIntervalAsync(Guid? employeeId, DateOnly startDate, DateOnly endDate);
+    Task<IEnumerable<ScheduleException>> GetAllByIntervalAsync(DateOnly startDate, DateOnly endDate);
     /// <summary>
     /// Добавить исключение из графика
     /// </summary>
