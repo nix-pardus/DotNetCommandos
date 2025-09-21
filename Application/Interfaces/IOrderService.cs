@@ -29,9 +29,22 @@ public interface IOrderService
     Task<OrderDto> GetAsync(Guid id);
 
     /// <summary>
+    /// Получение списка заказов
+    /// </summary>   
+    /// <returns>список DTO заказов</returns>
+    Task<IEnumerable<OrderDto>> GetAllAsync();
+    
+    /// <summary>
     /// Удаление заказа по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор заказа</param>
     /// <returns>DTO заказа</returns>
     Task DeleteAsync(Guid id);
+
+    /// <summary>
+    /// Чтение всех заказов клиента
+    /// </summary>
+    /// <param name="ClientId">Идентификатор клиента</param>
+    /// <returns>список DTO заказов клиента</returns>
+    Task<IEnumerable<OrderDto>> GetByClientIdAsync(Guid ClientId);
 }

@@ -29,8 +29,23 @@ public class OrderService(IOrderRepository repository) : IOrderService
     }
 
     /// <inheritdoc />
-    public Task<OrderDto> GetAsync(Guid id)
+    public async Task<OrderDto> GetAsync(Guid id)
     {
-        throw new NotImplementedException();
+        var order = await repository.GetByIdAsync(id);
+        if (order == null) { return null; }
+        return OrderMapper.ToDto(order);
+    }
+
+    public async Task<IEnumerable<OrderDto>> GetAllAsync()
+    {
+        var orders = await repository.GetAllAsync();
+        return orders.Select(OrderMapper.ToDto);
+
+    }
+
+    public async Task<IEnumerable<OrderDto>> GetByClientIdAsync(Guid ClientId)
+    {
+        var orders = await repository.GetByClientIdAsync(ClientId);
+        return orders.Select(OrderMapper.ToDto);
     }
 }
