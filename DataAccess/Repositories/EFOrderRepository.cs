@@ -59,7 +59,7 @@ public class EFOrderRepository(DataContext context) : IOrderRepository
         {
             //реализовано не физическое удаление из БД, а проставление соответствующего признака
             order.IsDeleted = true;
-            _context.Orders.Update(order);
+            //_context.Orders.Update(order);
             await _context.SaveChangesAsync();
         }
     }
