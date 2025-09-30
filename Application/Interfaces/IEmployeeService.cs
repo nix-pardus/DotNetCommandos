@@ -12,7 +12,7 @@ public interface IEmployeeService
     /// </summary>
     /// <param name="dto">DTO сотрудника</param>
     /// <returns>Задача выполнения операции</returns>
-    Task CreateAsync(EmployeeDto dto);
+    Task CreateAsync(CreateEmployeeDto dto);
 
     /// <summary>
     /// Обновление данных сотрудника
