@@ -9,7 +9,7 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class OrderController(IOrderService orderService) : ControllerBase
 {
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] OrderDto order)
+    public async Task<IActionResult> Create([FromBody] CreateOrderDto order)
     {
         await orderService.CreateAsync(order);
         return Ok();

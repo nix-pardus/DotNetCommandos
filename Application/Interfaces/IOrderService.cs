@@ -12,7 +12,7 @@ public interface IOrderService
     /// </summary>
     /// <param name="dto">DTO заказа</param>
     /// <returns>Задача выполнения операции</returns>
-    Task CreateAsync(OrderDto dto);
+    Task CreateAsync(CreateOrderDto dto);
 
     /// <summary>
     /// Обновление существующего заказа

@@ -1,7 +1,9 @@
 ﻿using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.DTO.Order;
+using ServiceCenter.Domain.Entities;
 using ServiceCenter.Domain.Interfaces;
+using System.Xml.Linq;
 
 namespace ServiceCenter.Application.Services;
 
@@ -12,8 +14,28 @@ namespace ServiceCenter.Application.Services;
 public class OrderService(IOrderRepository repository) : IOrderService
 {
     /// <inheritdoc />
-    public async Task CreateAsync(OrderDto dto)
+    public async Task CreateAsync(CreateOrderDto create_dto)
     {
+        var dto = new OrderDto
+        (
+             Id: Guid.NewGuid(),
+             CreatedDate: DateTime.UtcNow,
+             CreatedById: Guid.Empty,
+             ModifiedDate: null,
+             ModifiedById: null,
+             ClientId: create_dto.ClientId,
+             EquipmentType: create_dto.EquipmentType,
+             EquipmentModel: create_dto.EquipmentModel,
+             IsWarranty: create_dto.IsWarranty,
+             Problem: create_dto.Problem,
+             Note: create_dto.Note,
+             Comment: create_dto.Comment,
+             Lead: create_dto.Lead,
+             Priority: create_dto.Priority,
+             IsDeleted: false,
+             StartDate: create_dto.StartDate,
+             EndDate: create_dto.EndDate
+        );
         await repository.AddAsync(OrderMapper.ToEntity(dto));
     }
 
