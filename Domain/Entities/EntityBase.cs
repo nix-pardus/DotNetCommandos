@@ -1,10 +1,12 @@
-﻿namespace ServiceCenter.Domain.Entities;
+﻿using ServiceCenter.Domain.Interfaces;
+
+namespace ServiceCenter.Domain.Entities;
 
 /// <summary>
 /// Базовая сущность с Id, датой создания и логическим удалением
 /// Используется для всех сущностей домена
 /// </summary>
-public abstract class EntityBase
+public abstract class EntityBase:IEntity
 {
     /// <summary>Идентификатор сущности</summary>
     public Guid Id { get; set; }

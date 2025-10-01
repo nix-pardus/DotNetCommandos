@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ServiceCenter.Application.DTO.Client;
+using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Domain.Entities;
 
 namespace ServiceCenter.WebAPI.Controllers;
 
@@ -29,5 +31,13 @@ public class ClientController(IClientService clientService) : ControllerBase
             return BadRequest(ex);
         }
 
+    }
+    
+    [HttpPost("get-by-filters")]
+    [ProducesResponseType(typeof(PagedResponse<Client>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
+    {
+        var response = await clientService.GetByFiltersAsync(request);
+        return Ok(response);
     }
 }

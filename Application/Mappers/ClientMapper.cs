@@ -1,5 +1,6 @@
 ﻿using Riok.Mapperly.Abstractions;
 using ServiceCenter.Application.DTO.Client;
+using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Domain.Entities;
 
 namespace ServiceCenter.Application.Mappers;
