@@ -33,6 +33,12 @@ public interface IOrderRepository
     /// <summary>
     /// Обновить существующий заказ
     /// </summary>
-    /// <param name="order">Сущность заказа</param>
+    /// <param name="id">Идентификатор заказа</param>
     Task UpdateAsync(Order order);
+
+    /// <summary>
+    /// Удалить существующий заказ
+    /// </summary>
+    /// <param name="order">Сущность заказа</param>
+    Task DeleteAsync(Guid id);
 }

@@ -1,4 +1,5 @@
 ﻿using ServiceCenter.Application.DTO.Client;
+using ServiceCenter.Application.DTO.Shared;
 
 namespace ServiceCenter.Application.Interfaces;
 
@@ -11,6 +12,7 @@ public interface IClientService
     //TODO: пока так, но в итоге надо сделать отденьные dto
     Task CreateAsync(ClientDto dto);
     Task<ClientDto> UpdateAsync(ClientDto dto);
+    Task<PagedResponse<ClientDto>> GetByFiltersAsync(GetByFiltersRequest request);
     /// <summary>
     /// Удаление клиента по идентификатору
     /// </summary>

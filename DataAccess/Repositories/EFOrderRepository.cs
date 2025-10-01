@@ -51,4 +51,16 @@ public class EFOrderRepository(DataContext context) : IOrderRepository
         _context.Orders.Update(order);
         await _context.SaveChangesAsync();
     }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var order = await _context.Orders.SingleOrDefaultAsync(t => t.Id == id);
+        if (order != null)
+        {
+            //реализовано не физическое удаление из БД, а проставление соответствующего признака
+            order.IsDeleted = true;
+            //_context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+        }
+    }
 }

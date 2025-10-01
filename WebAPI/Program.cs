@@ -51,6 +51,10 @@ builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
 builder.Services.AddScoped<IScheduleExceptionRepository, EFScheduleExceptionRepository>();
 builder.Services.AddScoped<IScheduleExceptionService, ScheduleExceptionService>();
+
+builder.Services.AddScoped(typeof(IFilterBuilder<>), typeof(FilterBuilder<>));
+builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opt=> 
