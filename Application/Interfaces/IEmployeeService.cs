@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Employee;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 
 namespace ServiceCenter.Application.Interfaces;
 
@@ -12,14 +13,14 @@ public interface IEmployeeService
     /// </summary>
     /// <param name="dto">DTO сотрудника</param>
     /// <returns>Задача выполнения операции</returns>
-    Task CreateAsync(CreateEmployeeDto dto);
+    Task CreateAsync(EmployeeCreateRequest dto);
 
     /// <summary>
     /// Обновление данных сотрудника
     /// </summary>
     /// <param name="dto">DTO сотрудника с обновлёнными данными</param>
     /// <returns>Задача выполнения операции</returns>
-    Task UpdateAsync(EmployeeDto dto);
+    Task UpdateAsync(EmployeeUpdateRequest dto);
 
     /// <summary>
     /// Удаление сотрудника по идентификатору
@@ -32,5 +33,5 @@ public interface IEmployeeService
     /// Получение списка всех сотрудников
     /// </summary>
     /// <returns>Список DTO сотрудников</returns>
-    Task<IEnumerable<EmployeeDto>> GetAllAsync();
+    Task<IEnumerable<EmployeeFullResponse>> GetAllAsync();
 }

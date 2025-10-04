@@ -1,5 +1,6 @@
 ﻿using Riok.Mapperly.Abstractions;
-using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Domain.Entities;
 
 namespace ServiceCenter.Application.Mappers;
@@ -8,8 +9,9 @@ namespace ServiceCenter.Application.Mappers;
 public static partial class EmployeeMapper
 {
     // Mapperly автоматически создаст методы маппинга
-    public static partial EmployeeDto ToDto(Employee employee);
-    public static partial EmployeeMinimalDto ToMinimalDto(Employee employee);
-    public static partial Employee ToEntity(EmployeeDto dto);
-    
+    public static partial EmployeeFullResponse ToDto(Employee employee);
+    public static partial EmployeeMinimalResponse ToMinimalDto(Employee employee);
+    public static partial Employee ToEntity(EmployeeCreateRequest dto);
+    public static partial Employee ToEntity(EmployeeUpdateRequest dto);
+
 }

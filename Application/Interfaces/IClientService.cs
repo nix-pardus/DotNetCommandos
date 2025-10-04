@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Client;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 
 namespace ServiceCenter.Application.Interfaces;
 
@@ -9,8 +10,8 @@ namespace ServiceCenter.Application.Interfaces;
 public interface IClientService
 {
     //TODO: пока так, но в итоге надо сделать отденьные dto
-    Task CreateAsync(ClientDto dto);
-    Task<ClientDto> UpdateAsync(ClientDto dto);
+    Task CreateAsync(ClientCreateRequest dto);
+    Task<ClientFullResponse> UpdateAsync(ClientUpdateRequest dto);
     /// <summary>
     /// Удаление клиента по идентификатору
     /// </summary>

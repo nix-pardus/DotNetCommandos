@@ -1,5 +1,4 @@
-﻿
-namespace ServiceCenter.Application.DTO.Schedule;
+﻿namespace ServiceCenter.Application.DTO.Shared;
 
 /// <summary>
 /// День графика

@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Employee;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Interfaces;
@@ -12,25 +13,9 @@ namespace ServiceCenter.Application.Services;
 public class EmployeeService(IEmployeeRepository repository) : IEmployeeService
 {
     /// <inheritdoc />
-    public async Task CreateAsync(CreateEmployeeDto dto)
+    public async Task CreateAsync(EmployeeCreateRequest dto)
     {
-        var employee = new EmployeeDto
-        (
-            Id: Guid.NewGuid(),
-            Name: dto.Name,
-            LastName: dto.LastName,
-            Patronymic: dto.Patronymic,
-            Address: dto.Address,
-            Email: dto.Email,
-            PhoneNumber: dto.PhoneNumber,
-            CreatedDate: DateTime.UtcNow,
-            CreatedById: Guid.Empty, // TODO: заменить на идентификатор текущего пользователя
-            ModifiedDate: null,
-            ModifyById: null,
-            Role: dto.Role,
-            IsDeleted: false
-        );
-        await repository.AddAsync(EmployeeMapper.ToEntity(employee));
+        await repository.AddAsync(EmployeeMapper.ToEntity(dto));
     }
 
     /// <inheritdoc />
@@ -40,14 +25,14 @@ public class EmployeeService(IEmployeeRepository repository) : IEmployeeService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<EmployeeDto>> GetAllAsync()
+    public async Task<IEnumerable<EmployeeFullResponse>> GetAllAsync()
     {
         var employees = await repository.GetAllAsync();
         return employees.Select(EmployeeMapper.ToDto);
     }
 
     /// <inheritdoc />
-    public async Task UpdateAsync(EmployeeDto dto)
+    public async Task UpdateAsync(EmployeeUpdateRequest dto)
     {
         await repository.UpdateAsync(EmployeeMapper.ToEntity(dto));
     }

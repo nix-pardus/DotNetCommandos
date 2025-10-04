@@ -1,10 +1,10 @@
-﻿using ServiceCenter.Application.DTO.Employee;
-using ServiceCenter.Application.DTO.Schedule;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
+using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Helpers;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Interfaces;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ServiceCenter.Application.Services;
 
@@ -15,7 +15,7 @@ namespace ServiceCenter.Application.Services;
 public class ScheduleService(IScheduleRepository repository, IScheduleExceptionRepository exceptionRepository, IEmployeeRepository employeeRepository) : IScheduleService
 {
     /// <inheritdoc />
-    public async Task CreateAsync(ScheduleDto dto)
+    public async Task CreateAsync(ScheduleCreateRequest dto)
     {
         await repository.AddAsync(ScheduleMapper.ToEntity(dto));
     }
@@ -25,7 +25,7 @@ public class ScheduleService(IScheduleRepository repository, IScheduleExceptionR
         await repository.DeleteAsync(id);
     }
 
-    public async Task<IDictionary<EmployeeMinimalDto, IEnumerable<ScheduleDayDto>>> GetSchedule(DateOnly startDate, DateOnly endDate)
+    public async Task<IDictionary<EmployeeMinimalResponse, IEnumerable<ScheduleDayDto>>> GetSchedule(DateOnly startDate, DateOnly endDate)
     {
         var schedules = (await repository.GetAllByIntervalAsync(startDate, endDate)).OrderBy(x => x.EffectiveFrom).ToList();
         var exceptions = (await exceptionRepository.GetAllByIntervalAsync(startDate, endDate)).OrderBy(x => x.EffectiveFrom).ToList();
@@ -36,7 +36,7 @@ public class ScheduleService(IScheduleRepository repository, IScheduleExceptionR
                .ToList();
         var employees = await employeeRepository.GetAllAsync();
         var employeesDict = employees.ToDictionary(e => e.Id);
-        var result = new Dictionary<EmployeeMinimalDto, IEnumerable<ScheduleDayDto>>();
+        var result = new Dictionary<EmployeeMinimalResponse, IEnumerable<ScheduleDayDto>>();
         foreach (var employeeId in employeeIds)
         {
             if (!employeesDict.TryGetValue(employeeId, out var employee))
@@ -83,7 +83,7 @@ public class ScheduleService(IScheduleRepository repository, IScheduleExceptionR
     }
 
     /// <inheritdoc />
-    public Task<ScheduleDto> UpdateAsync(ScheduleDto dto)
+    public Task<ScheduleFullResponse> UpdateAsync(ScheduleUpdateRequest dto)
     {
         throw new NotImplementedException();
     }

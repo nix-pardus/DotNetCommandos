@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServiceCenter.Application.DTO.Employee;
-using ServiceCenter.Application.DTO.Schedule;
-using ServiceCenter.Application.DTO.Schedule.Responces;
+using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
 
 namespace ServiceCenter.WebAPI.Controllers;
@@ -11,7 +10,7 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class ScheduleController(IScheduleService service) : ControllerBase
 {
     [HttpPost("create")]
-    public async Task<IActionResult> Post([FromBody] ScheduleDto schedule)
+    public async Task<IActionResult> Post([FromBody] ScheduleCreateRequest schedule)
     {
         await service.CreateAsync(schedule);
         return Ok();
@@ -42,11 +41,11 @@ public class ScheduleController(IScheduleService service) : ControllerBase
     }
     //TODO:кмк он должен быть в Employee
     [HttpGet("get-all-work-days-by-interval")]
-    [ProducesResponseType(typeof(AllScheduleResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ScheduleEmployeeListResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllDaysByInterval([FromQuery]DateOnly startDate, [FromQuery] DateOnly endDate)
     {
         var schedule = await service.GetSchedule(startDate, endDate);
-        var response = schedule.Select(kvp => new AllScheduleResponseDto
+        var response = schedule.Select(kvp => new ScheduleEmployeeListResponse
         {
             Employee = kvp.Key,
             ScheduleDays = kvp.Value.ToList()

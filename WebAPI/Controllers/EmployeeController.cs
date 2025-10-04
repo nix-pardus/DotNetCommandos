@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
 
 namespace ServiceCenter.WebAPI.Controllers;
@@ -9,9 +10,9 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class EmployeeController(IEmployeeService employeeService) : ControllerBase
 {
     [HttpPost("create")]
-    public async Task<IActionResult> Post([FromQuery] CreateEmployeeDto createDto)
+    public async Task<IActionResult> Post([FromBody] EmployeeCreateRequest employeeDto)
     {
-        await employeeService.CreateAsync(createDto);
+        await employeeService.CreateAsync(employeeDto);
         return Ok();
     }
 
@@ -23,14 +24,14 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
     }
 
     [HttpPut("update")]
-    public async Task<IActionResult> Update([FromBody] EmployeeDto employeeDto)
+    public async Task<IActionResult> Update([FromBody] EmployeeUpdateRequest employeeDto)
     {
         await employeeService.UpdateAsync(employeeDto);
         return Ok();
     }
 
     [HttpDelete("delete")]
-    public async Task<IActionResult> Delete([FromQuery] Guid id)
+    public async Task<IActionResult> Delete([FromBody] Guid id)
     {
         await employeeService.DeleteAsync(id);
         return Ok();

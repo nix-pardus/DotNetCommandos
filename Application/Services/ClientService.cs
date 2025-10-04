@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Client;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Interfaces;
@@ -12,7 +13,7 @@ namespace ServiceCenter.Application.Services;
 public class ClientService(IClientRepository repository) : IClientService
 {
     /// <inheritdoc />
-    public async Task CreateAsync(ClientDto dto)
+    public async Task CreateAsync(ClientCreateRequest dto)
     {
         await repository.AddAsync(ClientMapper.ToEntity(dto));
     }
@@ -23,7 +24,7 @@ public class ClientService(IClientRepository repository) : IClientService
         }
 
     /// <inheritdoc />
-    public Task<ClientDto> UpdateAsync(ClientDto dto)
+    public Task<ClientFullResponse> UpdateAsync(ClientUpdateRequest dto)
     {
         throw new NotImplementedException();
     }
