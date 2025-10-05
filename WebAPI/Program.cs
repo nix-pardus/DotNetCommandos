@@ -7,6 +7,7 @@ using ServiceCenter.Application.Services;
 using ServiceCenter.Domain.Interfaces;
 using ServiceCenter.Infrascructure.DataAccess;
 using ServiceCenter.Infrascructure.DataAccess.Repositories;
+using ServiceCenter.Infrascructure.DataAccess.Specifications;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,6 +52,10 @@ builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
 builder.Services.AddScoped<IScheduleExceptionRepository, EFScheduleExceptionRepository>();
 builder.Services.AddScoped<IScheduleExceptionService, ScheduleExceptionService>();
+
+builder.Services.AddScoped(typeof(IFilterBuilder<>), typeof(FilterBuilder<>));
+builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opt=> 
