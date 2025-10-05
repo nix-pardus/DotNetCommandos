@@ -43,6 +43,11 @@ public class Employee : EntityBase
     public Guid CreatedById { get; set; }
 
     /// <summary>
+    /// Идентификатор сотрудника, который изменил данного сотрудника.
+    /// </summary>
+    public Guid? ModifyById { get; set; }
+
+    /// <summary>
     /// Роль сотрудника в системе.
     /// </summary>
     public RoleType Role { get; set; }

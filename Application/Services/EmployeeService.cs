@@ -12,9 +12,25 @@ namespace ServiceCenter.Application.Services;
 public class EmployeeService(IEmployeeRepository repository) : IEmployeeService
 {
     /// <inheritdoc />
-    public async Task CreateAsync(EmployeeDto dto)
+    public async Task CreateAsync(CreateEmployeeDto dto)
     {
-        await repository.AddAsync(EmployeeMapper.ToEntity(dto));
+        var employee = new EmployeeDto
+        (
+            Id: Guid.NewGuid(),
+            Name: dto.Name,
+            LastName: dto.LastName,
+            Patronymic: dto.Patronymic,
+            Address: dto.Address,
+            Email: dto.Email,
+            PhoneNumber: dto.PhoneNumber,
+            CreatedDate: DateTime.UtcNow,
+            CreatedById: Guid.Empty, // TODO: заменить на идентификатор текущего пользователя
+            ModifiedDate: null,
+            ModifyById: null,
+            Role: dto.Role,
+            IsDeleted: false
+        );
+        await repository.AddAsync(EmployeeMapper.ToEntity(employee));
     }
 
     /// <inheritdoc />
