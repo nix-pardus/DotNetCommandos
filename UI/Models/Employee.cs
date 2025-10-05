@@ -10,7 +10,9 @@
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public DateTime CreatedDate { get; set; }
-        public Guid Creator { get; set; }
+        public DateTime? ModifiedDate { get; set; }
+        public Guid CreatedById { get; set; }
+        public Guid? ModifyById { get; set; }
         public RoleType Role { get; set; }
         public bool IsDeleted { get; set; }
     }

@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using ServiceCenter.Application.Interfaces;
@@ -7,7 +6,7 @@ using ServiceCenter.Application.Services;
 using ServiceCenter.Domain.Interfaces;
 using ServiceCenter.Infrascructure.DataAccess;
 using ServiceCenter.Infrascructure.DataAccess.Repositories;
-using System.Text.Json.Serialization;
+using ServiceCenter.WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,12 +24,6 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Add services to the container.
-
-builder.Services.AddControllersWithViews()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
 
 builder.Services.AddControllers();
 
@@ -67,6 +60,8 @@ builder.Services.AddSwaggerGen(opt=>
         Format = "time",
         Example = new OpenApiString(DateTime.Today.ToString("HH-mm-ss.ff"))
     });
+
+    opt.SchemaFilter<EnumSchemaFilter>();
 });
 
 var app = builder.Build();
