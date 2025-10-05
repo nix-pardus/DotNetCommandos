@@ -1,6 +1,8 @@
 ﻿using ServiceCenter.Application.DTO.Client;
+using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
+using ServiceCenter.Domain.Entities;
 using ServiceCenter.Domain.Interfaces;
 
 namespace ServiceCenter.Application.Services;
@@ -9,22 +11,12 @@ namespace ServiceCenter.Application.Services;
 /// Сервис для работы с клиентами
 /// Реализует <see cref="IClientService"/>
 /// </summary>
-public class ClientService(IClientRepository repository) : IClientService
+public class ClientService : BaseService<Client, ClientDto, IClientRepository>, IClientService
 {
-    /// <inheritdoc />
-    public async Task CreateAsync(ClientDto dto)
-    {
-        await repository.AddAsync(ClientMapper.ToEntity(dto));
-    }
+    protected override ClientDto ToDto(Client entity) => ClientMapper.ToDto(entity);
+    protected override Client ToEntity(ClientDto dto) => ClientMapper.ToEntity(dto);
 
-        public async Task DeleteAsync(Guid id)
-        {
-            await repository.DeleteAsync(id);
-        }
-
-    /// <inheritdoc />
-    public Task<ClientDto> UpdateAsync(ClientDto dto)
-    {
-        throw new NotImplementedException();
-    }
+    public ClientService(IClientRepository repository)
+          : base(repository) { }
+    
 }
