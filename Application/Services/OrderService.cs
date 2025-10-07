@@ -67,20 +67,7 @@ namespace ServiceCenter.Application.Services;
         return OrderMapper.ToDto(order);
     }
 
-    public async Task<IEnumerable<OrderDto>> GetAllAsync()
-    {
-        var orders = await _repository.GetAllAsync();
-        return orders.Select(OrderMapper.ToDto);
-
-    }
-
-    public async Task<IEnumerable<OrderDto>> GetByClientIdAsync(Guid ClientId)
-    {
-        var orders = await _repository.GetByClientIdAsync(ClientId);
-        return orders.Select(OrderMapper.ToDto);
-    }
-
-    ///// <summary>
+      ///// <summary>
     ///// Получение списка заказов c фильтрацией/пагинацией
     ///// </summary>   
     ///// <returns>список DTO заказов</returns>

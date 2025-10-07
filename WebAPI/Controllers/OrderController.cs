@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ServiceCenter.Application.DTO.Employee;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Services;
@@ -25,13 +26,6 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return Ok();
     }
 
-    [HttpGet("getAll")]
-    public async Task<IActionResult> GetAll()
-    {
-        var orders = await orderService.GetAllAsync();
-        return Ok(orders);
-    }
-
     [HttpPost("getById")]
     public async Task<IActionResult> GetById([FromBody] Guid orderId)
     {
@@ -41,7 +35,6 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return Ok(order);
     }
 
-
     [HttpPost("getByFilters")]
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
@@ -49,11 +42,10 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return Ok(response);
     }
 
-    [HttpPost("getByFilters")]
-    public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
+    [HttpPut("update")]
+    public async Task<IActionResult> Update([FromBody] OrderDto order)
     {
-        var response = await orderService.GetByFiltersAsync(request);
-        return Ok(response);
+        await orderService.UpdateAsync(order);
+        return Ok();
     }
-
 }

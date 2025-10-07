@@ -20,7 +20,7 @@ public interface IOrderService
     /// </summary>
     /// <param name="dto">DTO заказа с обновлёнными данными</param>
     /// <returns>Обновлённый заказ</returns>
-    Task<OrderDto> UpdateAsync(OrderDto dto);
+    Task UpdateAsync(OrderDto dto);
 
     /// <summary>
     /// Получение заказа по идентификатору
@@ -29,11 +29,6 @@ public interface IOrderService
     /// <returns>DTO заказа</returns>
     Task<OrderDto> GetAsync(Guid id);
 
-    /// <summary>
-    /// Получение списка заказов
-    /// </summary>   
-    /// <returns>список DTO заказов</returns>
-    Task<IEnumerable<OrderDto>> GetAllAsync();
 
     /// <summary>
     /// Получение списка заказов c фильтрацией/пагинацией
@@ -47,11 +42,4 @@ public interface IOrderService
     /// <param name="id">Идентификатор заказа</param>
     /// <returns>DTO заказа</returns>
     Task DeleteAsync(Guid id);
-
-    /// <summary>
-    /// Чтение всех заказов клиента
-    /// </summary>
-    /// <param name="ClientId">Идентификатор клиента</param>
-    /// <returns>список DTO заказов клиента</returns>
-    Task<IEnumerable<OrderDto>> GetByClientIdAsync(Guid ClientId);
 }
