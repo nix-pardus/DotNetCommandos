@@ -5,20 +5,8 @@ namespace ServiceCenter.Domain.Interfaces;
 /// <summary>
 /// Репозиторий для работы с сущностью Заказ
 /// </summary>
-public interface IOrderRepository
+public interface IOrderRepository:IRepository<Order>
 {
-    /// <summary>
-    /// Добавить новый заказ
-    /// </summary>
-    /// <param name="order">Сущность заказа</param>
-    Task AddAsync(Order order);
-
-    /// <summary>
-    /// Получить заказ по идентификатору
-    /// </summary>
-    /// <param name="id">Идентификатор заказа</param>
-    Task<Order> GetByIdAsync(Guid id);
-
     /// <summary>
     /// Получить все заказы
     /// </summary>
@@ -29,16 +17,4 @@ public interface IOrderRepository
     /// </summary>
     /// <param name="clientId">Идентификатор клиента</param>
     Task<IEnumerable<Order>> GetByClientIdAsync(Guid clientId);
-
-    /// <summary>
-    /// Обновить существующий заказ
-    /// </summary>
-    /// <param name="id">Идентификатор заказа</param>
-    Task UpdateAsync(Order order);
-
-    /// <summary>
-    /// Удалить существующий заказ
-    /// </summary>
-    /// <param name="order">Сущность заказа</param>
-    Task DeleteAsync(Guid id);
 }

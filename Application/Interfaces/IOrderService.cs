@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Domain.DTO.Order;
+﻿using ServiceCenter.Application.DTO.Shared;
+using ServiceCenter.Domain.DTO.Order;
 
 namespace ServiceCenter.Application.Interfaces;
 
@@ -33,7 +34,13 @@ public interface IOrderService
     /// </summary>   
     /// <returns>список DTO заказов</returns>
     Task<IEnumerable<OrderDto>> GetAllAsync();
-    
+
+    /// <summary>
+    /// Получение списка заказов c фильтрацией/пагинацией
+    /// </summary>   
+    /// <returns>список DTO заказов</returns>
+    Task<PagedResponse<OrderDto>> GetByFiltersAsync(GetByFiltersRequest request);
+
     /// <summary>
     /// Удаление заказа по идентификатору
     /// </summary>

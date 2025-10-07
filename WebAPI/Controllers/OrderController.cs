@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Application.Services;
 using ServiceCenter.Domain.DTO.Order;
+using ServiceCenter.Domain.Entities;
 
 namespace ServiceCenter.WebAPI.Controllers;
 
@@ -37,4 +40,20 @@ public class OrderController(IOrderService orderService) : ControllerBase
             { return NoContent(); }
         return Ok(order);
     }
+
+
+    [HttpPost("getByFilters")]
+    public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
+    {
+        var response = await orderService.GetByFiltersAsync(request);
+        return Ok(response);
+    }
+
+    [HttpPost("getByFilters")]
+    public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
+    {
+        var response = await orderService.GetByFiltersAsync(request);
+        return Ok(response);
+    }
+
 }

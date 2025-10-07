@@ -1,4 +1,6 @@
-﻿using ServiceCenter.Application.Interfaces;
+﻿using ServiceCenter.Application.DTO.Client;
+using ServiceCenter.Application.DTO.Shared;
+using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.DTO.Order;
 using ServiceCenter.Domain.Entities;
@@ -11,8 +13,15 @@ namespace ServiceCenter.Application.Services;
 /// Сервис для работы с заказами
 /// Реализует <see cref="IOrderService"/>
 /// </summary>
-public class OrderService(IOrderRepository repository) : IOrderService
+
+    public class OrderService : BaseService<Order, OrderDto, IOrderRepository>, IOrderService
 {
+    protected override OrderDto ToDto(Order entity) => OrderMapper.ToDto(entity);
+    protected override Order ToEntity(OrderDto dto) => OrderMapper.ToEntity(dto);
+
+    public OrderService(IOrderRepository repository)
+          : base(repository) { }
+
     /// <inheritdoc />
     public async Task CreateAsync(CreateOrderDto create_dto)
     {
@@ -36,38 +45,45 @@ public class OrderService(IOrderRepository repository) : IOrderService
              StartDate: create_dto.StartDate,
              EndDate: create_dto.EndDate
         );
-        await repository.AddAsync(OrderMapper.ToEntity(dto));
+        await _repository.AddAsync(OrderMapper.ToEntity(dto));
     }
 
-    /// <inheritdoc />
-    public Task<OrderDto> UpdateAsync(OrderDto dto)
-    {
-        throw new NotImplementedException();
-    }
+    ///// <inheritdoc />
+    //public Task<OrderDto> UpdateAsync(OrderDto dto)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
-    public async Task DeleteAsync(Guid id)
-    {
-        await repository.DeleteAsync(id);
-    }
+    //public async Task DeleteAsync(Guid id)
+    //{
+    //    await repository.DeleteAsync(id);
+    //}
 
-    /// <inheritdoc />
+    ///// <inheritdoc />
     public async Task<OrderDto> GetAsync(Guid id)
     {
-        var order = await repository.GetByIdAsync(id);
+        var order = await _repository.GetByIdAsync(id);
         if (order == null) { return null; }
         return OrderMapper.ToDto(order);
     }
 
     public async Task<IEnumerable<OrderDto>> GetAllAsync()
     {
-        var orders = await repository.GetAllAsync();
+        var orders = await _repository.GetAllAsync();
         return orders.Select(OrderMapper.ToDto);
 
     }
 
     public async Task<IEnumerable<OrderDto>> GetByClientIdAsync(Guid ClientId)
     {
-        var orders = await repository.GetByClientIdAsync(ClientId);
+        var orders = await _repository.GetByClientIdAsync(ClientId);
         return orders.Select(OrderMapper.ToDto);
     }
+
+    ///// <summary>
+    ///// Получение списка заказов c фильтрацией/пагинацией
+    ///// </summary>   
+    ///// <returns>список DTO заказов</returns>
+    //public async Task<PagedResponse<ClientDto>> GetByFiltersAsync(GetByFiltersRequest request)
+    //{}
 }
