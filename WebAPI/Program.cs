@@ -7,6 +7,7 @@ using ServiceCenter.Application.Services;
 using ServiceCenter.Domain.Interfaces;
 using ServiceCenter.Infrascructure.DataAccess;
 using ServiceCenter.Infrascructure.DataAccess.Repositories;
+using ServiceCenter.Infrascructure.DataAccess.Specifications;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
