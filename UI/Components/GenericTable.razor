@@ -1,0 +1,99 @@
+﻿@typeparam TItem
+
+<table class="table table-striped table-bordered">
+	<thead>
+		<tr>
+			@foreach (var column in Columns)
+			{
+				<th>@column.Header</th>
+			}
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Items)
+		{
+			var isSelected = IsSelected(item);
+
+			<tr style="cursor: pointer;"
+				@onmouseenter="() => HighlightItem(item)"
+				@onmouseleave="() => UnhighlightItem()"
+				@onclick="() => SelectItem(item)"
+				class="@(IsHighlighted(item) ? "table-primary" : "")
+						   @(IsSelected(item) ? "selected-item" : "")">
+
+				@foreach (var column in Columns)
+				{
+					<td>@column.ValueSelector(item)</td>
+				}
+
+			</tr>
+
+			if (isSelected)
+			{
+				<tr class="action-panel-row">
+					<td colspan="@Columns.Count" class="action-panel-cell">
+						<div class="action-panel">
+							@ActionPanelTemplate?.Invoke(item)
+						</div>
+					</td>
+				</tr>
+			}
+		}
+	</tbody>
+</table>
+
+@code {
+	
+	[Parameter]
+	public IEnumerable<TItem> Items { get; set; } = Enumerable.Empty<TItem>();
+
+	[Parameter]
+	public List<TableColumn<TItem>> Columns { get; set; } = new();
+
+	[Parameter]
+	public TItem? SelectedItem { get; set; }
+
+	[Parameter]
+	public EventCallback<TItem> SelectedItemChanged { get; set; }
+
+	[Parameter]
+	public TItem? HighlightedItem { get; set; }
+
+	[Parameter]
+	public EventCallback<TItem> HighlightedItemChanged { get; set; }
+
+	[Parameter]
+	public RenderFragment<TItem>? ActionPanelTemplate { get; set; }
+
+	private bool IsSelected(TItem item) => EqualityComparer<TItem>.Default.Equals(item, SelectedItem);
+
+	private bool IsHighlighted(TItem item) => EqualityComparer<TItem>.Default.Equals(item, HighlightedItem);
+
+	private void HighlightItem(TItem item)
+	{
+		HighlightedItem = item;
+		HighlightedItemChanged.InvokeAsync(item);
+	}
+
+	private void UnhighlightItem()
+	{
+		HighlightedItem = default;
+		HighlightedItemChanged.InvokeAsync(default);
+	}
+
+	private void SelectItem(TItem item)
+	{
+		var comparer = EqualityComparer<TItem>.Default;
+
+		if(comparer.Equals(item, SelectedItem))
+		{
+			SelectedItem = default;
+			SelectedItemChanged.InvokeAsync(default);
+		}
+		else
+		{
+			SelectedItem = item;
+			SelectedItemChanged.InvokeAsync(item);
+		}
+	}
+}

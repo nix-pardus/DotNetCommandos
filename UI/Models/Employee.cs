@@ -15,5 +15,6 @@
         public Guid? ModifyById { get; set; }
         public RoleType Role { get; set; }
         public bool IsDeleted { get; set; }
+        public string FullName { get => $"{LastName} {Name} {Patronymic}"; }
     }
 }

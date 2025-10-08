@@ -1,69 +1,118 @@
 ﻿@page "/employees"
+@using UI.Components
 @using UI.Models
 @using UI.Services
 @inject IEmployeeService EmployeeService
 
-<h3>Employees</h3>
+<h3>Сотрудники</h3>
 
-@if(employees == null)
+@if (employees == null)
 {
-    <p>Loading employees...</p>
+	<p>Список загружается...</p>
 }
-else if(employees.Count == 0)
+else if (employees.Count == 0)
 {
-    <p>No employees found.</p>
+	<p>Сотрудники не найдены.</p>
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>LastName</th>
-                <th>Patronymic</th>
-                <th>Address</th>
-                <th>Email</th>
-                <th>PhoneNumber</th>
-                <th>CreatedDate</th>
-                <th>Creator</th>
-                <th>Role</th>
-                <th>IsDeleted</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach(var employee in employees)
-            {
-                <tr>
-                    <td>@employee.Id</td>
-                    <td>@employee.Name</td>
-                    <td>@employee.LastName</td>
-                    <td>@employee.Patronymic</td>
-                    <td>@employee.Address</td>
-                    <td>@employee.Email</td>
-                    <td>@employee.PhoneNumber</td>
-                    <td>@employee.CreatedDate</td>
-                    <td>@employee.Creator</td>
-                    <td>@employee.Role</td>
-                    <td>@employee.IsDeleted</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<GenericTable TItem="Employee"
+				  Items="employees"
+				  @bind-SelectedItem="selectedEmployee"
+				  @bind-HighlightedItem="highlightedEmployee"
+				  Columns="employeeColumns">
+
+		<ActionPanelTemplate Context="employee">
+			<AdaptiveDiv DesktopClass="btn-group" MobileClass="btn-group-vertical" Role="group" AriaLabel="Basic mixed styles example">
+				<button type="button" class="btn btn-primary" @onclick="() => ViewDetails(employee)">Просмотр</button>
+				@if (employee.Role.HasFlag(RoleType.Мастер))
+				{
+					<button type="button" class="btn btn-primary" @onclick="() => ViewDetails(employee)">Назначить на заказ</button>
+				}
+				<button type="button" class="btn btn-primary" @onclick="() => CopyInfo(employee)">Копировать</button>
+				<button type="button" class="btn btn-primary" @onclick="() => SendEmail(employee)">Отправить Email</button>
+				<button type="button" class="btn btn-primary" @onclick="() => EditEmployee(employee)">Редактировать</button>
+				<button type="button" class="btn btn-danger" @onclick="() => DeleteEmployee(employee)">Удалить</button>
+			</AdaptiveDiv>
+		</ActionPanelTemplate>
+
+	</GenericTable>
 }
 
 @code {
-    private List<Employee> employees;
+	public List<Employee> employees;
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            employees = await EmployeeService.GetAllEmployeesAsync();
-        }
-        catch(Exception ex)
-        {
-            Console.WriteLine($"Error loading employees: {ex.Message}");
-        }
-    }
+	private Employee? selectedEmployee;
+	private Employee? highlightedEmployee;
+
+	private List<TableColumn<Employee>> employeeColumns = new()
+	{
+		new TableColumn<Employee>
+		{
+			Header = "Полное имя",
+			ValueSelector = e => e.FullName
+		},
+		new TableColumn<Employee>
+		{
+			Header = "Домашний адрес",
+			ValueSelector = e => e.Address
+		},
+		new TableColumn<Employee>
+		{
+			Header = "Email",
+			ValueSelector = e => e.Email
+		},
+		new TableColumn<Employee>
+		{
+			Header = "Номер телефона",
+			ValueSelector = e => e.PhoneNumber
+		},
+		new TableColumn<Employee>
+		{
+			Header = "Роль",
+			ValueSelector = e => e.Role
+		}
+	};
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			employees = await EmployeeService.GetAllEmployeesAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error loading employees: {ex.Message}");
+		}
+	}
+
+	private void EditEmployee(Employee employee)
+	{
+		//TODO: Реализовать логику редактирования сотрудника
+		Console.WriteLine($"Editing employee: {employee.FullName}");
+	}
+
+	private void ViewDetails(Employee employee)
+	{
+		//TODO: Реализовать логику просмотра деталей сотрудника
+		Console.WriteLine($"Viewing details for employee: {employee.FullName}");
+	}
+
+	private void SendEmail(Employee employee)
+	{
+		//TODO: Реализовать логику отправки email сотруднику
+		Console.WriteLine($"Sending email to: {employee.Email}");
+	}
+
+	private void CopyInfo(Employee employee)
+	{
+		//TODO: Реализовать логику копирования информации о сотруднике
+		Console.WriteLine($"Copying info for employee: {employee.FullName}");
+	}
+
+	private void DeleteEmployee(Employee employee)
+	{
+		//TODO: Реализовать логику удаления сотрудника
+		Console.WriteLine($"Deleting employee: {employee.FullName}");
+	}
 }

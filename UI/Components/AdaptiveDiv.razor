@@ -1,0 +1,40 @@
+﻿@inject IJSRuntime JSRuntime
+
+<div class="@CurrentClass" role="@Role" aria-label="@AriaLabel">
+	@ChildContent
+</div>
+
+@code {
+	[Parameter]
+	public RenderFragment ChildContent { get; set; }
+
+	[Parameter]
+	public string DesktopClass { get; set; } = string.Empty;
+
+	[Parameter]
+	public string MobileClass { get; set; } = string.Empty;
+
+	[Parameter]
+	public string Role { get; set; } = string.Empty;
+
+	[Parameter]
+	public string AriaLabel { get; set; } = string.Empty;
+
+	private string CurrentClass { get; set; } = string.Empty;
+	private bool isMobile = false;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if(firstRender)
+		{
+			CheckScreenSize();
+		}
+	}
+
+	private async Task CheckScreenSize()
+	{
+		isMobile = await JSRuntime.InvokeAsync<bool>("eval", "window.innerWidth < 800");
+		CurrentClass = isMobile ? MobileClass : DesktopClass;
+		StateHasChanged();
+	}
+}
