@@ -54,4 +54,9 @@ public class Employee : EntityBase
 
     public IEnumerable<Schedule> Schedules { get; set; }
     public IEnumerable<ScheduleException> ScheduleExceptions { get; set; }
+
+    /// <summary>
+    /// Заказы, на которые назначен сотрудник
+    /// </summary>
+    public ICollection<OrderEmployee> AssignedOrders { get; set; } = new List<OrderEmployee>();
 }

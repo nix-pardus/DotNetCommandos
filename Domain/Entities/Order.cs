@@ -70,4 +70,14 @@ public class Order : EntityBase
     /// Дата окончания выполнения заказа.
     /// </summary>
     public DateTime EndDate { get; set; }
+
+    /// <summary>
+    /// Назначенные сотрудники на заказ
+    /// </summary>
+    public ICollection<OrderEmployee> AssignedEmployees { get; set; } = new List<OrderEmployee>();
+
+    /// <summary>
+    /// Главный сотрудник заказа (вычисляемое свойство)
+    /// </summary>
+    public Employee? LeadEmployee => AssignedEmployees.FirstOrDefault(x => x.IsPrimary)?.Employee;
 }

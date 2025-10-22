@@ -15,6 +15,7 @@ namespace ServiceCenter.Infrascructure.DataAccess
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Schedule> Schedules { get; set; }
         public DbSet<ScheduleException> ScheduleExceptions { get; set; }
+        public DbSet<OrderEmployee> OrderEmployees { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +24,8 @@ namespace ServiceCenter.Infrascructure.DataAccess
             modelBuilder.ApplyConfiguration(new OrderConfiguration());
             modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
             modelBuilder.ApplyConfiguration(new ScheduleConfiguration());
+            modelBuilder.ApplyConfiguration(new ScheduleExceptionConfiguration());
+            modelBuilder.ApplyConfiguration(new OrderEmployeeConfiguration());
         }
     }
 }

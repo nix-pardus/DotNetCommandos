@@ -1,4 +1,5 @@
 ﻿using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Shared;
 
 namespace ServiceCenter.Application.Interfaces;
 
@@ -29,8 +30,9 @@ public interface IEmployeeService
     Task DeleteAsync(Guid id);
 
     /// <summary>
-    /// Получение списка всех сотрудников
+    /// Получение сотрудников по фильтрам
     /// </summary>
-    /// <returns>Список DTO сотрудников</returns>
-    Task<IEnumerable<EmployeeDto>> GetAllAsync();
+    /// <param name="request">Параметры запроса</param>
+    /// <returns>Постраничный список сотрудников</returns>
+    Task<PagedResponse<EmployeeDto>> GetByFiltersAsync(GetByFiltersRequest request);
 }

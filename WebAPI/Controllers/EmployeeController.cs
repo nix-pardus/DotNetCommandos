@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
 
 namespace ServiceCenter.WebAPI.Controllers;
@@ -15,11 +16,12 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
         return Ok();
     }
 
-    [HttpGet("getAll")]
-    public async Task<IActionResult> GetAll()
+    [HttpPost("get-by-filters")]
+    [ProducesResponseType(typeof(PagedResponse<EmployeeDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
-        var employees = await employeeService.GetAllAsync();
-        return Ok(employees);
+        var response = await employeeService.GetByFiltersAsync(request);
+        return Ok(response);
     }
 
     [HttpPut("update")]
