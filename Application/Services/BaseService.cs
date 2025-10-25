@@ -51,6 +51,29 @@ namespace ServiceCenter.Application.Services
             };
         }
 
+        protected virtual async Task<PagedResponse<TResponse>> GetByFiltersWithIncludesAsync(
+            GetByFiltersRequest request,
+            params Func<IQueryable<TEntity>, IQueryable<TEntity>>[] includes)
+        {
+            var filterConditions = request.Filters?.Select(f =>
+                (f.Field, f.Operator.ToString(), f.Value)) ?? Enumerable.Empty<(string, string, string)>();
+
+            var (items, totalCount) = await _repository.GetByFiltersPagedWithIncludesAsync(
+                filterConditions,
+                request.LogicalOperator,
+                request.PageNumber,
+                request.PageSize,
+                includes);
+
+            return new PagedResponse<TResponse>
+            {
+                Items = items.Select(ToDto).ToList(),
+                TotalCount = totalCount,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize
+            };
+        }
+
         public virtual async Task UpdateAsync(TResponse dto)
         {
             await _repository.UpdateAsync(ToEntity(dto));

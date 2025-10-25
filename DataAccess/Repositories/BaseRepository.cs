@@ -61,6 +61,38 @@ namespace ServiceCenter.Infrascructure.DataAccess.Repositories
             return (items, totalCount);
         }
 
+        public virtual async Task<(List<T> Items, int TotalCount)> GetByFiltersPagedWithIncludesAsync(
+            IEnumerable<(string Field, string Operator, string Value)> filterConditions,
+            string logicalOperator,
+            int pageNumber,
+            int pageSize,
+            params Func<IQueryable<T>, IQueryable<T>>[] includes)
+        {
+            var query = _context.Set<T>().AsQueryable();
+
+            if(filterConditions?.Any() == true)
+            {
+                var specification = _filterBuilder.BuildSpecification(
+                    filterConditions,
+                    logicalOperator ?? "AND");
+
+                query = query.Where(specification.Criteria);
+            }
+
+            foreach(var include in includes ?? Array.Empty<Func<IQueryable<T>, IQueryable<T>>>())
+            {
+                query = include(query);
+            }
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .AsNoTracking()
+                .ToListAsync();
+            return (items, totalCount);
+        }
+
         public virtual async Task UpdateAsync(T entity)
         {
             _context.Set<T>().Update(entity);

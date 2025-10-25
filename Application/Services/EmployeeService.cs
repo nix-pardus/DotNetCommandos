@@ -1,8 +1,10 @@
 ﻿using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Entities;
 using ServiceCenter.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ServiceCenter.Application.Services;
 
@@ -40,4 +42,26 @@ public class EmployeeService : BaseService<Employee, EmployeeDto, IEmployeeRepos
     protected override EmployeeDto ToDto(Employee entity) => EmployeeMapper.ToDto(entity);
 
     protected override Employee ToEntity(EmployeeDto response) => EmployeeMapper.ToEntity(response);
+
+    async Task<PagedResponse<EmployeeWithOrdersDto>> IEmployeeService.GetByFiltersWithOrdersAsync(GetByFiltersRequest request)
+    {
+        var filterConditions = request.Filters?.Select(f =>
+            (f.Field, f.Operator.ToString(), f.Value)) ?? Enumerable.Empty<(string, string, string)>();
+
+        var (items, totalCount) = await _repository.GetByFiltersPagedWithIncludesAsync(
+            filterConditions,
+            request.LogicalOperator,
+            request.PageNumber,
+            request.PageSize,
+            q => q.Include(e => e.AssignedOrders.Where(x => x.IsDeleted == false)).ThenInclude(ao => ao.Order)
+        );
+
+        return new PagedResponse<EmployeeWithOrdersDto>
+        {
+            Items = items.Select(EmployeeMapper.ToWithOrdersDto).ToList(),
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize
+        };
+    }
 }

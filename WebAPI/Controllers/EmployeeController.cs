@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ServiceCenter.Application.DTO.Employee;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
@@ -21,6 +22,14 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
         var response = await employeeService.GetByFiltersAsync(request);
+        return Ok(response);
+    }
+
+    [HttpPost("get-by-filters-with-orders")]
+    [ProducesResponseType(typeof(PagedResponse<EmployeeDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByFiltersWithOrders([FromBody] GetByFiltersRequest request)
+    {
+        var response = await employeeService.GetByFiltersWithOrdersAsync(request);
         return Ok(response);
     }
 
