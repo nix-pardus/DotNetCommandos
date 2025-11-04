@@ -9,7 +9,7 @@ public record EmployeeWithOrdersDto
     Guid Id,
     string Name,
     string LastName,
-    string Patronymic,
+    string? Patronymic,
     string Address,
     string Email,
     string PhoneNumber,

@@ -20,7 +20,7 @@ public class Employee : EntityBase
     /// <summary>
     /// Отчество сотрудника.
     /// </summary>
-    public string Patronymic { get; set; } = null!;
+    public string? Patronymic { get; set; }
 
     /// <summary>
     /// Домашний адрес сотрудника.
@@ -45,7 +45,7 @@ public class Employee : EntityBase
     /// <summary>
     /// Идентификатор сотрудника, который изменил данного сотрудника.
     /// </summary>
-    public Guid? ModifyById { get; set; }
+    public Guid? ModifiedById { get; set; }
 
     /// <summary>
     /// Роль сотрудника в системе.

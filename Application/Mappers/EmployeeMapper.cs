@@ -25,7 +25,9 @@ public static partial class EmployeeMapper
                 oe.IsPrimary,
                 oe.CreatedDate,
                 oe.ModifiedDate,
-                oe.IsDeleted
+                oe.IsDeleted,
+                oe.CreatedById,
+                oe.ModifiedById
             ))
             .ToList();
 
@@ -40,7 +42,7 @@ public static partial class EmployeeMapper
             employee.CreatedDate,
             employee.CreatedById,
             employee.ModifiedDate,
-            employee.ModifyById,
+            employee.ModifiedById,
             employee.Role,
             employee.IsDeleted,
             assignedOrders

@@ -24,4 +24,14 @@ public class ScheduleException : EntityBase
     public DateOnly EffectiveTo { get; set; }
     public Employee Employee { get; set; }
     public Guid EmployeeId { get; set; }
+
+    /// <summary>
+    /// Сотрудник, создавший запись об исключении.
+    /// </summary>
+    public Guid CreatedById { get; set; }
+
+    /// <summary>
+    /// Сотрудник, последнего изменивший запись об исключении.
+    /// </summary>
+    public Guid? ModifiedById { get; set; }
 }

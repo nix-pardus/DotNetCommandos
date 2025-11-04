@@ -4,4 +4,4 @@ dotnet ef database update --project DataAccess --startup-project WebAPI
 
 dotnet ef migrations remove --project DataAccess --startup-project WebAPI
 
-dotnet ef migrations add AddEmployeeConnectionToOrders --project DataAccess --startup-project WebAPI
+dotnet ef migrations add UpdatingAllEntities --project DataAccess --startup-project WebAPI

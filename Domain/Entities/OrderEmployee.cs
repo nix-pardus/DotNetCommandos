@@ -18,6 +18,16 @@ public class OrderEmployee : EntityBase
     /// </summary>
     public bool IsPrimary { get; set; }
 
+    /// <summary>
+    /// Сотрудник, создавший запись о назначении.
+    /// </summary>
+    public Guid CreatedById { get; set; }
+
+    /// <summary>
+    /// Сотрудник, последнего изменивший запись о назначении.
+    /// </summary>
+    public Guid? ModifiedById { get; set; }
+
     public Order Order { get; set; } = null!;
     public Employee Employee { get; set; } = null!;
 }

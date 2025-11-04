@@ -8,5 +8,7 @@ public record OrderAssignmentDto
     bool IsPrimary,
     DateTime CreatedDate,
     DateTime? ModifiedDate,
-    bool IsDeleted
+    bool IsDeleted,
+    Guid CreatedById,
+    Guid? ModifiedById
 );

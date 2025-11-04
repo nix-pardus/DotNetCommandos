@@ -32,7 +32,7 @@ public class EmployeeService : BaseService<Employee, EmployeeDto, IEmployeeRepos
         CreatedDate: DateTime.UtcNow,
         CreatedById: Guid.Empty, // TODO: заменить на идентификатор текущего пользователя, когда будет реализована аутентификация
         ModifiedDate: null,
-        ModifyById: null,
+        ModifiedById: null,
         Role: dto.Role,
         IsDeleted: false
     );
