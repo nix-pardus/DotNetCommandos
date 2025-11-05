@@ -21,6 +21,7 @@ public static partial class EmployeeMapper
         var assignedOrders = (employee.AssignedOrders ?? Enumerable.Empty<OrderEmployee>())
             .Where(oe => oe.Order != null) // защита на случай частичных include
             .Select(oe => new OrderAssignmentDto(
+                oe.Id,
                 OrderMapper.ToDto(oe.Order),
                 oe.IsPrimary,
                 oe.CreatedDate,

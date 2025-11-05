@@ -78,6 +78,9 @@ namespace ServiceCenter.Infrascructure.DataAccess.Specifications
             if (targetType == typeof(bool) && bool.TryParse(stringValue, out bool boolValue))
                 return Expression.Constant(boolValue);
 
+            if (targetType == typeof(Guid) && Guid.TryParse(stringValue, out Guid guidValue))
+                return Expression.Constant(guidValue);
+
             throw new ArgumentException($"Cannot convert value '{stringValue}' to type {targetType.Name}");
         }
 

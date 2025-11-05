@@ -38,6 +38,9 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(connectionString));
 
+builder.Services.AddScoped<IAssignmentRepository, EFAssignmentRepository>();
+builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+
 builder.Services.AddScoped<IClientRepository, EFClientRepository>();
 builder.Services.AddScoped<IClientService, ClientService>();
 
