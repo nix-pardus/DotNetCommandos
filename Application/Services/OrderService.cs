@@ -37,13 +37,12 @@ namespace ServiceCenter.Application.Services;
              EquipmentModel: create_dto.EquipmentModel,
              IsWarranty: create_dto.IsWarranty,
              Problem: create_dto.Problem,
-             Note: create_dto.Note,
              Comment: create_dto.Comment,
-             Lead: create_dto.Lead,
              Priority: create_dto.Priority,
+             Status: create_dto.Status,
              IsDeleted: false,
-             StartDate: create_dto.StartDate,
-             EndDate: create_dto.EndDate
+             StartDateTime: create_dto.StartDateTime,
+             EndDateTime: create_dto.EndDateTime
         );
         await _repository.AddAsync(OrderMapper.ToEntity(dto));
     }

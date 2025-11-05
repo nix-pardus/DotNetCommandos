@@ -4,7 +4,6 @@ using ServiceCenter.Application.Helpers;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Interfaces;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ServiceCenter.Application.Services;
 
@@ -34,8 +33,17 @@ public class ScheduleService(IScheduleRepository repository, IScheduleExceptionR
                .Concat(exceptions.Select(e => e.EmployeeId))
                .Distinct()
                .ToList();
-        var employees = await employeeRepository.GetAllAsync();
-        var employeesDict = employees.ToDictionary(e => e.Id);
+
+        if(!employeeIds.Any())
+            return new Dictionary<EmployeeMinimalDto, IEnumerable<ScheduleDayDto>>();
+
+        var employees = await employeeRepository.GetByFiltersPagedAsync(
+            filterConditions: null,
+            logicalOperator: null,
+            pageNumber: 1,
+            pageSize: employeeIds.Count
+        );
+        var employeesDict = employees.Items.ToDictionary(e => e.Id);
         var result = new Dictionary<EmployeeMinimalDto, IEnumerable<ScheduleDayDto>>();
         foreach (var employeeId in employeeIds)
         {

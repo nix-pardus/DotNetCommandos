@@ -1,4 +1,6 @@
-﻿namespace ServiceCenter.Domain.Entities;
+﻿using ServiceCenter.Domain.ValueObjects;
+
+namespace ServiceCenter.Domain.Entities;
 
 /// <summary>
 /// Сущность заказа в сервисном центре.
@@ -14,7 +16,7 @@ public class Order : EntityBase
     /// <summary>
     /// Идентификатор сотрудника, последнего изменившего заказ.
     /// </summary>
-    public Guid ModifiedById { get; set; }
+    public Guid? ModifiedById { get; set; }
 
     /// <summary>
     /// Идентификатор клиента, которому принадлежит заказ.
@@ -24,7 +26,7 @@ public class Order : EntityBase
     /// <summary>
     /// Тип оборудования.
     /// </summary>
-    public string EquipmentType { get; set; } = null!;
+    public string? EquipmentType { get; set; }
 
     /// <summary>
     /// Модель оборудования (необязательное поле).
@@ -42,19 +44,9 @@ public class Order : EntityBase
     public string Problem { get; set; } = null!;
 
     /// <summary>
-    /// Дополнительные заметки по заказу (необязательное поле).
-    /// </summary>
-    public string? Note { get; set; }
-
-    /// <summary>
     /// Комментарий сотрудника (необязательное поле).
     /// </summary>
     public string? Comment { get; set; }
-
-    /// <summary>
-    /// Лид/менеджер, ответственный за заказ (необязательное поле).
-    /// </summary>
-    public string? Lead { get; set; }
 
     /// <summary>
     /// Приоритет заказа (например, 1 — высокий, 5 — низкий).
@@ -62,12 +54,27 @@ public class Order : EntityBase
     public int Priority { get; set; }
 
     /// <summary>
-    /// Дата начала выполнения заказа.
+    /// Статус заказа.
     /// </summary>
-    public DateTime StartDate { get; set; }
+    public OrderStatus Status { get; set; }
 
     /// <summary>
-    /// Дата окончания выполнения заказа.
+    /// Дата и время начала выполнения заказа.
     /// </summary>
-    public DateTime EndDate { get; set; }
+    public DateTime? StartDateTime { get; set; }
+
+    /// <summary>
+    /// Дата и время окончания выполнения заказа.
+    /// </summary>
+    public DateTime? EndDateTime { get; set; }
+
+    /// <summary>
+    /// Назначенные сотрудники на заказ
+    /// </summary>
+    public ICollection<OrderEmployee> AssignedEmployees { get; set; } = new List<OrderEmployee>();
+
+    /// <summary>
+    /// Главный сотрудник заказа (вычисляемое свойство)
+    /// </summary>
+    public Employee? LeadEmployee => AssignedEmployees.FirstOrDefault(x => x.IsPrimary)?.Employee;
 }

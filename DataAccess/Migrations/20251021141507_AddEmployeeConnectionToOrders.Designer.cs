@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceCenter.Infrascructure.DataAccess;
@@ -11,13 +12,15 @@ using ServiceCenter.Infrascructure.DataAccess;
 namespace ServiceCenter.Infrascructure.DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20251021141507_AddEmployeeConnectionToOrders")]
+    partial class AddEmployeeConnectionToOrders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -37,15 +40,14 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("CompanyName")
+                        .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
@@ -56,12 +58,6 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("Lead")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("ModifiedById")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -71,6 +67,7 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("Patronymic")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -79,6 +76,7 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Region")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -115,11 +113,11 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<Guid?>("ModifiedById")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifyById")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -127,6 +125,7 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("Patronymic")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -160,13 +159,14 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("EndDateTime")
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("EquipmentModel")
                         .HasColumnType("text");
 
                     b.Property<string>("EquipmentType")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
@@ -175,11 +175,17 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                     b.Property<bool>("IsWarranty")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid?>("ModifiedById")
+                    b.Property<string>("Lead")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ModifiedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
@@ -188,11 +194,8 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("StartDateTime")
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -203,9 +206,6 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedDate")
@@ -219,9 +219,6 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
 
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean");
-
-                    b.Property<Guid?>("ModifiedById")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");
@@ -249,9 +246,6 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -269,9 +263,6 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
-
-                    b.Property<Guid?>("ModifiedById")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");
@@ -296,9 +287,6 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -316,9 +304,6 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
-
-                    b.Property<Guid?>("ModifiedById")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");

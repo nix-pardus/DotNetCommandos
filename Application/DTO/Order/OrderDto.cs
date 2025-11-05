@@ -1,4 +1,6 @@
-﻿namespace ServiceCenter.Domain.DTO.Order;
+﻿using ServiceCenter.Domain.ValueObjects;
+
+namespace ServiceCenter.Domain.DTO.Order;
 
 /// <summary>
 /// Заказ/заявка
@@ -13,29 +15,26 @@
 /// <param name="EquipmentModel">Модель оборудования</param>
 /// <param name="IsWarranty">Гарантийный/негарантийный</param>
 /// <param name="Problem">Описание проблемы</param>
-/// <param name="Note">Примечание</param>
 /// <param name="Comment">Комментарий к заказу</param>
-/// <param name="Lead">Источник лида</param>
 /// <param name="Priority">Приоритет</param>
 /// <param name="IsDeleted">Признак удаления</param>
-/// <param name="StartDate">Начало интервала визита мастера</param>
-/// <param name="EndDate">Окончание интервала визита мастера</param>
+/// <param name="StartDateTime">Начало интервала визита мастера</param>
+/// <param name="EndDateTime">Окончание интервала визита мастера</param>
 public record OrderDto(
     Guid Id,
     DateTime CreatedDate,
-    Guid CreatedById,
     DateTime? ModifiedDate,
+    bool IsDeleted,
+    Guid CreatedById,
     Guid? ModifiedById,
     Guid ClientId,
-    string EquipmentType,
+    string? EquipmentType,
     string? EquipmentModel,
     bool IsWarranty,
     string Problem,
-    string? Note,
     string? Comment,
-    string? Lead,
     int Priority,
-    bool IsDeleted,
-    DateTime StartDate,
-    DateTime EndDate
+    OrderStatus Status,
+    DateTime? StartDateTime,
+    DateTime? EndDateTime
 );
