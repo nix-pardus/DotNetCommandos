@@ -4,6 +4,7 @@ namespace ServiceCenter.Application.DTO.OrderAssignment;
 
 public record OrderAssignmentDto
 (
+    Guid Id,
     OrderDto Order,
     bool IsPrimary,
     DateTime CreatedDate,

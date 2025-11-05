@@ -11,7 +11,9 @@ public class OrderEmployeeConfiguration : IEntityTypeConfiguration<OrderEmployee
         builder.HasKey(x => x.Id);
 
         // Составной ключ для предотвращения дублирования назначений
-        builder.HasIndex(x => new { x.OrderId, x.EmployeeId }).IsUnique();
+        builder.HasIndex(x => new { x.OrderId, x.EmployeeId })
+            .HasFilter("\"IsDeleted\" = false")
+            .IsUnique();
 
         builder.HasOne(x => x.Order)
             .WithMany(x => x.AssignedEmployees)
@@ -25,7 +27,7 @@ public class OrderEmployeeConfiguration : IEntityTypeConfiguration<OrderEmployee
 
         // Ограничение: только один главный сотрудник на заказ
         builder.HasIndex(x => new { x.OrderId, x.IsPrimary})
-            .HasFilter("\"IsPrimary\" = true")
+            .HasFilter("\"IsPrimary\" = true AND \"IsDeleted\" = false")
             .IsUnique();
     }
 }
