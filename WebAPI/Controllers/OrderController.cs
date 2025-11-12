@@ -35,7 +35,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return Ok(order);
     }
 
-    [HttpPost("getByFilters")]
+    [HttpPost("get-by-filters")]
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
         var response = await orderService.GetByFiltersAsync(request);
