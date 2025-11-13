@@ -11,6 +11,6 @@ public record EmployeeMinimalResponse(
     Guid Id,
     string Name,
     string LastName,
-    string Patronymic
+    string? Patronymic
 );
 

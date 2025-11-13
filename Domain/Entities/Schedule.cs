@@ -33,4 +33,14 @@ public class Schedule : EntityBase
     public Employee Employee { get; set; }
     public Guid EmployeeId { get; set; }
 
+    /// <summary>
+    /// Сотрудник, создавший запись о графике.
+    /// </summary>
+    public Guid CreatedById { get; set; }
+
+    /// <summary>
+    /// Сотрудник, последнего изменивший запись о графике.
+    /// </summary>
+    public Guid? ModifiedById { get; set; }
+
 }

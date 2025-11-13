@@ -15,22 +15,22 @@ namespace ServiceCenter.Application.DTO.Responses;
 /// <param name="CreatedDate">Дата создания записи</param>
 /// <param name="CreatedById">Идентификатор создавшего сотрудника</param>
 /// <param name="ModifiedDate">Дата изменения записи</param>
-/// <param name="ModifyById">Идентификатор изменившего сотрудника</param>
+/// <param name="ModifiedById">Идентификатор изменившего сотрудника</param>
 /// <param name="Role">Роль в системе</param>
 /// <param name="IsDeleted">Признак удаления/неактуальности</param>
 public record EmployeeFullResponse(
     Guid Id,
+    DateTime CreatedDate,
+    DateTime? ModifiedDate,
+    bool IsDeleted,
     string Name,
     string LastName,
-    string Patronymic,
+    string? Patronymic,
     string Address,
     string Email,
     string PhoneNumber,
-    DateTime CreatedDate,
     Guid CreatedById,
-    DateTime? ModifiedDate,
-    Guid? ModifyById,
-    RoleType Role,
-    bool IsDeleted
+    Guid? ModifiedById,
+    RoleType Role
 );
 

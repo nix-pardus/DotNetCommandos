@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ServiceCenter.Infrascructure.DataAccess;
@@ -11,9 +12,11 @@ using ServiceCenter.Infrascructure.DataAccess;
 namespace ServiceCenter.Infrascructure.DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20251103220322_UpdatingAllEntities")]
+    partial class UpdatingAllEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -234,12 +237,11 @@ namespace ServiceCenter.Infrascructure.DataAccess.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("OrderId", "EmployeeId")
-                        .IsUnique()
-                        .HasFilter("\"IsDeleted\" = false");
+                        .IsUnique();
 
                     b.HasIndex("OrderId", "IsPrimary")
                         .IsUnique()
-                        .HasFilter("\"IsPrimary\" = true AND \"IsDeleted\" = false");
+                        .HasFilter("\"IsPrimary\" = true");
 
                     b.ToTable("OrderEmployees");
                 });

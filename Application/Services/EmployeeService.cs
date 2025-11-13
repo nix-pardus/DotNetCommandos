@@ -1,7 +1,7 @@
-﻿using ServiceCenter.Application.DTO.Requests;
-using ServiceCenter.Application.DTO.Responses;
+﻿using ServiceCenter.Application.DTO.Employee;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
+using ServiceCenter.Domain.Entities;
 using ServiceCenter.Domain.Interfaces;
 
 namespace ServiceCenter.Application.Services;
@@ -10,30 +10,56 @@ namespace ServiceCenter.Application.Services;
 /// Сервис для работы с сотрудниками
 /// Реализует <see cref="IEmployeeService"/>
 /// </summary>
-public class EmployeeService(IEmployeeRepository repository) : IEmployeeService
+public class EmployeeService : BaseService<Employee, EmployeeDto, IEmployeeRepository>, IEmployeeService
 {
-    /// <inheritdoc />
-    public async Task CreateAsync(EmployeeCreateRequest dto)
+    public EmployeeService(IEmployeeRepository repository) : base(repository)
     {
-        await repository.AddAsync(EmployeeMapper.ToEntity(dto));
     }
 
-    /// <inheritdoc />
-    public async Task DeleteAsync(Guid id)
+    public async Task CreateAsync(CreateEmployeeDto dto)
     {
-        await repository.DeleteAsync(id);
+        var employee = new EmployeeDto
+    (
+        Id: Guid.NewGuid(),
+        Name: dto.Name,
+        LastName: dto.LastName,
+        Patronymic: dto.Patronymic,
+        Address: dto.Address,
+        Email: dto.Email,
+        PhoneNumber: dto.PhoneNumber,
+        CreatedDate: DateTime.UtcNow,
+        CreatedById: Guid.Empty, // TODO: заменить на идентификатор текущего пользователя, когда будет реализована аутентификация
+        ModifiedDate: null,
+        ModifiedById: null,
+        Role: dto.Role,
+        IsDeleted: false
+    );
+        await _repository.AddAsync(EmployeeMapper.ToEntity(employee));
     }
 
-    /// <inheritdoc />
-    public async Task<IEnumerable<EmployeeFullResponse>> GetAllAsync()
-    {
-        var employees = await repository.GetAllAsync();
-        return employees.Select(EmployeeMapper.ToDto);
-    }
+    protected override EmployeeDto ToDto(Employee entity) => EmployeeMapper.ToDto(entity);
 
-    /// <inheritdoc />
-    public async Task UpdateAsync(EmployeeUpdateRequest dto)
+    protected override Employee ToEntity(EmployeeDto response) => EmployeeMapper.ToEntity(response);
+
+    async Task<PagedResponse<EmployeeWithOrdersDto>> IEmployeeService.GetByFiltersWithOrdersAsync(GetByFiltersRequest request)
     {
-        await repository.UpdateAsync(EmployeeMapper.ToEntity(dto));
+        var filterConditions = request.Filters?.Select(f =>
+            (f.Field, f.Operator.ToString(), f.Value)) ?? Enumerable.Empty<(string, string, string)>();
+
+        var (items, totalCount) = await _repository.GetByFiltersPagedWithIncludesAsync(
+            filterConditions,
+            request.LogicalOperator,
+            request.PageNumber,
+            request.PageSize,
+            q => q.Include(e => e.AssignedOrders.Where(x => x.IsDeleted == false)).ThenInclude(ao => ao.Order)
+        );
+
+        return new PagedResponse<EmployeeWithOrdersDto>
+        {
+            Items = items.Select(EmployeeMapper.ToWithOrdersDto).ToList(),
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize
+        };
     }
 }

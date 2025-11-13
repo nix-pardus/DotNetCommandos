@@ -14,12 +14,12 @@ public class Client : EntityBase
     /// <summary>
     /// Фамилия клиента.
     /// </summary>
-    public string LastName { get; set; } = null!;
+    public string? LastName { get; set; }
 
     /// <summary>
     /// Отчество клиента.
     /// </summary>
-    public string Patronymic { get; set; } = null!;
+    public string? Patronymic { get; set; }
 
     /// <summary>
     /// Адрес проживания клиента.
@@ -32,22 +32,37 @@ public class Client : EntityBase
     public string City { get; set; } = null!;
 
     /// <summary>
-    /// Регион/область проживания клиента.
+    /// Район/участок/квартал в городе проживания клиента.
     /// </summary>
-    public string Region { get; set; } = null!;
+    public string? Region { get; set; }
 
     /// <summary>
     /// Название компании клиента, если применимо.
     /// </summary>
-    public string CompanyName { get; set; } = null!;
+    public string? CompanyName { get; set; }
 
     /// <summary>
     /// Электронная почта клиента.
     /// </summary>
-    public string Email { get; set; } = null!;
+    public string? Email { get; set; }
 
     /// <summary>
     /// Контактный телефон клиента.
     /// </summary>
     public string PhoneNumber { get; set; } = null!;
+
+    /// <summary>
+    /// Откуда клиент узнал о сервисном центре.
+    /// </summary>
+    public string? Lead { get; set; }
+
+    /// <summary>
+    /// Сотрудник, создавший запись о клиенте.
+    /// </summary>
+    public Guid CreatedById { get; set; }
+
+    /// <summary>
+    /// Сотрудник, последний изменивший запись о клиенте.
+    /// </summary>
+    public Guid? ModifiedById { get; set; }
 }
