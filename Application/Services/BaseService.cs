@@ -54,9 +54,10 @@ namespace ServiceCenter.Application.Services
             };
         }
 
-        public virtual Task<TResponse> UpdateAsync(TResponse dto)
+        public virtual async Task<TResponse> UpdateAsync(TUpdateRequest dto)
         {
-            await _repository.UpdateAsync(ToEntity(dto));
+            throw new NotImplementedException();
+            //await _repository.UpdateAsync(ToEntity(dto));
         }
     }
     public abstract class BaseService<TEntity, TResponse, TRepository>

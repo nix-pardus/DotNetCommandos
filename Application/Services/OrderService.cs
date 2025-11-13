@@ -1,4 +1,4 @@
-﻿using ServiceCenter.Application.DTO.Client;
+﻿
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;

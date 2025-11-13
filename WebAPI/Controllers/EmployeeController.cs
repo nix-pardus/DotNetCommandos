@@ -11,7 +11,7 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class EmployeeController(IEmployeeService employeeService) : ControllerBase
 {
     [HttpPost("create")]
-    public async Task<IActionResult> Post([FromBody] EmployeeCreateRequest employeeDto)
+    public async Task<IActionResult> Post([FromBody] CreateEmployeeDto employeeDto)
     {
         await employeeService.CreateAsync(employeeDto);
         return Ok();
@@ -34,7 +34,7 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
     }
 
     [HttpPut("update")]
-    public async Task<IActionResult> Update([FromBody] EmployeeUpdateRequest employeeDto)
+    public async Task<IActionResult> Update([FromBody] EmployeeDto employeeDto)
     {
         await employeeService.UpdateAsync(employeeDto);
         return Ok();

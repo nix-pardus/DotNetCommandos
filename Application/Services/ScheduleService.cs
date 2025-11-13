@@ -34,8 +34,13 @@ public class ScheduleService(IScheduleRepository repository, IScheduleExceptionR
                .Concat(exceptions.Select(e => e.EmployeeId))
                .Distinct()
                .ToList();
-        var employees = await employeeRepository.GetAllAsync();
-        var employeesDict = employees.ToDictionary(e => e.Id);
+        var employees = await employeeRepository.GetByFiltersPagedAsync(
+            filterConditions: null,
+            logicalOperator: null,
+            pageNumber: 1,
+            pageSize: employeeIds.Count
+        );
+        var employeesDict = employees.Items.ToDictionary(e => e.Id);
         var result = new Dictionary<EmployeeMinimalResponse, IEnumerable<ScheduleDayDto>>();
         foreach (var employeeId in employeeIds)
         {

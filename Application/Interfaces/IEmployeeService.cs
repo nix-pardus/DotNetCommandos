@@ -1,4 +1,5 @@
 ﻿using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Shared;
 
 namespace ServiceCenter.Application.Interfaces;
 
