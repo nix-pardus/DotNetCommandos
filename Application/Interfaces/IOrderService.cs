@@ -1,5 +1,6 @@
-﻿using ServiceCenter.Application.DTO.Shared;
-using ServiceCenter.Domain.DTO.Order;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
+using ServiceCenter.Application.DTO.Shared;
 
 namespace ServiceCenter.Application.Interfaces;
 
@@ -13,28 +14,28 @@ public interface IOrderService
     /// </summary>
     /// <param name="dto">DTO заказа</param>
     /// <returns>Задача выполнения операции</returns>
-    Task CreateAsync(CreateOrderDto dto);
+    Task CreateAsync(OrderCreateRequest dto);
 
     /// <summary>
     /// Обновление существующего заказа
     /// </summary>
     /// <param name="dto">DTO заказа с обновлёнными данными</param>
     /// <returns>Обновлённый заказ</returns>
-    Task UpdateAsync(OrderDto dto);
+    Task<OrderFullResponse> UpdateAsync(OrderUpdateRequest dto);
 
     /// <summary>
     /// Получение заказа по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор заказа</param>
     /// <returns>DTO заказа</returns>
-    Task<OrderDto> GetAsync(Guid id);
+    Task<OrderFullResponse> GetAsync(Guid id);
 
 
     /// <summary>
     /// Получение списка заказов c фильтрацией/пагинацией
     /// </summary>   
     /// <returns>список DTO заказов</returns>
-    Task<PagedResponse<OrderDto>> GetByFiltersAsync(GetByFiltersRequest request);
+    Task<PagedResponse<OrderFullResponse>> GetByFiltersAsync(GetByFiltersRequest request);
 
     /// <summary>
     /// Удаление заказа по идентификатору

@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
-using ServiceCenter.Application.Services;
-using ServiceCenter.Domain.DTO.Order;
-using ServiceCenter.Domain.Entities;
 
 namespace ServiceCenter.WebAPI.Controllers;
 
@@ -13,7 +10,7 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class OrderController(IOrderService orderService) : ControllerBase
 {
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] CreateOrderDto order)
+    public async Task<IActionResult> Create([FromBody] OrderCreateRequest order)
     {
         await orderService.CreateAsync(order);
         return Ok();
@@ -43,7 +40,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
     }
 
     [HttpPut("update")]
-    public async Task<IActionResult> Update([FromBody] OrderDto order)
+    public async Task<IActionResult> Update([FromBody] OrderUpdateRequest order)
     {
         await orderService.UpdateAsync(order);
         return Ok();

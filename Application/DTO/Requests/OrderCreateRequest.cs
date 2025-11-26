@@ -1,15 +1,10 @@
-﻿using ServiceCenter.Domain.ValueObjects;
+﻿using ServiceCenter.Domain.ValueObjects.Enums;
 
-namespace ServiceCenter.Domain.DTO.Order;
+namespace ServiceCenter.Application.DTO.Requests;
 
 /// <summary>
 /// Заказ/заявка
 /// </summary>
-/// <param name="Id">Идентификатор заказа</param>
-/// <param name="CreatedDate">Дата создания</param>
-/// <param name="CreatedById">Идентификатор сотрудника, создавшего заказ</param>
-/// <param name="ModifiedById">Дата последнего изменения</param>
-/// <param name="ModifiedById">Идентификатор сотрудника, изменившего заказ</param>
 /// <param name="ClientId">Идентификатор клиента</param>
 /// <param name="EquipmentType">Тип оборудования</param>
 /// <param name="EquipmentModel">Модель оборудования</param>
@@ -17,16 +12,9 @@ namespace ServiceCenter.Domain.DTO.Order;
 /// <param name="Problem">Описание проблемы</param>
 /// <param name="Comment">Комментарий к заказу</param>
 /// <param name="Priority">Приоритет</param>
-/// <param name="IsDeleted">Признак удаления</param>
 /// <param name="StartDateTime">Начало интервала визита мастера</param>
 /// <param name="EndDateTime">Окончание интервала визита мастера</param>
-public record OrderDto(
-    Guid Id,
-    DateTime CreatedDate,
-    DateTime? ModifiedDate,
-    bool IsDeleted,
-    Guid CreatedById,
-    Guid? ModifiedById,
+public record OrderCreateRequest(
     Guid ClientId,
     string? EquipmentType,
     string? EquipmentModel,

@@ -24,7 +24,7 @@ public static partial class EmployeeMapper
             .Where(oe => oe.Order != null) // защита на случай частичных include
             .Select(oe => new OrderAssignmentDto(
                 oe.Id,
-                OrderMapper.ToDto(oe.Order),
+                OrderMapper.ToResponse(oe.Order),
                 oe.IsPrimary,
                 oe.CreatedDate,
                 oe.ModifiedDate,
