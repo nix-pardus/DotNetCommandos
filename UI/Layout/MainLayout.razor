@@ -1,16 +1,72 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+﻿@inject IJSRuntime JSRuntime
+@inherits LayoutComponentBase
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode"
+				  Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<MudLayout>
+	<MudAppBar Elevation="1">
+		<MudIconButton Icon="@Icons.Material.Filled.Menu"
+					   Color="Color.Inherit"
+					   Edge="Edge.Start"
+					   OnClick="@((e) => DrawerToggle())" />
+		<MudText Typo="Typo.h5"
+				 Class="ml-3">
+			Расписание выездов
+		</MudText>
+		<MudSpacer />
+		<MudToggleIconButton Toggled="_isDarkMode"
+							 ToggledChanged="OnThemeChanged"
+							 Icon="@Icons.Material.Filled.DarkMode"
+							 ToggledIcon="@Icons.Material.Filled.LightMode"
+							 title="@(_isDarkMode ? "Светлая тема" : "Темная тема")" />
+		<MudTooltip Text="Открыть меню пользователя" Delay="600">
+			<MudMenu Icon="@Icons.Material.Filled.Settings"
+					 Color="Color.Inherit"
+					 AriaLabel="Открыть меню пользователя">
+				<MudMenuItem Label="Выйти" />
+			</MudMenu>
+		</MudTooltip>
+	</MudAppBar>
+	<MudDrawer @bind-Open="@_drawerOpen"
+			   ClipMode="DrawerClipMode.Always"
+			   Elevation="4">
+		<NavMenu />
+	</MudDrawer>
+	<MudMainContent>
+		@Body
+	</MudMainContent>
+</MudLayout>
+
+@code {
+	private MudTheme _theme = new();
+	private bool _isDarkMode;
+	bool _drawerOpen = true;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			var themeString = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "preferredTheme");
+			if (!string.IsNullOrEmpty(themeString))
+			{
+				_isDarkMode = themeString.ToLower() == "true";
+				StateHasChanged();
+			}
+		}
+	}
+
+	private async Task OnThemeChanged(bool newValue)
+	{
+		_isDarkMode = newValue;
+		await JSRuntime.InvokeVoidAsync("localStorage.setItem", "preferredTheme", _isDarkMode.ToString());
+	}
+
+	void DrawerToggle()
+	{
+		_drawerOpen = !_drawerOpen;
+	}
+}

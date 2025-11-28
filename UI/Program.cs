@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
 using UI;
 using UI.Services;
 
@@ -14,5 +15,7 @@ var apiBaseAddress = builder.HostEnvironment.IsDevelopment()
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
 builder.Services.AddScoped<IApiService, ApiService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
+builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();
