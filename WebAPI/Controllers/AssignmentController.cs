@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServiceCenter.Application.DTO.Assignment;
+using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
 
@@ -10,9 +11,9 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class AssignmentController(IAssignmentService assignmentService) : ControllerBase
 {
     [HttpPost("create")]
-    public async Task<IActionResult> Post([FromQuery] CreateAssignmentDto createDto)
+    public async Task<IActionResult> Post([FromQuery] AssignmentCreateRequest request)
     {
-        await assignmentService.CreateAsync(createDto);
+        await assignmentService.CreateAsync(request);
         return Ok();
     }
 
@@ -24,7 +25,7 @@ public class AssignmentController(IAssignmentService assignmentService) : Contro
     }
 
     [HttpPost("get-by-filters")]
-    [ProducesResponseType(typeof(PagedResponse<AssignmentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<AssignmentResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
         var response = await assignmentService.GetByFiltersAsync(request);

@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Assignment;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
@@ -7,18 +8,18 @@ using ServiceCenter.Domain.Interfaces;
 
 namespace ServiceCenter.Application.Services;
 
-public class AssignmentService : BaseService<OrderEmployee, AssignmentDto, IAssignmentRepository>, IAssignmentService
+public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequest, AssignmentUpdateRequest, AssignmentResponse, IAssignmentRepository>, IAssignmentService
 {
     public AssignmentService(IAssignmentRepository repository) : base(repository)
     {
     }
 
-    public async Task CreateAsync(CreateAssignmentDto dto)
+    public async Task CreateAsync(AssignmentCreateRequest request)
     {
         var filterConditions = new List<(string, string, string)>
         {
-            ("OrderId", "Equals", $"{dto.OrderId}"),
-            ("EmployeeId", "Equals", $"{dto.EmployeeId}"),
+            ("OrderId", "Equals", $"{request.OrderId}"),
+            ("EmployeeId", "Equals", $"{request.EmployeeId}"),
             ("IsDeleted", "Equals", "false")
         };
         var assignment = await _repository.GetByFiltersPagedAsync
@@ -30,15 +31,15 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentDto, IAssi
         );
         if (assignment.TotalCount == 0)
         {
-            var newAssignment = new AssignmentDto
+            var newAssignment = new AssignmentResponse
             (
                 Id: Guid.NewGuid(),
                 CreatedDate: DateTime.UtcNow,
                 ModifiedDate: null,
                 IsDeleted: false,
-                OrderId: dto.OrderId,
-                EmployeeId: dto.EmployeeId,
-                IsPrimary: dto.IsPrimary,
+                OrderId: request.OrderId,
+                EmployeeId: request.EmployeeId,
+                IsPrimary: request.IsPrimary,
                 CreatedById: Guid.Empty, // TODO: заменить на идентификатор текущего пользователя, когда будет реализована аутентификация
                 ModifiedById: null
             );
@@ -46,22 +47,24 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentDto, IAssi
         }
     }
 
-    public Task<PagedResponse<AssignmentDto>> GetAllByEmployeeIdAsync(Guid employeeId)
+    public Task<PagedResponse<AssignmentResponse>> GetAllByEmployeeIdAsync(Guid employeeId)
     {
         throw new NotImplementedException();
     }
 
-    public Task<PagedResponse<AssignmentDto>> GetAllByOrderIdAsync(Guid orderId)
+    public Task<PagedResponse<AssignmentResponse>> GetAllByOrderIdAsync(Guid orderId)
     {
         throw new NotImplementedException();
     }
 
-    public Task UpdateAsync(CreateAssignmentDto dto)
+    protected override AssignmentResponse ToDto(OrderEmployee entity) => AssignmentMapper.ToResponse(entity);
+
+    protected override OrderEmployee ToEntity(AssignmentCreateRequest request) => AssignmentMapper.ToEntity(request);
+
+    protected override OrderEmployee ToEntity(AssignmentUpdateRequest request) => AssignmentMapper.ToEntity(request);
+
+    Task IAssignmentService.UpdateAsync(AssignmentUpdateRequest dto)
     {
-        throw new NotImplementedException();
+        return UpdateAsync(dto);
     }
-
-    protected override AssignmentDto ToDto(OrderEmployee entity) => AssignmentMapper.ToDto(entity);
-
-    protected override OrderEmployee ToEntity(AssignmentDto response) => AssignmentMapper.ToEntity(response);
 }
