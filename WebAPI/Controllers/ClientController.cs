@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ServiceCenter.Application.DTO.Client;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
@@ -12,12 +13,14 @@ public class ClientController(IClientService clientService) : ControllerBase
 {
     // POST api/<ClientController>
     [HttpPost("create")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Post([FromBody] ClientDto client)
     {
         await clientService.CreateAsync(client);
         return Ok();
     }
     [HttpDelete("delete")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> DeleteById([FromBody] Guid id)
     {
         try
@@ -34,6 +37,7 @@ public class ClientController(IClientService clientService) : ControllerBase
     }
     
     [HttpPost("get-by-filters")]
+    [Authorize(Policy = "Operator")]
     [ProducesResponseType(typeof(PagedResponse<Client>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {

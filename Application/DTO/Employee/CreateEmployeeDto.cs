@@ -9,6 +9,7 @@ public record CreateEmployeeDto
     string? Patronymic,
     string Address,
     string Email,
+    string Password,
     string PhoneNumber,
     RoleType Role
 );

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ServiceCenter.Application.DTO.Client;
 using ServiceCenter.Application.DTO.Schedule;
 using ServiceCenter.Application.Interfaces;
@@ -10,6 +11,7 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class ScheduleExceptionController(IScheduleExceptionService service) : ControllerBase
 {
     [HttpPost("create")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Post([FromBody] ScheduleExceptionDto scheduleException)
     {
         await service.CreateAsync(scheduleException);
@@ -17,6 +19,7 @@ public class ScheduleExceptionController(IScheduleExceptionService service) : Co
     }
 
     [HttpDelete("delete")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> DeleteById([FromBody] Guid id)
     {
         try
@@ -34,6 +37,7 @@ public class ScheduleExceptionController(IScheduleExceptionService service) : Co
 
     //TODO:кмк он должен быть в Employee
     [HttpGet("get-schedule-exceptions-by-interval")]
+    [Authorize(Policy = "All")]
     public async Task<IActionResult> Get(Guid employeeId, int page, int pageSize)
     {
         var schedule = await service.GetAllByEmployeePaged(employeeId, page, pageSize);
