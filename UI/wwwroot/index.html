@@ -1,32 +1,109 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UI</title>
     <base href="/" />
-    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="UI.styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
+    <link href="_content/MudBlazor/MudBlazor.min.css?v=1" rel="stylesheet" />
 </head>
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
     </div>
 
-    <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
-    </div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <!-- Important: Increment the version parameter whenever you update MudBlazor to prevent caching issues -->
+    <script src="_content/MudBlazor/MudBlazor.min.js?v=1"></script>
+
+    <script>
+        // Глобальный обработчик ошибок
+        let dotNetHelper = null;
+
+        // Функция для настройки обработчиков ошибок
+        function setupErrorHandlers(dotNetRef) {
+            dotNetHelper = dotNetRef;
+            console.log('Настройка глобальных обработчиков ошибок...');
+
+            // 1. Обработка ошибок JavaScript
+            window.onerror = function (message, source, lineno, colno, error) {
+                console.error('Глобальная ошибка JavaScript:', { message, source, lineno, colno, error });
+
+                if (dotNetHelper) {
+                    const errorDetails = error ? error.message : message;
+                    const stackTrace = error ? error.stack : `at ${source}:${lineno}:${colno}`;
+
+                    try {
+                        dotNetHelper.invokeMethodAsync('HandleGlobalError', errorDetails, stackTrace);
+                    } catch (e) {
+                        console.error('Ошибка при вызове .NET метода:', e);
+                    }
+                }
+                return false;
+            };
+
+            // 2. Обработка неперехваченных промисов
+            window.addEventListener('unhandledrejection', function (event) {
+                console.error('Неперехваченная ошибка промиса:', event.reason);
+
+                if (dotNetHelper) {
+                    const errorMessage = event.reason?.message ||
+                        event.reason?.toString() ||
+                        'Ошибка при выполнении операции';
+                    try {
+                        dotNetHelper.invokeMethodAsync('HandleGlobalError', errorMessage);
+                    } catch (e) {
+                        console.error('Ошибка при вызове .NET метода:', e);
+                    }
+                }
+            });
+
+            // 3. Обработка ошибок Blazor (если доступно)
+            if (window.Blazor && window.Blazor.defaultReconnectionHandler) {
+                try {
+                    window.Blazor.defaultReconnectionHandler.onConnectionDown = function () {
+                        console.warn('Соединение с сервером потеряно');
+                        if (dotNetHelper) {
+                            try {
+                                dotNetHelper.invokeMethodAsync('HandleGlobalError',
+                                    'Потеряно соединение с сервером. Попробуйте перезагрузить страницу.');
+                            } catch (e) {
+                                console.error('Ошибка при вызове .NET метода:', e);
+                            }
+                        }
+                    };
+                } catch (e) {
+                    console.warn('Не удалось настроить обработчик переподключения Blazor:', e);
+                }
+            }
+
+            console.log('Глобальные обработчики ошибок настроены');
+        }
+
+        // Функция для тестирования JavaScript ошибок
+        function throwTestException() {
+            console.log('Выбрасываю тестовое JavaScript исключение...');
+            throw new Error('Тестовое JavaScript исключение для проверки глобального перехвата\n');
+        }
+
+        // Функция для безопасного вызова JavaScript исключений
+        function safeThrowTestException() {
+            try {
+                throw new Error('Тестовое исключение, которое будет перехвачено в JavaScript (Сеть)');
+            } catch (error) {
+                console.error('Исключение перехвачено в JavaScript:', error);
+                // Пробрасываем дальше для перехвата глобальным обработчиком
+                setTimeout(() => { throw error; }, 0);
+            }
+        }
+    </script>
+
 </body>
 
 </html>

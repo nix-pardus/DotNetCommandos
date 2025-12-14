@@ -1,12 +1,127 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+﻿@using Microsoft.AspNetCore.Components.Web
+@using UI.Services
+@inject IJSRuntime JSRuntime
+@inject INotificationService NotificationService
+
+<CascadingValue Value="this">
+	<ErrorBoundary @ref="_outerErrorBoundary">
+		<ChildContent>
+			<Router AppAssembly="@typeof(App).Assembly">
+				<Found Context="routeData">
+					<ErrorBoundary @ref="_innerErrorBoundary">
+						<ChildContent>
+							<RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+						</ChildContent>
+						<ErrorContent>
+							<MudPaper Elevation="5" Class="pa-6 text-center" Style="max-width: 600px; margin: 2rem auto;">
+								<MudIcon Icon="@Icons.Material.Filled.Error"
+										 Color="Color.Error"
+										 Size="Size.Large"
+										 Class="mb-4" />
+
+								<MudText Typo="Typo.h5" Color="Color.Error" Class="mb-3">
+									Ошибка при отображении страницы
+								</MudText>
+
+								<MudText Typo="Typo.body1" Class="mb-4">
+									Произошла ошибка при загрузке или отображении этой страницы.
+								</MudText>
+
+								<div class="d-flex justify-center gap-3">
+									<MudButton OnClick="RecoverInner"
+											   Variant="Variant.Filled"
+											   Color="Color.Primary"
+											   StartIcon="@Icons.Material.Filled.Refresh">
+										Попробовать снова
+									</MudButton>
+
+									<MudButton OnClick="@(() => NavigationManager.NavigateTo("/", forceLoad: true))"
+											   Variant="Variant.Outlined"
+											   Color="Color.Secondary"
+											   StartIcon="@Icons.Material.Filled.Home">
+										На главную
+									</MudButton>
+								</div>
+							</MudPaper>
+						</ErrorContent>
+					</ErrorBoundary>
+					<FocusOnNavigate RouteData="@routeData" Selector="h1" />
+				</Found>
+				<NotFound>
+					<PageTitle>Страница не найдена</PageTitle>
+					<LayoutView Layout="@typeof(MainLayout)">
+						<div class="not-found-container">
+							<MudText Typo="Typo.h4" Color="Color.Error">404 - Страница не найдена</MudText>
+							<MudText Typo="Typo.body1" Class="mt-3">
+								К сожалению, по этому адресу ничего нет.
+							</MudText>
+							<MudButton Href="/"
+									   Variant="Variant.Filled"
+									   Color="Color.Primary"
+									   Class="mt-4">
+								Вернуться на главную
+							</MudButton>
+						</div>
+					</LayoutView>
+				</NotFound>
+			</Router>
+		</ChildContent>
+		<ErrorContent>
+			<MudPaper Elevation="10" Class="pa-8 text-center" Style="max-width: 800px; margin: 4rem auto;">
+				<MudIcon Icon="@Icons.Material.Filled.WarningAmber"
+						 Color="Color.Warning"
+						 Size="Size.Large"
+						 Class="mb-4" />
+
+				<MudText Typo="Typo.h4" Color="Color.Warning" Class="mb-3">
+					Критическая ошибка приложения
+				</MudText>
+
+				<MudText Typo="Typo.body1" Class="mb-4">
+					Произошла критическая ошибка, которая не позволяет приложению продолжить работу.
+					Пожалуйста, перезагрузите страницу.
+				</MudText>
+
+				<div class="d-flex justify-center gap-3">
+					<MudButton OnClick="RecoverOuter"
+							   Variant="Variant.Filled"
+							   Color="Color.Warning"
+							   StartIcon="@Icons.Material.Filled.Refresh">
+						Перезагрузить приложение
+					</MudButton>
+
+					<MudButton Href="/"
+							   Variant="Variant.Outlined"
+							   Color="Color.Secondary"
+							   StartIcon="@Icons.Material.Filled.Home"
+							   OnClick="@(() => NavigationManager.NavigateTo("/", forceLoad: true))">
+						На главную (перезагрузка)
+					</MudButton>
+				</div>
+			</MudPaper>
+		</ErrorContent>
+	</ErrorBoundary>
+</CascadingValue>
+
+@code {
+	private ErrorBoundary? _outerErrorBoundary;
+	private ErrorBoundary? _innerErrorBoundary;
+
+	[Inject]
+	private NavigationManager NavigationManager { get; set; } = null!;
+
+	protected override void OnParametersSet()
+	{
+		_innerErrorBoundary?.Recover();
+	}
+
+	private void RecoverInner()
+	{
+		_innerErrorBoundary?.Recover();
+	}
+
+	private void RecoverOuter()
+	{
+		_outerErrorBoundary?.Recover();
+	}
+}
