@@ -1,4 +1,4 @@
-﻿namespace ServiceCenter.Domain.ValueObjects;
+﻿namespace ServiceCenter.Domain.ValueObjects.Enums;
 
 public enum OrderStatus
 {

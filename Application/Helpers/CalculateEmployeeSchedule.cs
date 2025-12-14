@@ -1,4 +1,4 @@
-﻿using ServiceCenter.Application.DTO.Schedule;
+﻿using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Domain.Entities;
 using System;
 using System.Collections.Generic;

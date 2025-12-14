@@ -11,9 +11,9 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class EmployeeController(IEmployeeService employeeService) : ControllerBase
 {
     [HttpPost("create")]
-    public async Task<IActionResult> Post([FromQuery] CreateEmployeeDto createDto)
+    public async Task<IActionResult> Post([FromBody] CreateEmployeeDto employeeDto)
     {
-        await employeeService.CreateAsync(createDto);
+        await employeeService.CreateAsync(employeeDto);
         return Ok();
     }
 
@@ -41,7 +41,7 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
     }
 
     [HttpDelete("delete")]
-    public async Task<IActionResult> Delete([FromQuery] Guid id)
+    public async Task<IActionResult> Delete([FromBody] Guid id)
     {
         await employeeService.DeleteAsync(id);
         return Ok();

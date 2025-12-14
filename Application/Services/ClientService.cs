@@ -1,5 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Client;
-using ServiceCenter.Application.DTO.Shared;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Entities;
@@ -11,12 +11,12 @@ namespace ServiceCenter.Application.Services;
 /// Сервис для работы с клиентами
 /// Реализует <see cref="IClientService"/>
 /// </summary>
-public class ClientService : BaseService<Client, ClientDto, IClientRepository>, IClientService
+public class ClientService : BaseService<Client, ClientCreateRequest, ClientUpdateRequest, ClientFullResponse, IClientRepository>, IClientService
 {
-    protected override ClientDto ToDto(Client entity) => ClientMapper.ToDto(entity);
-    protected override Client ToEntity(ClientDto dto) => ClientMapper.ToEntity(dto);
+    protected override ClientFullResponse ToDto(Client entity) => ClientMapper.ToResponse(entity);
+    protected override Client ToEntity(ClientCreateRequest dto) => ClientMapper.ToEntity(dto);
+    protected override Client ToEntity(ClientUpdateRequest dto) => ClientMapper.ToEntity(dto);
 
     public ClientService(IClientRepository repository)
           : base(repository) { }
-    
 }
