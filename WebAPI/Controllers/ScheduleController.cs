@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
@@ -10,6 +11,7 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class ScheduleController(IScheduleService service) : ControllerBase
 {
     [HttpPost("create")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Post([FromBody] ScheduleCreateRequest schedule)
     {
         await service.CreateAsync(schedule);
@@ -17,6 +19,7 @@ public class ScheduleController(IScheduleService service) : ControllerBase
     }
 
     [HttpDelete("delete")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> DeleteById([FromBody] Guid id)
     {
         try
@@ -34,6 +37,7 @@ public class ScheduleController(IScheduleService service) : ControllerBase
 
     //TODO:кмк он должен быть в Employee
     [HttpGet("get-employee-work-days-by-interval")]
+    [Authorize(Policy = "All")]
     public async Task<IActionResult> GetEmployeeDaysByInterval(Guid employeeId, DateOnly startDate, DateOnly endDate)
     {
         var schedule = await service.GetScheduleByEmployee(employeeId, startDate, endDate);
@@ -41,7 +45,8 @@ public class ScheduleController(IScheduleService service) : ControllerBase
     }
     //TODO:кмк он должен быть в Employee
     [HttpGet("get-all-work-days-by-interval")]
-    [ProducesResponseType(typeof(ScheduleEmployeeListResponse), StatusCodes.Status200OK)]
+    [Authorize(Policy = "Administrator")]
+    [ProducesResponseType(typeof(ScheduleFullResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllDaysByInterval([FromQuery]DateOnly startDate, [FromQuery] DateOnly endDate)
     {
         var schedule = await service.GetSchedule(startDate, endDate);

@@ -3,15 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.3.11222.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceCenter.WebAPI", "WebAPI\ServiceCenter.WebAPI.csproj", "{E58CF0A1-6C70-4961-B285-F76350744620}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceCenter.WebAPI", "WebAPI\ServiceCenter.WebAPI.csproj", "{E58CF0A1-6C70-4961-B285-F76350744620}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceCenter.Application", "Application\ServiceCenter.Application.csproj", "{2B59257F-DA3A-4151-9F75-7E24C79C90AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceCenter.Application", "Application\ServiceCenter.Application.csproj", "{2B59257F-DA3A-4151-9F75-7E24C79C90AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceCenter.Infrascructure.DataAccess", "DataAccess\ServiceCenter.Infrascructure.DataAccess.csproj", "{4F1E9491-8C10-4F13-BAE6-AC01BEFE76DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceCenter.Infrascructure.DataAccess", "DataAccess\ServiceCenter.Infrascructure.DataAccess.csproj", "{4F1E9491-8C10-4F13-BAE6-AC01BEFE76DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceCenter.Domain", "Domain\ServiceCenter.Domain.csproj", "{DFFAC1D9-27DE-4380-A8C6-CFB9FDBBBC91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceCenter.Domain", "Domain\ServiceCenter.Domain.csproj", "{DFFAC1D9-27DE-4380-A8C6-CFB9FDBBBC91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI", "UI\UI.csproj", "{EB4D7DAB-384E-450F-ADF6-F4E869E1405D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI", "UI\UI.csproj", "{EB4D7DAB-384E-450F-ADF6-F4E869E1405D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{C4F5A0DA-11A5-4147-9F6E-83855C010DDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{EB4D7DAB-384E-450F-ADF6-F4E869E1405D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB4D7DAB-384E-450F-ADF6-F4E869E1405D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB4D7DAB-384E-450F-ADF6-F4E869E1405D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4F5A0DA-11A5-4147-9F6E-83855C010DDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4F5A0DA-11A5-4147-9F6E-83855C010DDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4F5A0DA-11A5-4147-9F6E-83855C010DDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4F5A0DA-11A5-4147-9F6E-83855C010DDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

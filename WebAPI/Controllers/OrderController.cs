@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
@@ -10,6 +11,7 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class OrderController(IOrderService orderService) : ControllerBase
 {
     [HttpPost("create")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Create([FromBody] OrderCreateRequest order)
     {
         await orderService.CreateAsync(order);
@@ -17,6 +19,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
     }
 
     [HttpDelete("delete")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Delete([FromBody] Guid orderId)
     {
         await orderService.DeleteAsync(orderId);
@@ -24,6 +27,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
     }
 
     [HttpPost("getById")]
+    [Authorize(Policy = "All")]
     public async Task<IActionResult> GetById([FromBody] Guid orderId)
     {
         var order = await orderService.GetAsync(orderId);
@@ -32,7 +36,8 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return Ok(order);
     }
 
-    [HttpPost("get-by-filters")]
+    [HttpPost("getByFilters")]
+    [Authorize(Policy = "All")]
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
         var response = await orderService.GetByFiltersAsync(request);
@@ -40,6 +45,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
     }
 
     [HttpPut("update")]
+    [Authorize(Policy = "All")]
     public async Task<IActionResult> Update([FromBody] OrderUpdateRequest order)
     {
         await orderService.UpdateAsync(order);

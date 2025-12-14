@@ -7,4 +7,5 @@ namespace ServiceCenter.Domain.Interfaces;
 /// </summary>
 public interface IEmployeeRepository : IRepository<Employee>
 {
+    Task<Employee> GetByEmailAsync(string email);
 }

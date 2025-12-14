@@ -14,29 +14,33 @@ namespace ServiceCenter.Application.Services;
 /// </summary>
 public class EmployeeService : BaseService<Employee, EmployeeDto, IEmployeeRepository>, IEmployeeService
 {
-    public EmployeeService(IEmployeeRepository repository) : base(repository)
+    private readonly IPasswordHasher _passwordHasher;
+    public EmployeeService(IEmployeeRepository repository, IPasswordHasher passwordHasher) : base(repository)
     {
+        _passwordHasher = passwordHasher;
     }
 
     public async Task CreateAsync(CreateEmployeeDto dto)
     {
-        var employee = new EmployeeDto
-    (
-        Id: Guid.NewGuid(),
-        Name: dto.Name,
-        LastName: dto.LastName,
-        Patronymic: dto.Patronymic,
-        Address: dto.Address,
-        Email: dto.Email,
-        PhoneNumber: dto.PhoneNumber,
-        CreatedDate: DateTime.UtcNow,
-        CreatedById: Guid.Empty, // TODO: заменить на идентификатор текущего пользователя, когда будет реализована аутентификация
-        ModifiedDate: null,
-        ModifiedById: null,
-        Role: dto.Role,
-        IsDeleted: false
-    );
-        await _repository.AddAsync(EmployeeMapper.ToEntity(employee));
+        var employee = new Employee()
+        {
+
+            Id = Guid.NewGuid(),
+            Name = dto.Name,
+            LastName = dto.LastName,
+            Patronymic = dto.Patronymic,
+            Address = dto.Address,
+            Email = dto.Email,
+            PasswordHash = _passwordHasher.HashPassword(dto.Password),
+            PhoneNumber = dto.PhoneNumber,
+            CreatedDate = DateTime.UtcNow,
+            CreatedById = Guid.Empty, // TODO: заменить на идентификатор текущего пользователя, когда будет реализована аутентификация
+            ModifiedDate = null,
+            ModifiedById = null,
+            Role = dto.Role,
+            IsDeleted = false
+        };
+        await _repository.AddAsync(employee);
     }
 
     protected override EmployeeDto ToDto(Employee entity) => EmployeeMapper.ToDto(entity);
@@ -64,4 +68,5 @@ public class EmployeeService : BaseService<Employee, EmployeeDto, IEmployeeRepos
             PageSize = request.PageSize
         };
     }
+
 }

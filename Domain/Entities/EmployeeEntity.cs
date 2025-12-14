@@ -31,6 +31,10 @@ public class Employee : EntityBase
     /// Электронная почта сотрудника.
     /// </summary>
     public string Email { get; set; } = null!;
+    /// <summary>
+    /// Хэш пароля
+    /// </summary>
+    public string PasswordHash { get; set; } = string.Empty;
 
     /// <summary>
     /// Контактный телефон сотрудника.
