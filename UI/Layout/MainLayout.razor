@@ -1,16 +1,216 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+﻿@using UI.Services
+@inject IJSRuntime JSRuntime
+@inject INotificationService NotificationService
+@implements IDisposable
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode"
+				  Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<MudLayout>
+	<MudAppBar Elevation="1">
+		<MudIconButton Icon="@Icons.Material.Filled.Menu"
+					   Color="Color.Inherit"
+					   Edge="Edge.Start"
+					   OnClick="@((e) => DrawerToggle())" />
+		<MudText Typo="Typo.h5"
+				 Class="ml-3">
+			Расписание выездов
+		</MudText>
+		<MudSpacer />
+		<MudToggleIconButton Toggled="_isDarkMode"
+							 ToggledChanged="OnThemeChanged"
+							 Icon="@Icons.Material.Filled.DarkMode"
+							 ToggledIcon="@Icons.Material.Filled.LightMode"
+							 title="@(_isDarkMode ? "Светлая тема" : "Темная тема")" />
+		<MudTooltip Text="Открыть меню пользователя" Delay="800">
+			<MudMenu Icon="@Icons.Material.Filled.AccountCircle"
+					 Color="Color.Inherit"
+					 AriaLabel="Открыть меню пользователя">
+				<MudMenuItem Label="Войти" />
+			</MudMenu>
+		</MudTooltip>
+	</MudAppBar>
+	<MudDrawer @bind-Open="@_drawerOpen"
+			   ClipMode="DrawerClipMode.Always"
+			   Elevation="4">
+		<NavMenu />
+	</MudDrawer>
+	<MudMainContent>
+		@Body
+	</MudMainContent>
+</MudLayout>
+
+@code {
+	private MudTheme _theme = new();
+	private bool _isDarkMode;
+	private bool _drawerOpen = true;
+	private DotNetObjectReference<MainLayout>? _dotNetObjectReference;
+	private bool _errorHandlingInitialized = false;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			try
+			{
+				await LoadThemeFromLocalStorage();
+				_ = InitializeErrorHandlingWithRetry();
+			}
+			catch (Exception ex)
+			{
+				NotificationService.ShowError($"Ошибка инициализации: {ex.Message}");
+			}
+		}
+	}
+
+	private async Task LoadThemeFromLocalStorage()
+	{
+		try
+		{
+			var themeString = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "preferredTheme");
+			if (!string.IsNullOrEmpty(themeString))
+			{
+				_isDarkMode = themeString.ToLower() == "true";
+				StateHasChanged();
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Ошибка при загрузке темы: {ex.Message}");
+		}
+	}
+
+	private async Task InitializeErrorHandlingWithRetry()
+	{
+		if (_errorHandlingInitialized) return;
+
+		try
+		{
+			_dotNetObjectReference = DotNetObjectReference.Create(this);
+
+			Console.WriteLine("Ждем загрузки Blazor...");
+			await Task.Delay(1000);
+
+			// Проверяем, существует ли функция setupErrorHandlers
+			try
+			{
+				var isFunctionDefined = await JSRuntime.InvokeAsync<bool>(
+					"eval", "typeof setupErrorHandlers === 'function'");
+
+				if (isFunctionDefined)
+				{
+					await JSRuntime.InvokeVoidAsync("setupErrorHandlers", _dotNetObjectReference);
+					_errorHandlingInitialized = true;
+					Console.WriteLine("Обработка ошибок инициализирована");
+				}
+				else
+				{
+					Console.WriteLine("Функция setupErrorHandlers не найдена, используем альтернативный подход");
+					await InitializeFallbackErrorHandling();
+				}
+			}
+			catch (JSException jsEx)
+			{
+				Console.WriteLine($"Ошибка при проверке функции: {jsEx.Message}");
+				await InitializeFallbackErrorHandling();
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Ошибка при инициализации обработки ошибок: {ex.Message}");
+			// Продолжаем без обработки ошибок
+		}
+	}
+
+	private async Task InitializeFallbackErrorHandling()
+	{
+		try
+		{
+			// Альтернативная инициализация
+			await JSRuntime.InvokeVoidAsync("eval",
+				@"window.addEventListener('error', function(e) {
+                console.error('Fallback error handler:', e.error);
+                if (window.dotNetHelper) {
+                    window.dotNetHelper.invokeMethodAsync('HandleGlobalError',
+                        e.error.message, e.error.stack);
+                }
+            });");
+
+			_errorHandlingInitialized = true;
+			Console.WriteLine("Альтернативная обработка ошибок инициализирована");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Ошибка при альтернативной инициализации: {ex.Message}");
+		}
+	}
+
+
+
+	[JSInvokable]
+	public async Task HandleGlobalError(string errorMessage, string? stackTrace = null)
+	{
+		Console.WriteLine("\nHandleGlobalError");
+		try
+		{
+			var errorType = "Ошибка";
+			if (errorMessage.Contains("Blazor", StringComparison.OrdinalIgnoreCase) || errorMessage.Contains("соединен", StringComparison.OrdinalIgnoreCase))
+				errorType = "Ошибка соединения";
+			else if (errorMessage.Contains("JavaScript", StringComparison.OrdinalIgnoreCase))
+				errorType = "JavaScript ошибка";
+			else if (errorMessage.Contains("promise", StringComparison.OrdinalIgnoreCase))
+				errorType = "Ошибка промиса";
+
+			if (IsCriticalError(errorMessage))
+			{
+				await NotificationService.ShowErrorDialog(errorMessage, "Критическая ошибка", stackTrace);
+			}
+			else
+			{
+				await NotificationService.ShowGlobalError($"{errorType}: {errorMessage}");
+			}
+
+			var logMessage = $"[{DateTime.Now:HH:mm:ss}] {errorType}: {errorMessage}";
+			if (!string.IsNullOrEmpty(stackTrace))
+				logMessage += $"\nStack trace: {stackTrace}";
+
+			await JSRuntime.InvokeVoidAsync("console.error", logMessage);
+
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Ошибка при обработке глобальной ошибки: {ex.Message}");
+		}
+	}
+
+	private bool IsCriticalError(string errorMessage)
+	{
+		var criticalKeywords = new[]
+		{
+			"connection", "соединен", "network", "сеть", "failed to fetch", "не удалось", "timeout", "таймаут"
+		};
+
+		return criticalKeywords.Any(keyword => errorMessage.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+	}
+
+	private async Task OnThemeChanged(bool newValue)
+	{
+		_isDarkMode = newValue;
+		await JSRuntime.InvokeVoidAsync("localStorage.setItem", "preferredTheme", _isDarkMode.ToString());
+	}
+
+	void DrawerToggle()
+	{
+		_drawerOpen = !_drawerOpen;
+	}
+
+	public void Dispose()
+	{
+		_dotNetObjectReference?.Dispose();
+	}
+}

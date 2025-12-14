@@ -1,4 +1,4 @@
-﻿using ServiceCenter.Domain.ValueObjects;
+﻿using ServiceCenter.Domain.ValueObjects.Enums;
 
 namespace ServiceCenter.Domain.Entities;
 

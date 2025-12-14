@@ -1,6 +1,6 @@
 ﻿using ServiceCenter.Domain.ValueObjects.Enums;
 
-namespace ServiceCenter.Application.DTO.Employee;
+namespace ServiceCenter.Application.DTO.Responses;
 
 /// <summary>
 /// Сотрудник
@@ -18,7 +18,7 @@ namespace ServiceCenter.Application.DTO.Employee;
 /// <param name="ModifiedById">Идентификатор изменившего сотрудника</param>
 /// <param name="Role">Роль в системе</param>
 /// <param name="IsDeleted">Признак удаления/неактуальности</param>
-public record EmployeeDto(
+public record EmployeeFullResponse(
     Guid Id,
     DateTime CreatedDate,
     DateTime? ModifiedDate,
@@ -33,3 +33,4 @@ public record EmployeeDto(
     Guid? ModifiedById,
     RoleType Role
 );
+

@@ -1,0 +1,37 @@
+﻿@using MudBlazor
+
+<MudDialog MaxWidth="MaxWidth.Medium" FullWidth="true">
+	<DialogContent>
+
+		<!-- Основное сообщение -->
+		<MudText Style="white-space: pre-line;">
+			@Message
+		</MudText>
+
+		<!-- Детали ошибки -->
+		<MudPaper Elevation="2" Class="pa-3 mb-4" Style="background-color: var(--mud-palette-background-grey);">
+			@if (!string.IsNullOrEmpty(StackTrace))
+			{
+				<MudExpansionPanel Text="Показать детали ошибки">
+					<MudPaper Elevation="0" Class="pa-3" Style="background-color: var(--mud-palette-dark-darken);">
+						<MudText Typo="Typo.caption" Style="white-space: pre-wrap; font-family: 'Roboto Mono', monospace;" Color="Color.Error">
+							@StackTrace
+						</MudText>
+					</MudPaper>
+				</MudExpansionPanel>
+			}
+		</MudPaper>
+	</DialogContent>
+</MudDialog>
+
+@code {
+
+	[Parameter]
+	public string Title { get; set; } = "Ошибка";
+
+	[Parameter]
+	public string Message { get; set; } = string.Empty;
+
+	[Parameter]
+	public string? StackTrace { get; set; }
+}

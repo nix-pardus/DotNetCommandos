@@ -1,6 +1,4 @@
-﻿using ServiceCenter.Domain.ValueObjects.Enums;
-
-namespace ServiceCenter.Application.DTO.Employee;
+﻿namespace ServiceCenter.Application.DTO.Responses;
 
 /// <summary>
 /// Сотрудник
@@ -9,9 +7,10 @@ namespace ServiceCenter.Application.DTO.Employee;
 /// <param name="Name">Имя</param>
 /// <param name="LastName">Фамилия</param>
 /// <param name="Patronymic">Отчество</param>
-public record EmployeeMinimalDto(
+public record EmployeeMinimalResponse(
     Guid Id,
     string Name,
     string LastName,
     string? Patronymic
 );
+

@@ -1,15 +1,14 @@
 ﻿using ServiceCenter.Domain.ValueObjects.Enums;
 
-namespace ServiceCenter.Application.DTO.Employee;
+namespace ServiceCenter.Application.DTO.Requests;
 
-public record CreateEmployeeDto
+public record EmployeeCreateRequest
 (
     string Name,
     string LastName,
     string? Patronymic,
     string Address,
     string Email,
-    string Password,
     string PhoneNumber,
     RoleType Role
 );

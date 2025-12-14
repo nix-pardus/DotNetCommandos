@@ -1,6 +1,6 @@
 ﻿using Riok.Mapperly.Abstractions;
-using ServiceCenter.Application.DTO.Client;
-using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Domain.Entities;
 
 namespace ServiceCenter.Application.Mappers;
@@ -8,7 +8,7 @@ namespace ServiceCenter.Application.Mappers;
 [Mapper]
 public static partial class ClientMapper
 {
-    public static partial Client ToEntity(ClientDto dto);
-
-    public static partial ClientDto ToDto(Client entity);
+    public static partial Client ToEntity(ClientCreateRequest dto);
+    public static partial Client ToEntity(ClientUpdateRequest dto);
+    public static partial ClientFullResponse ToResponse(Client entity);
 }

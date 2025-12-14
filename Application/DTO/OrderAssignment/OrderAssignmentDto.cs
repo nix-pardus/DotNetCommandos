@@ -1,11 +1,11 @@
-﻿using ServiceCenter.Domain.DTO.Order;
+﻿using ServiceCenter.Application.DTO.Responses;
 
 namespace ServiceCenter.Application.DTO.OrderAssignment;
 
 public record OrderAssignmentDto
 (
     Guid Id,
-    OrderDto Order,
+    OrderFullResponse Order,
     bool IsPrimary,
     DateTime CreatedDate,
     DateTime? ModifiedDate,

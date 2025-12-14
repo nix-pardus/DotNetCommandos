@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Schedule;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Interfaces;
@@ -13,7 +14,7 @@ namespace ServiceCenter.Application.Services;
 public class ScheduleExceptionService(IScheduleExceptionRepository repository) : IScheduleExceptionService
 {
     /// <inheritdoc />
-    public async Task CreateAsync(ScheduleExceptionDto dto)
+    public async Task CreateAsync(ScheduleExceptionCreateRequest dto)
     {
         await repository.AddAsync(ScheduleExceptionMapper.ToEntity(dto));
     }
@@ -23,13 +24,13 @@ public class ScheduleExceptionService(IScheduleExceptionRepository repository) :
             await repository.DeleteAsync(id);
         }
 
-    public async Task<IEnumerable<ScheduleExceptionDto>> GetAllByEmployeePaged(Guid employeeId, int page, int pageSize)
+    public async Task<IEnumerable<ScheduleExceptionFullResponse>> GetAllByEmployeePaged(Guid employeeId, int page, int pageSize)
     {
-        return (await repository.GetByEmployeePaged(employeeId, page, pageSize)).Select(ScheduleExceptionMapper.ToDto);
+        return (await repository.GetByEmployeePaged(employeeId, page, pageSize)).Select(ScheduleExceptionMapper.ToResponse);
     }
 
     /// <inheritdoc />
-    public Task<ScheduleExceptionDto> UpdateAsync(ScheduleExceptionDto dto)
+    public Task<ScheduleExceptionFullResponse> UpdateAsync(ScheduleExceptionUpdateRequest dto)
     {
         throw new NotImplementedException();
     }

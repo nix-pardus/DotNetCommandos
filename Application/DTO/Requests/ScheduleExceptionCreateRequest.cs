@@ -1,17 +1,15 @@
-﻿
-namespace ServiceCenter.Application.DTO.Schedule;
+﻿using ServiceCenter.Domain.ValueObjects.Enums;
+
+namespace ServiceCenter.Application.DTO.Requests;
 
 /// <summary>
 /// График работы
 /// </summary>
 /// <param name="Id">Идентификатор графика</param>
 //TODO: заполнить
-public record ScheduleDto(
-    string Pattern,
+public record ScheduleExceptionCreateRequest(
+    ScheduleExceptionType? exceptionType,
     DateOnly EffectiveFrom,
     DateOnly EffectiveTo,
-    TimeOnly StartTime,
-    TimeOnly EndTime,
-    Guid EmployeeId,
-    bool IsDeleted
+    Guid EmployeeId
 );

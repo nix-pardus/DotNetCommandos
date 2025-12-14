@@ -1,9 +1,8 @@
-﻿namespace ServiceCenter.Application.DTO.Client;
+﻿namespace ServiceCenter.Application.DTO.Requests;
 
 /// <summary>
 /// Клиент
 /// </summary>
-/// <param name="Id">Идентификатор клиента</param>
 /// <param name="Name">Имя</param>
 /// <param name="LastName">Фамилия</param>
 /// <param name="Patronymic">Отчество</param>
@@ -13,9 +12,7 @@
 /// <param name="CompanyName">Название компании</param>
 /// <param name="Email">Электронная почта</param>
 /// <param name="PhoneNumber">Телефон</param>
-/// <param name="IsDeleted">Признак удаления</param>
-public record ClientDto(
-    Guid Id,
+public record ClientCreateRequest(
     string Name,
     string LastName,
     string Patronymic,
@@ -24,6 +21,5 @@ public record ClientDto(
     string Region,
     string CompanyName,
     string Email,
-    string PhoneNumber,
-    bool IsDeleted
+    string PhoneNumber
 );

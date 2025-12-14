@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ServiceCenter.Application.DTO.Client;
-using ServiceCenter.Application.DTO.Schedule;
+using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.Interfaces;
 
 namespace ServiceCenter.WebAPI.Controllers;
@@ -12,7 +11,7 @@ public class ScheduleExceptionController(IScheduleExceptionService service) : Co
 {
     [HttpPost("create")]
     [Authorize(Policy = "Operator")]
-    public async Task<IActionResult> Post([FromBody] ScheduleExceptionDto scheduleException)
+    public async Task<IActionResult> Post([FromBody] ScheduleExceptionCreateRequest scheduleException)
     {
         await service.CreateAsync(scheduleException);
         return Ok();
