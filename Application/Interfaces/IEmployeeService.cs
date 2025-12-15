@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Employee;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.DTO.Shared;
 
 namespace ServiceCenter.Application.Interfaces;
@@ -13,14 +14,14 @@ public interface IEmployeeService
     /// </summary>
     /// <param name="dto">DTO сотрудника</param>
     /// <returns>Задача выполнения операции</returns>
-    Task CreateAsync(CreateEmployeeDto dto);
+    Task CreateAsync(EmployeeCreateRequest dto);
 
     /// <summary>
     /// Обновление данных сотрудника
     /// </summary>
     /// <param name="dto">DTO сотрудника с обновлёнными данными</param>
     /// <returns>Задача выполнения операции</returns>
-    Task UpdateAsync(EmployeeDto dto);
+    Task<EmployeeFullResponse> UpdateAsync(EmployeeUpdateRequest dto);
 
     /// <summary>
     /// Удаление сотрудника по идентификатору
@@ -34,12 +35,12 @@ public interface IEmployeeService
     /// </summary>
     /// <param name="request">Параметры запроса</param>
     /// <returns>Постраничный список сотрудников</returns>
-    Task<PagedResponse<EmployeeDto>> GetByFiltersAsync(GetByFiltersRequest request);
+    Task<PagedResponse<EmployeeFullResponse>> GetByFiltersAsync(GetByFiltersRequest request);
 
     /// <summary>
     /// Получение сотрудников по фильтрам вместе с назначенными заказами
     /// </summary>
     /// <param name="request">Параметры запроса</param>
     /// <returns>Постраничный список сотрудников, включая назначенные заказы</returns>
-    Task<PagedResponse<EmployeeWithOrdersDto>> GetByFiltersWithOrdersAsync(GetByFiltersRequest request);
+    Task<PagedResponse<EmployeeWithOrdersResponse>> GetByFiltersWithOrdersAsync(GetByFiltersRequest request);
 }

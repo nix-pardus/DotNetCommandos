@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Assignment;
+﻿using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.DTO.Shared;
 
 namespace ServiceCenter.Application.Interfaces;
@@ -10,7 +11,7 @@ public interface IAssignmentService
     /// </summary>
     /// <param name="dto">DTO создания/изменения назначения</param>
     /// <returns>Task</returns>
-    Task CreateAsync(CreateAssignmentDto dto);
+    Task CreateAsync(AssignmentCreateRequest dto);
 
     /// <summary>
     /// Удаление назначения
@@ -24,26 +25,26 @@ public interface IAssignmentService
     /// </summary>
     /// <param name="dto">DTO создания/изменения назначения</param>
     /// <returns>Task</returns>
-    Task UpdateAsync(CreateAssignmentDto dto);
+    Task UpdateAsync(AssignmentUpdateRequest dto);
 
     /// <summary>
     /// Получение всех назначений по заявке
     /// </summary>
     /// <param name="orderId">Id заявки</param>
     /// <returns>Постраничный список назначений</returns>
-    Task<PagedResponse<AssignmentDto>> GetAllByOrderIdAsync(Guid orderId);
+    Task<PagedResponse<AssignmentResponse>> GetAllByOrderIdAsync(Guid orderId);
 
     /// <summary>
     /// Получение всех назначений сотрудника
     /// </summary>
     /// <param name="employeeId">Id сотрудника</param>
     /// <returns>Постраничный список назначений</returns>
-    Task<PagedResponse<AssignmentDto>> GetAllByEmployeeIdAsync(Guid employeeId);
+    Task<PagedResponse<AssignmentResponse>> GetAllByEmployeeIdAsync(Guid employeeId);
 
     /// <summary>
     /// Получение назначений по фильтрам
     /// </summary>
     /// <param name="request">Параметры запроса</param>
     /// <returns>Постраничный список назначений</returns>
-    Task<PagedResponse<AssignmentDto>> GetByFiltersAsync(GetByFiltersRequest request);
+    Task<PagedResponse<AssignmentResponse>> GetByFiltersAsync(GetByFiltersRequest request);
 }

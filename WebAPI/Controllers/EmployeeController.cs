@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ServiceCenter.Application.DTO.Employee;
+using ServiceCenter.Application.DTO.Requests;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
 
@@ -13,15 +14,15 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
 {
     [HttpPost("create")]
     [Authorize(Policy = "Operator")]
-    public async Task<IActionResult> Post([FromQuery] CreateEmployeeDto createDto)
+    public async Task<IActionResult> Post([FromBody] EmployeeCreateRequest employee)
     {
-        await employeeService.CreateAsync(createDto);
+        await employeeService.CreateAsync(employee);
         return Ok();
     }
 
     [HttpPost("get-by-filters")]
     [Authorize(Policy = "Operator")]
-    [ProducesResponseType(typeof(PagedResponse<EmployeeDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<EmployeeFullResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
         var response = await employeeService.GetByFiltersAsync(request);
@@ -30,7 +31,7 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
 
     [HttpPost("get-by-filters-with-orders")]
     [Authorize(Policy = "Operator")]
-    [ProducesResponseType(typeof(PagedResponse<EmployeeDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<EmployeeFullResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByFiltersWithOrders([FromBody] GetByFiltersRequest request)
     {
         var response = await employeeService.GetByFiltersWithOrdersAsync(request);
@@ -39,9 +40,9 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
 
     [HttpPut("update")]
     [Authorize(Policy = "Operator")]
-    public async Task<IActionResult> Update([FromBody] EmployeeDto employeeDto)
+    public async Task<IActionResult> Update([FromBody] EmployeeUpdateRequest employee)
     {
-        await employeeService.UpdateAsync(employeeDto);
+        await employeeService.UpdateAsync(employee);
         return Ok();
     }
 

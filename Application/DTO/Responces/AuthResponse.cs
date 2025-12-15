@@ -1,4 +1,4 @@
-﻿using ServiceCenter.Application.DTO.Employee;
+﻿using ServiceCenter.Application.DTO.Responses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,6 @@ namespace ServiceCenter.Application.DTO.Responces
     {
         public string Token { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; }
-        public EmployeeMinimalDto Employee { get; set; } = null!;
+        public EmployeeMinimalResponse Employee { get; set; } = null!;
     }
 }
