@@ -1,0 +1,248 @@
+﻿@page "/test-errors"
+@using UI.Services
+@inject INotificationService NotificationService
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<MudContainer>
+	<MudPaper Class="pa-4" Elevation="1">
+		<MudText Typo="Typo.h4" Class="mb-4">Тестирование системы ошибок</MudText>
+
+		<MudGrid>
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="ShowSuccess"
+						   Variant="Variant.Filled"
+						   Color="Color.Success"
+						   FullWidth="true">
+					Успех
+				</MudButton>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="ShowError"
+						   Variant="Variant.Filled"
+						   Color="Color.Error"
+						   FullWidth="true">
+					Ошибка
+				</MudButton>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="ShowWarning"
+						   Variant="Variant.Filled"
+						   Color="Color.Warning"
+						   FullWidth="true">
+					Предупреждение
+				</MudButton>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="ShowInfo"
+						   Variant="Variant.Filled"
+						   Color="Color.Info"
+						   FullWidth="true">
+					Информация
+				</MudButton>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="ShowErrorDialog"
+						   Variant="Variant.Outlined"
+						   Color="Color.Error"
+						   FullWidth="true">
+					Диалог ошибки
+				</MudButton>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="SimulateNetworkError"
+						   Variant="Variant.Outlined"
+						   Color="Color.Primary"
+						   FullWidth="true">
+					Сеть ошибка
+				</MudButton>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="ThrowException"
+						   Variant="Variant.Outlined"
+						   Color="Color.Secondary"
+						   FullWidth="true">
+					Исключение
+				</MudButton>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="ThrowJavaScriptException"
+						   Variant="Variant.Outlined"
+						   Color="Color.Secondary"
+						   FullWidth="true">
+					JavaScript исключение
+				</MudButton>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="ThrowJavaScriptExceptionSafe"
+						   Variant="Variant.Outlined"
+						   Color="Color.Warning"
+						   FullWidth="true">
+					JavaScript (безопасно)
+				</MudButton>
+			</MudItem>
+
+			<MudItem xs="12" sm="6" md="3" Class="mb-3">
+				<MudButton OnClick="TestDifferentExceptions"
+						   Variant="Variant.Outlined"
+						   Color="Color.Info"
+						   FullWidth="true">
+					Тест исключений
+				</MudButton>
+			</MudItem>
+
+		</MudGrid>
+	</MudPaper>
+</MudContainer>
+
+@code {
+	
+	private async Task ShowSuccess()
+	{
+		NotificationService.ShowSuccess("Операция выполнена успешно!");
+	}
+
+	private async Task ShowError()
+	{
+		NotificationService.ShowError("Произошла ошибка при выполнении операции");
+	}
+
+	private async Task ShowWarning()
+	{
+		NotificationService.ShowWarning("Это предупреждение о возможной проблеме", "Внимание");
+	}
+
+	private async Task ShowInfo()
+	{
+		NotificationService.ShowInfo("Это информационное сообщение");
+	}
+
+	private async Task ShowErrorDialog()
+	{
+		try
+		{
+			throw new InvalidOperationException("Тестовая ошибка для демонстрации диалога");
+		}
+		catch (Exception ex)
+		{
+			await NotificationService.ShowErrorDialog(
+				ex.Message,
+				"Тестовая ошибка",
+				ex.StackTrace);
+		}
+	}
+
+	private async Task SimulateNetworkError()
+	{
+		try
+		{
+			// Пытаемся получить несуществующий ресурс
+			var response = await Http.GetAsync("/api/nonexistent");
+			response.EnsureSuccessStatusCode();
+		}
+		catch (HttpRequestException ex)
+		{
+			NotificationService.ShowError($"Ошибка сети: {ex.Message}");
+		}
+	}
+
+	private async Task ThrowException()
+	{
+		try
+		{
+			throw new Exception("Это тестовое исключение для проверки глобального перехвата ошибок");
+
+		}
+		catch (Exception ex)
+		{
+			await NotificationService.ShowErrorDialog(ex.Message, "Исключение в обработчике", ex.StackTrace);
+		}
+	}
+
+	private async Task ThrowJavaScriptException()
+	{
+		try
+		{
+			await JSRuntime.InvokeVoidAsync("throwTestException");
+		}
+		catch (JSException jsEx)
+		{
+			Console.WriteLine($"JSException перехвачен: {jsEx.Message}");
+
+			await NotificationService.ShowErrorDialog(
+				jsEx.Message,
+				"JavaScript ошибка",
+				jsEx.StackTrace);
+
+			NotificationService.ShowError($"JavaScript ошибка: {jsEx.Message}");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Общее исключение: {ex.Message}");
+			NotificationService.ShowError($"Ошибка: {ex.Message}");
+		}
+	}
+
+	private async Task TestDifferentExceptions()
+	{
+		// 1. Синхронное исключение (перехватывается try-catch)
+		try
+		{
+			throw new InvalidOperationException("Синхронное исключение");
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Синхронное исключение перехвачено: {ex.Message}");
+		}
+
+		// 2. Асинхронное исключение (тоже перехватывается)
+		try
+		{
+			await Task.Run(() => throw new InvalidOperationException("Асинхронное исключение"));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Асинхронное исключение перехвачено: {ex.Message}");
+		}
+
+		// 3. Исключение в цепочке задач
+		try
+		{
+			await Task.Delay(100)
+				.ContinueWith(t => throw new InvalidOperationException("Исключение в ContinueWith"));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Исключение в цепочке задач: {ex.Message}");
+		}
+	}
+
+	private async Task ThrowJavaScriptExceptionSafe()
+	{
+		try
+		{
+			// Используем безопасный метод
+			await JSRuntime.InvokeVoidAsync("safeThrowTestException");
+
+			// Даем время для обработки асинхронного исключения
+			await Task.Delay(1000);
+
+			NotificationService.ShowInfo("JavaScript исключение было перехвачено и обработано");
+		}
+		catch (JSException jsEx)
+		{
+			await NotificationService.ShowErrorDialog(
+				jsEx.Message,
+				"Безопасная JavaScript ошибка",
+				jsEx.StackTrace);
+		}
+	}
+}

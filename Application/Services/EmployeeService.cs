@@ -15,8 +15,10 @@ namespace ServiceCenter.Application.Services;
 /// </summary>
 public class EmployeeService : BaseService<Employee, EmployeeCreateRequest, EmployeeUpdateRequest, EmployeeFullResponse, IEmployeeRepository>, IEmployeeService
 {
-    public EmployeeService(IEmployeeRepository repository) : base(repository)
+    private readonly IPasswordHasher _passwordHasher;
+    public EmployeeService(IEmployeeRepository repository, IPasswordHasher passwordHasher) : base(repository)
     {
+        _passwordHasher = passwordHasher;
     }
 
     protected override EmployeeFullResponse ToDto(Employee entity) => EmployeeMapper.ToResponse(entity);
@@ -44,4 +46,5 @@ public class EmployeeService : BaseService<Employee, EmployeeCreateRequest, Empl
             PageSize = request.PageSize
         };
     }
+
 }

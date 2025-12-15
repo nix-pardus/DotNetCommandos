@@ -8,5 +8,11 @@ public class EFEmployeeRepository : BaseRepository<Employee>, IEmployeeRepositor
 {
     public EFEmployeeRepository(DataContext context, IFilterBuilder<Employee> filterBuilder) : base(context, filterBuilder)
     {
+
+    }
+
+    public async Task<Employee> GetByEmailAsync(string email)
+    {
+        return await _context.Employees.SingleOrDefaultAsync(x => x.Email == email);
     }
 }

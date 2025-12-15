@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.DTO.Responses;
@@ -12,6 +13,7 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class EmployeeController(IEmployeeService employeeService) : ControllerBase
 {
     [HttpPost("create")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Post([FromBody] EmployeeCreateRequest employee)
     {
         await employeeService.CreateAsync(employee);
@@ -19,6 +21,7 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
     }
 
     [HttpPost("get-by-filters")]
+    [Authorize(Policy = "Operator")]
     [ProducesResponseType(typeof(PagedResponse<EmployeeFullResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
@@ -27,6 +30,7 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
     }
 
     [HttpPost("get-by-filters-with-orders")]
+    [Authorize(Policy = "Operator")]
     [ProducesResponseType(typeof(PagedResponse<EmployeeFullResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByFiltersWithOrders([FromBody] GetByFiltersRequest request)
     {
@@ -35,6 +39,7 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
     }
 
     [HttpPut("update")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Update([FromBody] EmployeeUpdateRequest employee)
     {
         await employeeService.UpdateAsync(employee);
@@ -42,7 +47,8 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
     }
 
     [HttpDelete("delete")]
-    public async Task<IActionResult> Delete([FromBody] Guid id)
+    [Authorize(Policy = "Operator")]
+    public async Task<IActionResult> Delete([FromQuery] Guid id)
     {
         await employeeService.DeleteAsync(id);
         return Ok();
