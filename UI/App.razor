@@ -1,4 +1,6 @@
-﻿@using Microsoft.AspNetCore.Components.Web
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using UI.Components
 @using UI.Services
 @inject IJSRuntime JSRuntime
 @inject INotificationService NotificationService
@@ -10,7 +12,14 @@
 				<Found Context="routeData">
 					<ErrorBoundary @ref="_innerErrorBoundary">
 						<ChildContent>
-							<RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+							<AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+								<NotAuthorized>
+									<RedirectToLogin />
+								</NotAuthorized>
+								<Authorizing>
+									<p>Проверка авторизации...</p>
+								</Authorizing>
+							</AuthorizeRouteView>
 						</ChildContent>
 						<ErrorContent>
 							<MudPaper Elevation="5" Class="pa-6 text-center" Style="max-width: 600px; margin: 2rem auto;">

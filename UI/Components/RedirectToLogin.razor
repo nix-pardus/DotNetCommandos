@@ -1,0 +1,19 @@
+﻿@inject NavigationManager NavigationManager
+
+<MudPaper Class="pa-8 text-center" Elevation="5" Style="max-width: 400px; margin: 2rem auto;">
+	<MudIcon Icon="@Icons.Material.Filled.Lock" Color="Color.Primary" Size="Size.Large" Class="mb-4" />
+	<MudText Typo="Typo.h6" Class="mb-3">Требуется аутентификация</MudText>
+	<MudText Typo="Typo.body1" Class="mb-4">
+		Для доступа к этому разделу необходимо войти в систему
+	</MudText>
+	<MudButton OnClick="NavigateToLogin" Color="Color.Primary" Variant="Variant.Filled">
+		Войти
+	</MudButton>
+</MudPaper>
+
+@code {
+	private void NavigateToLogin()
+	{
+		NavigationManager.NavigateTo("/login", forceLoad: true);
+	}
+}
