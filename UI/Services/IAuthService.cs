@@ -8,4 +8,8 @@ public interface IAuthService
     Task<bool> IsAuthenticatedAsync();
     Task<string> GetJwtTokenAsync();
     Task LogoutAsync();
+    Task<EmployeeMinimal?> GetCurrentEmployeeAsync();
+
+    Task<bool> IsWelcomeFlagSet();
+    Task ClearWelcomeFlag();
 }

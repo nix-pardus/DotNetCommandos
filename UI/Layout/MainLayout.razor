@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using UI.Models
 @using UI.Services
 @inject IErrorHandler ErrorHandler
 @inject IThemeService ThemeService
@@ -31,13 +32,36 @@
 							 Icon="@Icons.Material.Filled.DarkMode"
 							 ToggledIcon="@Icons.Material.Filled.LightMode"
 							 title="@(ThemeService.IsDarkMode ? "Светлая тема" : "Темная тема")" />
-		<MudTooltip Text="Открыть меню пользователя" Delay="800">
-			<MudMenu Icon="@Icons.Material.Filled.AccountCircle"
-					 Color="Color.Inherit"
-					 AriaLabel="Открыть меню пользователя">
-				<MudMenuItem Label="Выйти" OnClick="() => {AuthService.LogoutAsync();}" />
+
+		@if (_user != null)
+		{
+			<MudMenu>
+				<ActivatorContent>
+					<MudButton EndIcon="@Icons.Material.Filled.ArrowDropDown"
+							   Color="Color.Inherit"
+							   Style="text-transform: none;"
+							   Variant="Variant.Text">
+						<MudIcon Icon="@Icons.Material.Filled.AccountCircle"
+								 Class="mr-2"
+								 Size="Size.Medium" />
+						@_user.Name @_user.LastName
+					</MudButton>
+				</ActivatorContent>
+				<ChildContent>
+					<MudMenuItem Icon="@Icons.Material.Filled.Logout"
+								 OnClick="Logout">
+						Выйти
+					</MudMenuItem>
+				</ChildContent>
 			</MudMenu>
-		</MudTooltip>
+		}
+		else
+		{
+			<MudButton Color="Color.Inherit" Href="/login" Variant="Variant.Text">
+				<MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-2" />
+				Войти
+			</MudButton>
+		}
 	</MudAppBar>
 	<MudDrawer @bind-Open="@_drawerOpen"
 			   ClipMode="DrawerClipMode.Always"
@@ -51,6 +75,19 @@
 
 @code {
 	private bool _drawerOpen = true;
+	private EmployeeMinimal? _user;
+	private bool _welcomeShown = false;
+
+	[CascadingParameter]
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
+	protected override async Task OnInitializedAsync()
+	{
+		AuthenticationStateTask = AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var authState = await AuthenticationStateTask;
+
+		await LoadUserData();
+	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -60,12 +97,33 @@
 			{
 				await ThemeService.InitializeAsync();
 				await ErrorHandler.InitializeAsync();
+
+				await CheckAndShowWelcome();
+
 				StateHasChanged();
 			}
 			catch (Exception ex)
 			{
 				NotificationService.ShowError($"Ошибка инициализации: {ex.Message}");
 			}
+		}
+	}
+
+	private async Task LoadUserData()
+	{
+		_user = await AuthService.GetCurrentEmployeeAsync();
+	}
+
+	private async Task CheckAndShowWelcome()
+	{
+		if (_welcomeShown || _user == null) return;
+
+		var showWelcome = await AuthService.IsWelcomeFlagSet();
+		if (showWelcome)
+		{
+			NotificationService.ShowSuccess($"Добро пожаловать, {_user.Name}");
+			await AuthService.ClearWelcomeFlag();
+			_welcomeShown = true;
 		}
 	}
 
@@ -77,5 +135,11 @@
 	void DrawerToggle()
 	{
 		_drawerOpen = !_drawerOpen;
+	}
+
+	private async Task Logout()
+	{
+		await AuthService.LogoutAsync();
+		NavigationManager.NavigateTo("/login", forceLoad: true);
 	}
 }

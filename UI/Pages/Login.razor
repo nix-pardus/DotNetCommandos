@@ -7,28 +7,70 @@
 <MudPaper Class="pa-8" Elevation="5" Style="max-width: 400px; margin: 2rem auto;">
 	<MudText Typo="Typo.h6" Class="mb-4">Вход в систему</MudText>
 
-	<MudTextField @bind-Value="Email" Label="Email" Variant="Variant.Outlined"/>
-	<MudTextField @bind-Value="Password" Label="Пароль" InputType="InputType.Password" Variant="Variant.Outlined" Class="mt-3"/>
+	<MudTextField @bind-Value="Email"
+				  Label="Email"
+				  Variant="Variant.Outlined"
+				  Required="true"
+				  RequiredError="Email обязателен" />
 
-	<MudButton OnClick="HandleLogin" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4">
+	<MudTextField @bind-Value="Password"
+				  Label="Пароль"
+				  InputType="InputType.Password"
+				  Variant="Variant.Outlined"
+				  Class="mt-3"
+				  Required="true"
+				  RequiredError="Пароль обязателен" />
+
+	<MudButton OnClick="HandleLogin"
+			   Color="Color.Primary"
+			   Variant="Variant.Filled"
+			   Class="mt-4"
+			   Disabled="@_isLoading">
+		@if (_isLoading)
+		{
+			<MudProgressCircular Size="Size.Small"
+								 Color="Color.Inherit"
+								 Class="mr-2" />
+		}
 		Войти
 	</MudButton>
 </MudPaper>
 
-@code{
-	private string Email { get; set; }
-	private string Password { get; set; }
+@code {
+	private string Email { get; set; } = "";
+	private string Password { get; set; } = "";
+	private bool _isLoading = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if(await AuthService.IsAuthenticatedAsync())
+		{
+			NavigationManager.NavigateTo("/", true);
+		}
+	}
 
 	private async Task HandleLogin()
 	{
+		if(string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+		{
+			NotificationService.ShowWarning("Заполните все поля");
+			return;
+		}
+
+		_isLoading = true;
+
 		try
 		{
 			var result = await AuthService.LoginAsync(Email, Password);
 			NavigationManager.NavigateTo("/", forceLoad: true);
 		}
-		catch(Exception ex)
+		catch (Exception ex)
 		{
 			await NotificationService.ShowErrorDialog(ex.Message, ex.StackTrace);
+		}
+		finally
+		{
+			_isLoading = false;
 		}
 	}
 }
