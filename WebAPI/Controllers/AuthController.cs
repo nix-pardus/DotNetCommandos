@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServiceCenter.Application.DTO.Requests;
-using ServiceCenter.Application.DTO.Responces;
+using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
 using System.Security.Claims;

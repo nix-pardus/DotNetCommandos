@@ -10,9 +10,9 @@ public class EmployeeService : IEmployeeService
     {
         _apiService = apiService;
     }
-    public async Task<List<Employee>> GetAllEmployeesAsync()
+    public async Task<PagingResponse<Employee>> GetAllEmployeesAsync(GetByFiltersRequest request)
     {
-        return await _apiService.GetAsync<List<Employee>>("api/Employee/getAll");
+        return await _apiService.GetAsync<PagingResponse<Employee>>("api/Employee/get-by-filters", request);
     }
     public Task<Employee> GetEmployeeByIdAsync(Guid id)
     {
@@ -30,7 +30,7 @@ public class EmployeeService : IEmployeeService
 
     public async Task<bool> DeleteEmployeeAsync(Guid id)
     {
-        return await _apiService.DeleteAsync($"api/delete/{id}");
+        return await _apiService.DeleteAsync($"api/Employee/delete?id={id}");
     }
 
 

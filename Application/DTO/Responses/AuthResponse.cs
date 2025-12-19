@@ -1,11 +1,10 @@
-﻿using ServiceCenter.Application.DTO.Responses;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServiceCenter.Application.DTO.Responces
+namespace ServiceCenter.Application.DTO.Responses
 {
     public class AuthResponse
     {

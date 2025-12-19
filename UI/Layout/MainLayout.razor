@@ -63,11 +63,14 @@
 			</MudButton>
 		}
 	</MudAppBar>
-	<MudDrawer @bind-Open="@_drawerOpen"
-			   ClipMode="DrawerClipMode.Always"
-			   Elevation="4">
-		<NavMenu />
-	</MudDrawer>
+	@if (_user != null)
+	{
+		<MudDrawer @bind-Open="@_drawerOpen"
+				   ClipMode="DrawerClipMode.Always"
+				   Elevation="4">
+			<NavMenu />
+		</MudDrawer>
+	}
 	<MudMainContent>
 		@Body
 	</MudMainContent>

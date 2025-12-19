@@ -1,5 +1,5 @@
 ﻿using ServiceCenter.Application.DTO.Requests;
-using ServiceCenter.Application.DTO.Responces;
+using ServiceCenter.Application.DTO.Responses;
 using System;
 using System.Collections.Generic;
 using System.Linq;

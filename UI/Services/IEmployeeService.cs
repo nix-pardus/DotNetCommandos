@@ -4,7 +4,7 @@ namespace UI.Services;
 
 public interface IEmployeeService
 {
-    Task<List<Employee>> GetAllEmployeesAsync();
+    Task<PagingResponse<Employee>> GetAllEmployeesAsync(GetByFiltersRequest request);
     Task<Employee> GetEmployeeByIdAsync(Guid id);
     Task<Employee> CreateEmployeeAsync(Employee employee);
     Task<bool> UpdateEmployeeAsync(Employee employee);
