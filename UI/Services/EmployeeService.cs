@@ -25,7 +25,7 @@ public class EmployeeService : IEmployeeService
     }
     public async Task<bool> UpdateEmployeeAsync(Employee employee)
     {
-        return await _apiService.PutAsync($"api/update/{employee.Id}", employee);
+        return await _apiService.PutAsync($"api/Employee/update?id={employee.Id}", employee);
     }
 
     public async Task<bool> DeleteEmployeeAsync(Guid id)
