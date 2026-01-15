@@ -45,13 +45,12 @@ public class ApiService : IApiService
         }
     }
 
-    public async Task<T> PostAsync<T>(string endpoint, object data)
+    public async Task PostAsync<T>(string endpoint, object data)
     {
         try
         {
             var response = await _httpClient.PostAsJsonAsync(endpoint, data);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<T>();
         }
         catch (Exception ex)
         {

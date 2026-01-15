@@ -1,4 +1,6 @@
-﻿namespace UI.Models;
+﻿using UI.Models.Employees;
+
+namespace UI.Models;
 
 public class AuthResponse
 {

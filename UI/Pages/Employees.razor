@@ -1,6 +1,7 @@
 ﻿@page "/employees"
 @using Microsoft.AspNetCore.Authorization
 @using UI.Models
+@using UI.Models.Employees
 @using UI.Services
 @using UI.Components
 @inject IEmployeeService EmployeeService
@@ -13,6 +14,8 @@
 			 T="Employee"
 			 ServerData="@ServerReload"
 			 Filterable="true"
+			 FilterMode="DataGridFilterMode.ColumnFilterMenu"
+			 FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
 			 SortMode="SortMode.Multiple"
 			 Hideable="true"
 			 RowsPerPage="10"
@@ -23,6 +26,10 @@
 	<ToolBarContent>
 		<MudText Typo="Typo.h6">Сотрудники</MudText>
 		<MudSpacer />
+
+		<MudButton OnClick="CreateEmployee" StartIcon="@Icons.Material.Filled.Create">
+			Создать сотрудника
+		</MudButton>
 
 		<MudTooltip Text="Показать/скрыть удаленных сотрудников">
 			<MudSwitch @bind-Value="showDeleted" @bind-Value:after="OnShowDeletedChanged" Color="Color.Secondary" Label="Показать удаленных" />
@@ -190,10 +197,14 @@
 				//для фильтров на колонках
 				if (filter is IFilterDefinition<Employee> columnFilter)
 				{
+					string operatorString = !string.IsNullOrEmpty(columnFilter.Operator)
+						? columnFilter.Operator
+						: "contains";
+
 					var filterCondition = new GetByFiltersRequest.FilterCondition
 					{
 						Field = MapPropertyToField(columnFilter.Column.PropertyName),
-						Operator = MapFilterOperator(columnFilter.Operator),
+						Operator = MapFilterOperator(operatorString),
 						Value = columnFilter.Value?.ToString() ?? "",
 						ValueType = GetValueType(columnFilter.Value)
 					};
@@ -253,6 +264,9 @@
 
 	private GetByFiltersRequest.FilterOperator MapFilterOperator(string mudOperator)
 	{
+		if (string.IsNullOrEmpty(mudOperator))
+			return GetByFiltersRequest.FilterOperator.Contains;
+
 		return mudOperator.ToLower() switch
 		{
 			"contains" or "not contains" => GetByFiltersRequest.FilterOperator.Contains,
@@ -297,6 +311,27 @@
 
 	private async Task OnShowDeletedChanged()
 	{
+		await dataGrid.ReloadServerData();
+	}
+
+	private async Task CreateEmployee()
+	{
+		var newEmployee = new CreateEmployee();
+
+		var parameters = new DialogParameters
+		{
+			["CreateEmployee"] = newEmployee,
+			["IsEdit"] = false
+		};
+
+		var options = new DialogOptions
+		{
+			CloseButton = true,
+			MaxWidth = MaxWidth.Medium
+		};
+
+		await DialogService.ShowAsync<EmployeeEditDialog>("Создание сотрудника", parameters, options);
+
 		await dataGrid.ReloadServerData();
 	}
 

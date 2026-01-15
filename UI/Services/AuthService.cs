@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Json;
 using UI.Models;
+using UI.Models.Employees;
 
 namespace UI.Services;
 

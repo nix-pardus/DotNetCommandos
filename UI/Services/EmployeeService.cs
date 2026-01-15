@@ -1,4 +1,5 @@
 ﻿using UI.Models;
+using UI.Models.Employees;
 
 namespace UI.Services;
 
@@ -19,9 +20,9 @@ public class EmployeeService : IEmployeeService
         throw new NotImplementedException();
     }
 
-    public async Task<Employee> CreateEmployeeAsync(Employee employee)
+    public async Task CreateEmployeeAsync(CreateEmployee employee)
     {
-        return await _apiService.PostAsync<Employee>("api/create", employee);
+        await _apiService.PostAsync<CreateEmployee>("api/Employee/create", employee);
     }
     public async Task<bool> UpdateEmployeeAsync(Employee employee)
     {
