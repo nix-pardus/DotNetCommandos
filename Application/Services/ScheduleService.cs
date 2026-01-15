@@ -12,12 +12,15 @@ namespace ServiceCenter.Application.Services;
 /// Сервис для работы с графиком работы
 /// Реализует <see cref="IScheduleService"/>
 /// </summary>
-public class ScheduleService(IScheduleRepository repository, IScheduleExceptionRepository exceptionRepository, IEmployeeRepository employeeRepository) : IScheduleService
+public class ScheduleService(IScheduleRepository repository, IScheduleExceptionRepository exceptionRepository, IEmployeeRepository employeeRepository, ICurrentUserService currentUserService) : IScheduleService
 {
     /// <inheritdoc />
     public async Task CreateAsync(ScheduleCreateRequest dto)
     {
-        await repository.AddAsync(ScheduleMapper.ToEntity(dto));
+        var entity = ScheduleMapper.ToEntity(dto);
+        entity.CreatedById = currentUserService.UserId ?? Guid.Empty;
+        entity.CreatedDate = DateTime.UtcNow;
+        await repository.AddAsync(entity);
     }
 
     public async Task DeleteAsync(Guid id)

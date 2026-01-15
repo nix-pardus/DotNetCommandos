@@ -10,7 +10,7 @@ namespace ServiceCenter.Application.Services;
 
 public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequest, AssignmentUpdateRequest, AssignmentResponse, IAssignmentRepository>, IAssignmentService
 {
-    public AssignmentService(IAssignmentRepository repository) : base(repository)
+    public AssignmentService(IAssignmentRepository repository, ICurrentUserService currentUserService) : base(repository, currentUserService)
     {
     }
 
@@ -40,7 +40,7 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequ
                 OrderId: request.OrderId,
                 EmployeeId: request.EmployeeId,
                 IsPrimary: request.IsPrimary,
-                CreatedById: Guid.Empty, // TODO: заменить на идентификатор текущего пользователя, когда будет реализована аутентификация
+                CreatedById: _currentUserService.UserId ?? Guid.Empty,
                 ModifiedById: null
             );
             await _repository.AddAsync(AssignmentMapper.ToEntity(newAssignment));
@@ -63,8 +63,8 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequ
 
     protected override OrderEmployee ToEntity(AssignmentUpdateRequest request) => AssignmentMapper.ToEntity(request);
 
-    Task IAssignmentService.UpdateAsync(AssignmentUpdateRequest dto)
-    {
-        return UpdateAsync(dto);
-    }
+    //Task IAssignmentService.UpdateAsync(AssignmentUpdateRequest dto)
+    //{
+    //    return UpdateAsync(dto);
+    //}
 }

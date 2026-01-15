@@ -16,7 +16,7 @@ namespace ServiceCenter.Application.Services;
 public class EmployeeService : BaseService<Employee, EmployeeCreateRequest, EmployeeUpdateRequest, EmployeeFullResponse, IEmployeeRepository>, IEmployeeService
 {
     private readonly IPasswordHasher _passwordHasher;
-    public EmployeeService(IEmployeeRepository repository, IPasswordHasher passwordHasher) : base(repository)
+    public EmployeeService(IEmployeeRepository repository, IPasswordHasher passwordHasher, ICurrentUserService currentUserService) : base(repository, currentUserService)
     {
         _passwordHasher = passwordHasher;
     }

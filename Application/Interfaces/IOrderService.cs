@@ -21,7 +21,7 @@ public interface IOrderService
     /// </summary>
     /// <param name="dto">DTO заказа с обновлёнными данными</param>
     /// <returns>Обновлённый заказ</returns>
-    Task<OrderFullResponse> UpdateAsync(OrderUpdateRequest dto);
+    Task UpdateAsync(OrderUpdateRequest dto);
 
     /// <summary>
     /// Получение заказа по идентификатору

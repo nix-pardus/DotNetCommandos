@@ -11,18 +11,21 @@ namespace ServiceCenter.Application.Services;
 /// Сервис для работы с графиком работы
 /// Реализует <see cref="IScheduleService"/>
 /// </summary>
-public class ScheduleExceptionService(IScheduleExceptionRepository repository) : IScheduleExceptionService
+public class ScheduleExceptionService(IScheduleExceptionRepository repository, ICurrentUserService currentUserService) : IScheduleExceptionService
 {
     /// <inheritdoc />
     public async Task CreateAsync(ScheduleExceptionCreateRequest dto)
     {
-        await repository.AddAsync(ScheduleExceptionMapper.ToEntity(dto));
+        var entity = ScheduleExceptionMapper.ToEntity(dto);
+        entity.CreatedById = currentUserService.UserId ?? Guid.Empty;
+        entity.CreatedDate = DateTime.UtcNow;
+        await repository.AddAsync(entity);
     }
 
-        public async Task DeleteAsync(Guid id)
-        {
-            await repository.DeleteAsync(id);
-        }
+    public async Task DeleteAsync(Guid id)
+    {
+        await repository.DeleteAsync(id);
+    }
 
     public async Task<IEnumerable<ScheduleExceptionFullResponse>> GetAllByEmployeePaged(Guid employeeId, int page, int pageSize)
     {

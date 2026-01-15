@@ -83,7 +83,7 @@
 
 		<TemplateColumn Title="Дата создания" Sortable="true" Filterable="false">
 			<CellTemplate>
-				@context.Item.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+				@context.Item.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
 			</CellTemplate>
 		</TemplateColumn>
 

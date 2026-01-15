@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.DTO.Shared;
@@ -11,6 +12,7 @@ namespace ServiceCenter.WebAPI.Controllers;
 public class AssignmentController(IAssignmentService assignmentService) : ControllerBase
 {
     [HttpPost("create")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Post([FromQuery] AssignmentCreateRequest request)
     {
         await assignmentService.CreateAsync(request);
@@ -18,6 +20,7 @@ public class AssignmentController(IAssignmentService assignmentService) : Contro
     }
 
     [HttpDelete("delete")]
+    [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Delete([FromQuery] Guid id)
     {
         await assignmentService.DeleteAsync(id);
@@ -25,6 +28,7 @@ public class AssignmentController(IAssignmentService assignmentService) : Contro
     }
 
     [HttpPost("get-by-filters")]
+    [Authorize(Policy = "Operator")]
     [ProducesResponseType(typeof(PagedResponse<AssignmentResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
