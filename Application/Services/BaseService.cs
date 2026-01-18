@@ -56,11 +56,15 @@ namespace ServiceCenter.Application.Services
         {
             var filterConditions = request.Filters?.Select(f =>
                 (f.Field, f.Operator.ToString(), f.Value)) ?? Enumerable.Empty<(string, string, string)>();
+
+            var sortDefinitions = request.SortBy?.Select(s => (s.Field, s.Direction)) ?? Enumerable.Empty<(string, bool)>();
+
             var (items, totalCount) = await _repository.GetByFiltersPagedAsync(
                 filterConditions,
                 request.LogicalOperator,
                 request.PageNumber,
-                request.PageSize
+                request.PageSize,
+                sortDefinitions
             );
             return new PagedResponse<TResponse>
             {
