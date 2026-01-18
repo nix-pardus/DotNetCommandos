@@ -17,6 +17,6 @@ public class ClientService : BaseService<Client, ClientCreateRequest, ClientUpda
     protected override Client ToEntity(ClientCreateRequest dto) => ClientMapper.ToEntity(dto);
     protected override Client ToEntity(ClientUpdateRequest dto) => ClientMapper.ToEntity(dto);
 
-    public ClientService(IClientRepository repository)
-          : base(repository) { }
+    public ClientService(IClientRepository repository, ICurrentUserService currentUserService)
+          : base(repository, currentUserService) { }
 }

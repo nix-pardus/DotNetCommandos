@@ -16,7 +16,7 @@ namespace ServiceCenter.Application.Services;
 public class EmployeeService : BaseService<Employee, EmployeeCreateRequest, EmployeeUpdateRequest, EmployeeFullResponse, IEmployeeRepository>, IEmployeeService
 {
     private readonly IPasswordHasher _passwordHasher;
-    public EmployeeService(IEmployeeRepository repository, IPasswordHasher passwordHasher) : base(repository)
+    public EmployeeService(IEmployeeRepository repository, IPasswordHasher passwordHasher, ICurrentUserService currentUserService) : base(repository, currentUserService)
     {
         _passwordHasher = passwordHasher;
     }
@@ -30,11 +30,14 @@ public class EmployeeService : BaseService<Employee, EmployeeCreateRequest, Empl
         var filterConditions = request.Filters?.Select(f =>
             (f.Field, f.Operator.ToString(), f.Value)) ?? Enumerable.Empty<(string, string, string)>();
 
+        var sortDefinitions = request.SortBy?.Select(s => (s.Field, s.Direction)) ?? Enumerable.Empty<(string, bool)>();
+
         var (items, totalCount) = await _repository.GetByFiltersPagedWithIncludesAsync(
             filterConditions,
             request.LogicalOperator,
             request.PageNumber,
             request.PageSize,
+            sortDefinitions,
             q => q.Include(e => e.AssignedOrders.Where(x => x.IsDeleted == false)).ThenInclude(ao => ao.Order)
         );
 

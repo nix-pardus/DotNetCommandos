@@ -1,0 +1,111 @@
+﻿@using UI.Models
+@using UI.Models.Employees
+@using UI.Services
+@inject IEmployeeService EmployeeService
+@inject INotificationService NotificationService
+
+<MudDialog>
+	<DialogContent>
+		<MudGrid>
+			@if (IsEdit)
+			{
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Employee.Name" Label="Имя" Required="true" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Employee.LastName" Label="Фамилия" Required="true" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Employee.Patronymic" Label="Отчество" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="Employee.Email" Label="Email" Required="true" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="Employee.PhoneNumber" Label="Номер телефона" Required="true" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="Employee.Address" Label="Адрес" Lines="2" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudSelect T="RoleType" @bind-Value="Employee.Role" Label="Роль">
+						@foreach (var role in Enum.GetValues<RoleType>())
+						{
+							<MudSelectItem Value="role">@role</MudSelectItem>
+						}
+					</MudSelect>
+				</MudItem>
+			}
+			else
+			{
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="CreateEmployee.Name" Label="Имя" Required="true" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="CreateEmployee.LastName" Label="Фамилия" Required="true" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="CreateEmployee.Patronymic" Label="Отчество" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="CreateEmployee.Email" Label="Email" Required="true" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="CreateEmployee.PhoneNumber" Label="Номер телефона" Required="true" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="CreateEmployee.Address" Label="Адрес" Lines="2" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudSelect T="RoleType" @bind-Value="CreateEmployee.Role" Label="Роль">
+						@foreach (var role in Enum.GetValues<RoleType>())
+						{
+							<MudSelectItem Value="role">@role</MudSelectItem>
+						}
+					</MudSelect>
+				</MudItem>
+			}
+		</MudGrid>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="Cancel">Отмена</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Сохранить</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter]
+	IMudDialogInstance MudDialog { get; set; }
+
+	[Parameter]
+	public Employee? Employee { get; set; }
+
+	[Parameter]
+	public CreateEmployee? CreateEmployee { get; set; }
+
+	[Parameter]
+	public bool IsEdit { get; set; }
+
+	private async Task Save()
+	{
+		try
+		{
+			if (IsEdit)
+			{
+				await EmployeeService.UpdateEmployeeAsync(Employee);
+			}
+			else
+			{
+				await EmployeeService.CreateEmployeeAsync(CreateEmployee);
+			}
+
+			MudDialog.Close(DialogResult.Ok(true));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка при сохранении сотрудника");
+		}
+	}
+
+	void Cancel() => MudDialog.Cancel();
+}

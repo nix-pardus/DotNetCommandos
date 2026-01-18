@@ -13,12 +13,14 @@ namespace ServiceCenter.Domain.Interfaces
                         IEnumerable<(string Field, string Operator, string Value)> filterConditions,
                         string logicalOperator,
                         int pageNumber,
-                        int pageSize);
+                        int pageSize,
+                        IEnumerable<(string Field, bool Descending)>? sortDefinitions = null);
         Task<(List<T> Items, int TotalCount)> GetByFiltersPagedWithIncludesAsync(
                         IEnumerable<(string Field, string Operator, string Value)> filterConditions,
                         string logicalOperator,
                         int pageNumber,
                         int pageSize,
+                        IEnumerable<(string Field, bool Descending)>? sortDefinitions = null,
                         params Func<IQueryable<T>, IQueryable<T>>[] includes);
         Task<T> GetByIdAsync(Guid id);
         Task AddAsync(T entity);

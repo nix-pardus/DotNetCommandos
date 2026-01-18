@@ -1,10 +1,15 @@
 ﻿@using MudBlazor
 
 <MudDialog MaxWidth="MaxWidth.Medium" FullWidth="true">
+	<TitleContent>
+		<MudText Typo="Typo.body1">
+			@Title
+		</MudText>
+	</TitleContent>
 	<DialogContent>
 
 		<!-- Основное сообщение -->
-		<MudText Style="white-space: pre-line;">
+		<MudText Typo="Typo.body2" Style="white-space: pre-line;">
 			@Message
 		</MudText>
 

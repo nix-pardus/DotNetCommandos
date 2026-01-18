@@ -1,69 +1,401 @@
 ﻿@page "/employees"
+@using Microsoft.AspNetCore.Authorization
 @using UI.Models
+@using UI.Models.Employees
 @using UI.Services
+@using UI.Components
 @inject IEmployeeService EmployeeService
+@inject INotificationService NotificationService
+@inject IDialogService DialogService
 
-<h3>Employees</h3>
+@attribute [Authorize]
 
-@if(employees == null)
-{
-    <p>Loading employees...</p>
-}
-else if(employees.Count == 0)
-{
-    <p>No employees found.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>LastName</th>
-                <th>Patronymic</th>
-                <th>Address</th>
-                <th>Email</th>
-                <th>PhoneNumber</th>
-                <th>CreatedDate</th>
-                <th>Creator</th>
-                <th>Role</th>
-                <th>IsDeleted</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach(var employee in employees)
-            {
-                <tr>
-                    <td>@employee.Id</td>
-                    <td>@employee.Name</td>
-                    <td>@employee.LastName</td>
-                    <td>@employee.Patronymic</td>
-                    <td>@employee.Address</td>
-                    <td>@employee.Email</td>
-                    <td>@employee.PhoneNumber</td>
-                    <td>@employee.CreatedDate</td>
-                    <td>@employee.Creator</td>
-                    <td>@employee.Role</td>
-                    <td>@employee.IsDeleted</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<MudDataGrid @ref="dataGrid"
+			 T="Employee"
+			 ServerData="@ServerReload"
+			 Filterable="true"
+			 FilterMode="DataGridFilterMode.ColumnFilterMenu"
+			 FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
+			 SortMode="SortMode.Multiple"
+			 Hideable="true"
+			 RowsPerPage="10"
+			 FixedHeader="true"
+			 Hover="true"
+			 Loading="@loading">
+
+	<ToolBarContent>
+		<MudText Typo="Typo.h6">Сотрудники</MudText>
+		<MudSpacer />
+
+		<MudButton OnClick="CreateEmployee" StartIcon="@Icons.Material.Filled.Create">
+			Создать сотрудника
+		</MudButton>
+
+		<MudTooltip Text="Показать/скрыть удаленных сотрудников">
+			<MudSwitch @bind-Value="showDeleted" @bind-Value:after="OnShowDeletedChanged" Color="Color.Secondary" Label="Показать удаленных" />
+		</MudTooltip>
+
+		<MudTextField T="string"
+					  Value="@searchString"
+					  ValueChanged="@OnSearch"
+					  Placeholder="Быстрый поиск..."
+					  Adornment="Adornment.Start"
+					  AdornmentIcon="@Icons.Material.Filled.Search"
+					  IconSize="Size.Medium"
+					  Immediate="true"
+					  Class="mt-0" />
+	</ToolBarContent>
+
+	<Columns>
+		<PropertyColumn Property="x => x.LastName"
+						Title="Фамилия"
+						Sortable="true"
+						Filterable="true" />
+
+		<PropertyColumn Property="x => x.Name"
+						Title="Имя"
+						Sortable="true"
+						Filterable="true" />
+
+		<PropertyColumn Property="x => x.Patronymic"
+						Title="Отчество"
+						Sortable="true"
+						Filterable="true" />
+
+		<PropertyColumn Property="x => x.Address"
+						Title="Адрес"
+						Sortable="true"
+						Filterable="true">
+			<CellTemplate>
+				<MudTooltip Text="@context.Item.Address" Delay="500">
+					<MudText Style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+						@context.Item.Address
+					</MudText>
+				</MudTooltip>
+			</CellTemplate>
+		</PropertyColumn>
+
+		<PropertyColumn Property="x => x.Email"
+						Title="Email"
+						Sortable="true"
+						Filterable="true" />
+
+		<PropertyColumn Property="x => x.PhoneNumber"
+						Title="Номер телефона"
+						Sortable="false"
+						Filterable="true" />
+
+		<PropertyColumn Property="x => x.CreatedDate"
+						Title="Дата создания"
+						Sortable="true"
+						Filterable="true">
+			<CellTemplate>
+				@context.Item.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
+			</CellTemplate>
+		</PropertyColumn>
+
+		<PropertyColumn Property="x => x.Role"
+						Title="Роль"
+						Sortable="true"
+						Filterable="true" />
+
+		<PropertyColumn Property="x => x.IsDeleted"
+						Title="Статус"
+						Sortable="true"
+						Filterable="true">
+			<CellTemplate>
+				@if (context.Item.IsDeleted)
+				{
+					<MudChip Color="Color.Error" Variant="Variant.Filled" Size="Size.Small">Удален</MudChip>
+				}
+				else
+				{
+					<MudChip Color="Color.Success" Variant="Variant.Filled" Size="Size.Small">Активен</MudChip>
+				}
+			</CellTemplate>
+		</PropertyColumn>
+
+		<TemplateColumn Title="Действия" Filterable="false" Sortable="false">
+			<CellTemplate>
+
+				@{
+					async Task Edit() => await EditEmployee(context.Item);
+					async Task Delete() => await DeleteEmployee(context.Item);
+				}
+
+				<MudIconButton Icon="@Icons.Material.Filled.Edit"
+							   Size="Size.Small"
+							   Color="Color.Primary"
+							   OnClick="Edit" />
+
+				<MudIconButton Icon="@Icons.Material.Filled.Delete"
+							   Size="Size.Small"
+							   Color="Color.Error"
+							   OnClick="Delete" />
+			</CellTemplate>
+		</TemplateColumn>
+
+	</Columns>
+
+	<PagerContent>
+		<MudDataGridPager T="Employee" />
+	</PagerContent>
+
+	<LoadingContent>
+		<MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+	</LoadingContent>
+
+	<NoRecordsContent>
+		<MudText Typo="Typo.body1" Class="pa-4">Нет сотрудников для отображения</MudText>
+	</NoRecordsContent>
+
+</MudDataGrid>
 
 @code {
-    private List<Employee> employees;
+	private MudDataGrid<Employee> dataGrid;
+	private bool loading = false;
+	private bool showDeleted = false;
+	private string searchString = string.Empty;
+	private Timer? searchDebounceTimer;
+	private const int SEARCH_DEBOUNCE_MS = 500;
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            employees = await EmployeeService.GetAllEmployeesAsync();
-        }
-        catch(Exception ex)
-        {
-            Console.WriteLine($"Error loading employees: {ex.Message}");
-        }
-    }
+	private async Task<GridData<Employee>> ServerReload(GridState<Employee> state)
+	{
+		loading = true;
+
+		try
+		{
+
+			var sortBy = state.SortDefinitions.Select(sort => new GetByFiltersRequest.Sorting
+			{
+				Field = MapPropertyToField(sort.SortBy),
+				Direction = sort.Descending
+			}).ToList();
+
+			var filters = new List<GetByFiltersRequest.FilterCondition>();
+
+			//если не показываем удаленных
+			if (!showDeleted)
+			{
+				filters.Add(new GetByFiltersRequest.FilterCondition
+				{
+					Field = "IsDeleted",
+					Operator = GetByFiltersRequest.FilterOperator.Equals,
+					Value = "false",
+					ValueType = "string"
+				});
+			}
+
+			//для быстрого поиска
+			if (!string.IsNullOrWhiteSpace(searchString))
+			{
+				foreach (var field in new string[] { "Name", "LastName" })
+				{
+					filters.Add(new GetByFiltersRequest.FilterCondition
+					{
+						Field = field,
+						Operator = GetByFiltersRequest.FilterOperator.Contains,
+						Value = searchString,
+						ValueType = "string"
+					});
+				}
+			}
+
+			foreach (var filter in state.FilterDefinitions)
+			{
+
+				//для фильтров на колонках
+				if (filter is IFilterDefinition<Employee> columnFilter)
+				{
+					string operatorString = !string.IsNullOrEmpty(columnFilter.Operator)
+						? columnFilter.Operator
+						: "contains";
+
+					var filterCondition = new GetByFiltersRequest.FilterCondition
+					{
+						Field = MapPropertyToField(columnFilter.Column.PropertyName),
+						Operator = MapFilterOperator(operatorString),
+						Value = columnFilter.Value?.ToString() ?? "",
+						ValueType = GetValueType(columnFilter.Value)
+					};
+					filters.Add(filterCondition);
+				}
+			}
+
+			var request = new GetByFiltersRequest
+			{
+				PageNumber = state.Page + 1,
+				PageSize = state.PageSize,
+				LogicalOperator = "AND",
+				SortBy = sortBy,
+				Filters = filters
+			};
+
+			var response = await EmployeeService.GetAllEmployeesAsync(request);
+
+			return new GridData<Employee>
+			{
+				TotalItems = response.TotalCount,
+				Items = response.Items
+			};
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки данных: {ex.Message}");
+			return new GridData<Employee>
+			{
+				TotalItems = 0,
+				Items = new List<Employee>()
+			};
+		}
+		finally
+		{
+			loading = false;
+		}
+	}
+
+	private string MapPropertyToField(string propertyName)
+	{
+		var mapping = new Dictionary<string, string>
+		{
+			{ "Id", "Id" },
+			{ "Name", "Name" },
+			{ "LastName", "LastName" },
+			{ "Patronymic", "Patronymic" },
+			{ "Address", "Address" },
+			{ "Email", "Email" },
+			{ "PhoneNumber", "PhoneNumber" },
+			{ "CreatedDate", "CreatedDate" },
+			{ "Role", "Role" },
+			{ "IsDeleted", "IsDeleted" }
+		};
+		return mapping.TryGetValue(propertyName, out var field) ? field : propertyName;
+	}
+
+	private GetByFiltersRequest.FilterOperator MapFilterOperator(string mudOperator)
+	{
+		if (string.IsNullOrEmpty(mudOperator))
+			return GetByFiltersRequest.FilterOperator.Contains;
+
+		return mudOperator.ToLower() switch
+		{
+			"contains" or "not contains" => GetByFiltersRequest.FilterOperator.Contains,
+			"equals" or "=" => GetByFiltersRequest.FilterOperator.Equals,
+			"not equals" or "!=" => GetByFiltersRequest.FilterOperator.NotEquals,
+			"greater than" or ">" => GetByFiltersRequest.FilterOperator.GreaterThan,
+			"less than" or "<" => GetByFiltersRequest.FilterOperator.LessThan,
+			"starts with" => GetByFiltersRequest.FilterOperator.StartsWith,
+			"ends with" => GetByFiltersRequest.FilterOperator.EndsWith,
+			_ => GetByFiltersRequest.FilterOperator.Contains
+		};
+	}
+
+	private string GetValueType(object value)
+	{
+		if (value == null) return "string";
+		return value.GetType().Name.ToLower() switch
+		{
+			"string" => "string",
+			"int32" or "int64" => "number",
+			"datetime" => "date",
+			"boolean" => "boolean",
+			_ => "string"
+		};
+	}
+
+	private async Task OnSearch(string searchText)
+	{
+		searchString = searchText;
+
+		searchDebounceTimer?.Dispose();
+
+		searchDebounceTimer = new Timer(async _ =>
+		{
+			await InvokeAsync(async () =>
+			{
+				await dataGrid.ReloadServerData();
+				StateHasChanged();
+			});
+		}, null, SEARCH_DEBOUNCE_MS, Timeout.Infinite);
+	}
+
+	private async Task OnShowDeletedChanged()
+	{
+		await dataGrid.ReloadServerData();
+	}
+
+	private async Task CreateEmployee()
+	{
+		var newEmployee = new CreateEmployee();
+
+		var parameters = new DialogParameters
+		{
+			["CreateEmployee"] = newEmployee,
+			["IsEdit"] = false
+		};
+
+		var options = new DialogOptions
+		{
+			CloseButton = true,
+			MaxWidth = MaxWidth.Medium
+		};
+
+		await DialogService.ShowAsync<EmployeeEditDialog>("Создание сотрудника", parameters, options);
+
+		await dataGrid.ReloadServerData();
+	}
+
+	private async Task EditEmployee(Employee employee)
+	{
+		var parameters = new DialogParameters
+		{
+			["Employee"] = employee,
+			["IsEdit"] = true
+		};
+
+		var options = new DialogOptions
+		{
+			CloseButton = true,
+			MaxWidth = MaxWidth.Medium
+		};
+
+		await DialogService.ShowAsync<EmployeeEditDialog>("Редактирование сотрудника", parameters, options);
+
+		await dataGrid.ReloadServerData();
+	}
+
+	private async Task DeleteEmployee(Employee employee)
+	{
+		var parameters = new DialogParameters
+		{
+			["ContentText"] = $"Вы уверены, что хотите удалить сотрудника {employee.Name} {employee.LastName}",
+			["ButtonText"] = "Удалить",
+			["Color"] = Color.Error
+		};
+
+		var options = new DialogOptions
+		{
+			CloseButton = true,
+			MaxWidth = MaxWidth.Small
+		};
+
+		var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Подтверждение удаления", parameters, options);
+
+		var result = await dialog.Result;
+
+		if (!result.Canceled)
+		{
+			try
+			{
+				await EmployeeService.DeleteEmployeeAsync(employee.Id);
+				NotificationService.ShowSuccess($"Сотрудник {employee.Name} {employee.LastName} удален");
+				await dataGrid.ReloadServerData();
+			}
+			catch (Exception ex)
+			{
+				NotificationService.ShowError($"Ошибка удаления: {ex.Message}");
+			}
+		}
+	}
+
 }

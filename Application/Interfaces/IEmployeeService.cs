@@ -21,7 +21,7 @@ public interface IEmployeeService
     /// </summary>
     /// <param name="dto">DTO сотрудника с обновлёнными данными</param>
     /// <returns>Задача выполнения операции</returns>
-    Task<EmployeeFullResponse> UpdateAsync(EmployeeUpdateRequest dto);
+    Task UpdateAsync(EmployeeUpdateRequest dto);
 
     /// <summary>
     /// Удаление сотрудника по идентификатору

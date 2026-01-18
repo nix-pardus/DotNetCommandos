@@ -1,4 +1,5 @@
 ﻿using UI.Models;
+using UI.Models.Employees;
 
 namespace UI.Services;
 
@@ -10,27 +11,27 @@ public class EmployeeService : IEmployeeService
     {
         _apiService = apiService;
     }
-    public async Task<List<Employee>> GetAllEmployeesAsync()
+    public async Task<PagingResponse<Employee>> GetAllEmployeesAsync(GetByFiltersRequest request)
     {
-        return await _apiService.GetAsync<List<Employee>>("api/Employee/getAll");
+        return await _apiService.GetAsync<PagingResponse<Employee>>("api/Employee/get-by-filters", request);
     }
     public Task<Employee> GetEmployeeByIdAsync(Guid id)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<Employee> CreateEmployeeAsync(Employee employee)
+    public async Task CreateEmployeeAsync(CreateEmployee employee)
     {
-        return await _apiService.PostAsync<Employee>("api/create", employee);
+        await _apiService.PostAsync<CreateEmployee>("api/Employee/create", employee);
     }
     public async Task<bool> UpdateEmployeeAsync(Employee employee)
     {
-        return await _apiService.PutAsync($"api/update/{employee.Id}", employee);
+        return await _apiService.PutAsync($"api/Employee/update?id={employee.Id}", employee);
     }
 
     public async Task<bool> DeleteEmployeeAsync(Guid id)
     {
-        return await _apiService.DeleteAsync($"api/delete/{id}");
+        return await _apiService.DeleteAsync($"api/Employee/delete?id={id}");
     }
 
 
