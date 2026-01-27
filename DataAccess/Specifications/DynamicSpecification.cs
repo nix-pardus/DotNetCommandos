@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ServiceCenter.Infrascructure.DataAccess.Specifications
 {
@@ -24,7 +22,29 @@ namespace ServiceCenter.Infrascructure.DataAccess.Specifications
 
             foreach (var filter in filters)
             {
-                var expression = BuildSingleFilterExpression(parameter, filter);
+                Expression expression;
+
+                // Поддержка синтаксиса Field1||Field2 => (Field1 op value) OR (Field2 op value)
+                if (!string.IsNullOrWhiteSpace(filter.Field) && filter.Field.Contains("||"))
+                {
+                    var parts = filter.Field.Split(new[] { "||" }, StringSplitOptions.RemoveEmptyEntries)
+                                            .Select(p => p.Trim())
+                                            .Where(p => !string.IsNullOrEmpty(p))
+                                            .ToArray();
+
+                    Expression groupExpr = null;
+                    foreach (var part in parts)
+                    {
+                        var single = BuildSingleFilterExpression(parameter, (part, filter.Operator, filter.Value));
+                        groupExpr = groupExpr == null ? single : Expression.OrElse(groupExpr, single);
+                    }
+
+                    expression = groupExpr ?? Expression.Constant(true);
+                }
+                else
+                {
+                    expression = BuildSingleFilterExpression(parameter, filter);
+                }
 
                 if (finalExpression == null)
                 {
@@ -93,6 +113,7 @@ namespace ServiceCenter.Infrascructure.DataAccess.Specifications
             var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
             return Expression.Call(property, containsMethod, value);
         }
+
         private Expression BuildStartWithExpression(MemberExpression property, ConstantExpression value)
         {
             if (property.Type != typeof(string))

@@ -22,6 +22,7 @@ builder.Services.AddScoped<JwtAuthorizationHandler>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IApiService, ApiService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IErrorHandler, ErrorHandler>();
 builder.Services.AddScoped<IThemeService, ThemeService>();
 

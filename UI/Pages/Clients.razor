@@ -1,17 +1,17 @@
-﻿@page "/employees"
+@page "/clients"
 @using Microsoft.AspNetCore.Authorization
 @using UI.Models
-@using UI.Models.Employees
+@using UI.Models.Clients
 @using UI.Services
 @using UI.Components
-@inject IEmployeeService EmployeeService
+@inject IClientService ClientService
 @inject INotificationService NotificationService
 @inject IDialogService DialogService
 
 @attribute [Authorize]
 
 <MudDataGrid @ref="dataGrid"
-			 T="Employee"
+			 T="Client"
 			 ServerData="@ServerReload"
 			 Filterable="true"
 			 FilterMode="DataGridFilterMode.ColumnFilterMenu"
@@ -25,19 +25,19 @@
 			 Loading="@loading">
 
 	<ToolBarContent>
-		<MudText Typo="Typo.h6">Сотрудники</MudText>
+		<MudText Typo="Typo.h6">Клиенты</MudText>
 		<MudSpacer />
 
-		<MudButton OnClick="CreateEmployee" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">
-			Создать сотрудника
+		<MudButton OnClick="CreateClient" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary">
+			Создать клиента
 		</MudButton>
 
-		<!-- Selector видимости колонок -->
+		@* Selector видимости колонок *@
 		<MudTooltip Text="Видимость колонок">
-			<ColumnVisibilitySelector Columns="columns" VisibleColumnsChanged="StateHasChanged" />
+			<ColumnVisibilitySelector Columns="columns" VisibleColumnsChanged="StateHasChanged"/>
 		</MudTooltip>
 
-		<MudTooltip Text="Показать/скрыть удаленных сотрудников">
+		<MudTooltip Text="Показать/скрыть удаленных клиентов">
 			<MudSwitch @bind-Value="showDeleted" @bind-Value:after="OnShowDeletedChanged" Color="Color.Primary" Label="Показать удаленных" />
 		</MudTooltip>
 		<MudSpacer />
@@ -54,44 +54,62 @@
 	</ToolBarContent>
 
 	<Columns>
-		<!-- Всегда рендерим ВСЕ колонки в фиксированном порядке, управляем видимостью через Hidden -->
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.LastName"
+		<PropertyColumn T="Client" TProperty="string" Property="x => x.LastName"
 						Title="Фамилия" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.LastName))!.Visible)" />
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.LastName))!.Visible)" />
 
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.Name"
+		<PropertyColumn T="Client" TProperty="string" Property="x => x.Name"
 						Title="Имя" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Name))!.Visible)" />
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.Name))!.Visible)" />
 
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.Patronymic"
+		<PropertyColumn T="Client" TProperty="string" Property="x => x.Patronymic"
 						Title="Отчество" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Patronymic))!.Visible)" />
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.Patronymic))!.Visible)" />
 
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.Address"
+		<PropertyColumn T="Client" TProperty="string" Property="x => x.Address"
 						Title="Адрес" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Address))!.Visible)" />
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.Address))!.Visible)">
+			<CellTemplate>
+				<MudTooltip Text="@context.Item.Address" Delay="500">
+					<MudText Style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+						@context.Item.Address
+					</MudText>
+				</MudTooltip>
+			</CellTemplate>
+		</PropertyColumn>
 
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.Email"
+		<PropertyColumn T="Client" TProperty="string" Property="x => x.City"
+						Title="Город" Sortable="true" Filterable="true"
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.City))!.Visible)" />
+
+		<PropertyColumn T="Client" TProperty="string" Property="x => x.Region"
+						Title="Район" Sortable="true" Filterable="true"
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.Region))!.Visible)" />
+
+		<PropertyColumn T="Client" TProperty="string" Property="x => x.CompanyName"
+						Title="Компания" Sortable="true" Filterable="true"
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.CompanyName))!.Visible)" />
+
+		<PropertyColumn T="Client" TProperty="string" Property="x => x.Email"
 						Title="Email" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Email))!.Visible)" />
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.Email))!.Visible)" />
 
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.PhoneNumber"
-						Title="Номер телефона" Sortable="false" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.PhoneNumber))!.Visible)" />
+		<PropertyColumn T="Client" TProperty="string" Property="x => x.PhoneNumber"
+						Title="Телефон" Sortable="false" Filterable="true"
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.PhoneNumber))!.Visible)" />
 
-		<PropertyColumn T="Employee" TProperty="string" Property="@(x => x.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))"
-						Title="Дата создания" Sortable="true" Filterable="true" Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.CreatedDate))!.Visible)" />
+		<PropertyColumn T="Client" TProperty="string" Property="@(x => x.CreatedDate.ToLocalTime().ToString(" dd.MM.yyyy HH:mm"))"
+						Title="Дата создания" Sortable="true" Filterable="false"
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.CreatedDate))!.Visible)" />
 
-		<PropertyColumn T="Employee" TProperty="string" Property="@(x => x.ModifiedDate.HasValue ? x.ModifiedDate!.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "-")"
-						Title="Дата изменения" Sortable="true" Filterable="true" Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.ModifiedDate))!.Visible)" />
+		<PropertyColumn T="Client" TProperty="string"
+						Property="@(x => x.ModifiedDate.HasValue ? x.ModifiedDate!.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "-")"
+						Title="Дата изменения" Sortable="true" Filterable="false"
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.ModifiedDate))!.Visible)" />
 
-		<PropertyColumn T="Employee" TProperty="Enum" Property="x => x.Role"
-						Title="Роль" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Role))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="bool" Property="x => x.IsDeleted"
-						Title="Статус" Sortable="true" Filterable="false"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.IsDeleted))!.Visible)">
+		<PropertyColumn T="Client" TProperty="bool" Property="x => x.IsDeleted"
+						Title="Статус" Sortable="true" Filterable="true"
+						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Client.IsDeleted))!.Visible)">
 			<CellTemplate>
 				@if (context.Item.IsDeleted)
 				{
@@ -104,22 +122,30 @@
 			</CellTemplate>
 		</PropertyColumn>
 
-		<PropertyColumn T="Employee" TProperty="bool" Property="x => false"
+		<PropertyColumn T="Client" TProperty="bool" Property="x => false"
 						Title="Действия" Filterable="false" Sortable="false"
 						Hidden="@(!columns.FirstOrDefault(x => x.Key == "Actions")!.Visible)">
 			<CellTemplate>
 				@{
-					async Task Edit() => await EditEmployee(context.Item);
-					async Task Delete() => await DeleteEmployee(context.Item);
+					async Task Edit() => await EditClient(context.Item);
+					async Task Delete() => await DeleteClient(context.Item);
 				}
-				<MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="Edit" />
-				<MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="Delete" />
+
+				<MudIconButton Icon="@Icons.Material.Filled.Edit"
+							   Size="Size.Small"
+							   Color="Color.Primary"
+							   OnClick="Edit" />
+
+				<MudIconButton Icon="@Icons.Material.Filled.Delete"
+							   Size="Size.Small"
+							   Color="Color.Error"
+							   OnClick="Delete" />
 			</CellTemplate>
 		</PropertyColumn>
 	</Columns>
 
 	<PagerContent>
-		<MudDataGridPager T="Employee" />
+		<MudDataGridPager T="Client" />
 	</PagerContent>
 
 	<LoadingContent>
@@ -127,13 +153,13 @@
 	</LoadingContent>
 
 	<NoRecordsContent>
-		<MudText Typo="Typo.body1" Class="pa-4">Нет сотрудников для отображения</MudText>
+		<MudText Typo="Typo.body1" Class="pa-4">Нет клиентов для отображения</MudText>
 	</NoRecordsContent>
 
 </MudDataGrid>
 
 @code {
-	private MudDataGrid<Employee> dataGrid;
+	private MudDataGrid<Client> dataGrid;
 	private bool loading = false;
 	private bool showDeleted = false;
 	private string searchString = string.Empty;
@@ -142,20 +168,23 @@
 
 	private List<ColumnVisibilityItem> columns = new()
 	{
-		new ColumnVisibilityItem { Key = nameof(Employee.LastName), Label = "Фамилия" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Name), Label = "Имя" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Patronymic), Label = "Отчество" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Address), Label = "Адрес" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Email), Label = "Email" },
-		new ColumnVisibilityItem { Key = nameof(Employee.PhoneNumber), Label = "Телефон" },
-		new ColumnVisibilityItem { Key = nameof(Employee.CreatedDate), Label = "Дата создания" },
-		new ColumnVisibilityItem { Key = nameof(Employee.ModifiedDate), Label = "Дата изменения" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Role), Label = "Роль" },
-		new ColumnVisibilityItem { Key = nameof(Employee.IsDeleted), Label = "Статус" },
+		new ColumnVisibilityItem { Key = nameof(Client.LastName), Label = "Фамилия" },
+		new ColumnVisibilityItem { Key = nameof(Client.Name), Label = "Имя" },
+		new ColumnVisibilityItem { Key = nameof(Client.Patronymic), Label = "Отчество" },
+		new ColumnVisibilityItem { Key = nameof(Client.City), Label = "Город" },
+		new ColumnVisibilityItem { Key = nameof(Client.Address), Label = "Адрес" },
+		new ColumnVisibilityItem { Key = nameof(Client.Region), Label = "Район" },
+		new ColumnVisibilityItem { Key = nameof(Client.PhoneNumber), Label = "Телефон" },
+		new ColumnVisibilityItem { Key = nameof(Client.Email), Label = "Email" },
+		new ColumnVisibilityItem { Key = nameof(Client.CompanyName), Label = "Компания" },
+		new ColumnVisibilityItem { Key = nameof(Client.CreatedDate), Label = "Дата создания" },
+		new ColumnVisibilityItem { Key = nameof(Client.ModifiedDate), Label = "Дата изменения" },
+		new ColumnVisibilityItem { Key = nameof(Client.IsDeleted), Label = "Статус" },
 		new ColumnVisibilityItem { Key = "Actions", Label = "Действия" }
 	};
 
-	private async Task<GridData<Employee>> ServerReload(GridState<Employee> state)
+
+	private async Task<GridData<Client>> ServerReload(GridState<Client> state)
 	{
 		loading = true;
 
@@ -182,9 +211,10 @@
 
 			if (!string.IsNullOrWhiteSpace(searchString))
 			{
+				// один фильтр: Name||LastName -> сервер распарсит и сделает OR между полями
 				filters.Add(new GetByFiltersRequest.FilterCondition
 				{
-					Field = "Name||LastName||PhoneNumber||Email||Address",
+					Field = "Name||LastName||Address||City||Region||CompanyName||Email||PhoneNumber",
 					Operator = GetByFiltersRequest.FilterOperator.Contains,
 					Value = searchString,
 					ValueType = "string"
@@ -193,7 +223,7 @@
 
 			foreach (var filter in state.FilterDefinitions)
 			{
-				if (filter is IFilterDefinition<Employee> columnFilter)
+				if (filter is IFilterDefinition<Client> columnFilter)
 				{
 					string operatorString = !string.IsNullOrEmpty(columnFilter.Operator)
 						? columnFilter.Operator
@@ -219,9 +249,9 @@
 				Filters = filters
 			};
 
-			var response = await EmployeeService.GetAllEmployeesAsync(request);
+			var response = await ClientService.GetAllClientsAsync(request);
 
-			return new GridData<Employee>
+			return new GridData<Client>
 			{
 				TotalItems = response.TotalCount,
 				Items = response.Items
@@ -230,10 +260,10 @@
 		catch (Exception ex)
 		{
 			NotificationService.ShowError($"Ошибка загрузки данных: {ex.Message}");
-			return new GridData<Employee>
+			return new GridData<Client>
 			{
 				TotalItems = 0,
-				Items = new List<Employee>()
+				Items = new List<Client>()
 			};
 		}
 		finally
@@ -251,11 +281,13 @@
 			{ "LastName", "LastName" },
 			{ "Patronymic", "Patronymic" },
 			{ "Address", "Address" },
+			{ "City", "City" },
+			{ "Region", "Region" },
+			{ "CompanyName", "CompanyName" },
 			{ "Email", "Email" },
 			{ "PhoneNumber", "PhoneNumber" },
 			{ "CreatedDate", "CreatedDate" },
 			{ "ModifiedDate", "ModifiedDate" },
-			{ "Role", "Role" },
 			{ "IsDeleted", "IsDeleted" }
 		};
 		return mapping.TryGetValue(propertyName, out var field) ? field : propertyName;
@@ -313,13 +345,13 @@
 		await dataGrid.ReloadServerData();
 	}
 
-	private async Task CreateEmployee()
+	private async Task CreateClient()
 	{
-		var newEmployee = new CreateEmployee();
+		var newClient = new CreateClient();
 
 		var parameters = new DialogParameters
 		{
-			["CreateEmployee"] = newEmployee,
+			["CreateClient"] = newClient,
 			["IsEdit"] = false
 		};
 
@@ -329,16 +361,16 @@
 			MaxWidth = MaxWidth.Medium
 		};
 
-		await DialogService.ShowAsync<EmployeeEditDialog>("Создание сотрудника", parameters, options);
+		await DialogService.ShowAsync<ClientEditDialog>("Создание клиента", parameters, options);
 
 		await dataGrid.ReloadServerData();
 	}
 
-	private async Task EditEmployee(Employee employee)
+	private async Task EditClient(Client client)
 	{
 		var parameters = new DialogParameters
 		{
-			["Employee"] = employee,
+			["Client"] = client,
 			["IsEdit"] = true
 		};
 
@@ -348,24 +380,25 @@
 			MaxWidth = MaxWidth.Medium
 		};
 
-		await DialogService.ShowAsync<EmployeeEditDialog>("Редактирование сотрудника", parameters, options);
+		await DialogService.ShowAsync<ClientEditDialog>("Редактирование клиента", parameters, options);
 
 		await dataGrid.ReloadServerData();
 	}
 
-	private async Task DeleteEmployee(Employee employee)
+	private async Task DeleteClient(Client client)
 	{
 		var deleted = await DialogServiceExtensions.ShowDeleteDialog(
 			DialogService,
-			employee,
-			"Удаление сотрудника",
-			emp => $"{emp.Name} {emp.LastName}",
+			client,
+			"Удаление клиента",
+			c => $"{c.Name} {c.LastName}",
 			null,
-			async emp => await EmployeeService.DeleteEmployeeAsync(emp.Id));
+			async (c) => await ClientService.DeleteClientAsync(c.Id)
+		);
 
 		if (deleted)
 		{
-			NotificationService.ShowSuccess($"Сотрудник {employee.Name} {employee.LastName} удален");
+			NotificationService.ShowSuccess($"Клиент {client.Name} {client.LastName} удален");
 			await dataGrid.ReloadServerData();
 		}
 	}

@@ -1,0 +1,115 @@
+@using UI.Models.Clients
+@using UI.Services
+@inject IClientService ClientService
+@inject INotificationService NotificationService
+
+<MudDialog>
+	<DialogContent>
+		<MudGrid>
+			@if (IsEdit)
+			{
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Client.Name" Label="Имя" Required="true" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Client.LastName" Label="Фамилия" Required="true" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Client.Patronymic" Label="Отчество" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="Client.Email" Label="Email" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="Client.PhoneNumber" Label="Номер телефона" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="Client.Address" Label="Адрес" Lines="2" />
+				</MudItem>
+				<MudItem xs="6">
+					<MudTextField @bind-Value="Client.City" Label="Город" />
+				</MudItem>
+				<MudItem xs="6">
+					<MudTextField @bind-Value="Client.CompanyName" Label="Компания" />
+				</MudItem>
+			}
+			else
+			{
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="CreateClient.Name" Label="Имя" Required="true" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="CreateClient.LastName" Label="Фамилия" Required="true" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="CreateClient.Patronymic" Label="Отчество" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="CreateClient.Email" Label="Email" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="CreateClient.PhoneNumber" Label="Номер телефона" />
+				</MudItem>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="CreateClient.Address" Label="Адрес" Lines="2" />
+				</MudItem>
+				<MudItem xs="6">
+					<MudTextField @bind-Value="CreateClient.City" Label="Город" />
+				</MudItem>
+				<MudItem xs="6">
+					<MudTextField @bind-Value="CreateClient.CompanyName" Label="Компания" />
+				</MudItem>
+			}
+		</MudGrid>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="Cancel">Отмена</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Сохранить</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+	[Parameter] public UI.Models.Clients.Client? Client { get; set; }
+	[Parameter] public CreateClient? CreateClient { get; set; }
+	[Parameter] public bool IsEdit { get; set; }
+
+	private async Task Save()
+	{
+		try
+		{
+			if (IsEdit && Client != null)
+			{
+				var dto = new ClientUpdate
+				{
+					Id = Client.Id,
+					Name = Client.Name ?? string.Empty,
+					LastName = Client.LastName ?? string.Empty,
+					Patronymic = Client.Patronymic,
+					Address = Client.Address ?? string.Empty,
+					City = Client.City ?? string.Empty,
+					Region = Client.Region,
+					CompanyName = Client.CompanyName,
+					Email = Client.Email,
+					PhoneNumber = Client.PhoneNumber ?? string.Empty,
+					IsDeleted = Client.IsDeleted
+				};
+
+				await ClientService.UpdateClientAsync(dto);
+			}
+			else
+			{
+				await ClientService.CreateClientAsync(CreateClient);
+			}
+
+			MudDialog.Close(DialogResult.Ok(true));
+		}
+		catch (Exception)
+		{
+			NotificationService.ShowError("Ошибка при сохранении клиента");
+		}
+	}
+
+	void Cancel() => MudDialog.Cancel();
+}

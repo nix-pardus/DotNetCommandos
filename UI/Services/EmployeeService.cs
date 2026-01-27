@@ -24,7 +24,7 @@ public class EmployeeService : IEmployeeService
     {
         await _apiService.PostAsync<CreateEmployee>("api/Employee/create", employee);
     }
-    public async Task<bool> UpdateEmployeeAsync(Employee employee)
+    public async Task<bool> UpdateEmployeeAsync(EmployeeUpdate employee)
     {
         return await _apiService.PutAsync($"api/Employee/update?id={employee.Id}", employee);
     }
@@ -33,7 +33,4 @@ public class EmployeeService : IEmployeeService
     {
         return await _apiService.DeleteAsync($"api/Employee/delete?id={id}");
     }
-
-
-
 }
