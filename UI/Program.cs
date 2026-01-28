@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
+using MudBlazor.Translations;
 using UI;
 using UI.Services;
 
@@ -16,6 +17,7 @@ var apiBaseAddress = builder.HostEnvironment.IsDevelopment()
     : "";
 
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddMudTranslations();
 
 builder.Services.AddScoped<JwtAuthorizationHandler>();
 
@@ -25,6 +27,7 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IErrorHandler, ErrorHandler>();
 builder.Services.AddScoped<IThemeService, ThemeService>();
+builder.Services.AddScoped<IUserPreferencesService, UserPreferencesService>();
 
 builder.Services.AddHttpClient("AuthorizedClient", client =>
 {

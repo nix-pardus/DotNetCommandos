@@ -37,7 +37,7 @@ public static class DialogServiceExtensions
             options);
 
 
-        var result = await dialog.Result; // Асинхронное ожидание результата
+        var result = await dialog.Result;
 
         // Возвращаем true, если диалог не был отменен
         return !result.Canceled && result.Data is bool success && success;

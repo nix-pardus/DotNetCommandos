@@ -1,5 +1,6 @@
 ﻿@page "/employees"
 @using Microsoft.AspNetCore.Authorization
+@using System.Linq.Expressions
 @using UI.Models
 @using UI.Models.Employees
 @using UI.Services
@@ -7,22 +8,26 @@
 @inject IEmployeeService EmployeeService
 @inject INotificationService NotificationService
 @inject IDialogService DialogService
+@inject IUserPreferencesService UserPreferencesService
 
 @attribute [Authorize]
 
 <MudDataGrid @ref="dataGrid"
 			 T="Employee"
 			 ServerData="@ServerReload"
-			 Filterable="true"
+			 Filterable
 			 FilterMode="DataGridFilterMode.ColumnFilterMenu"
 			 FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive"
 			 SortMode="SortMode.Multiple"
-			 Hideable="true"
-			 DragDropColumnReordering="true"
+			 Hideable
+			 DragDropColumnReordering
+			 ColumnsPanelReordering
 			 RowsPerPage="10"
-			 FixedHeader="true"
-			 Hover="true"
-			 Loading="@loading">
+			 FixedHeader
+			 Hover
+			 Loading="@loading"
+			 ShowMenuIcon
+			 ColumnResizeMode="ResizeMode.Container">
 
 	<ToolBarContent>
 		<MudText Typo="Typo.h6">Сотрудники</MudText>
@@ -31,11 +36,6 @@
 		<MudButton OnClick="CreateEmployee" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">
 			Создать сотрудника
 		</MudButton>
-
-		<!-- Selector видимости колонок -->
-		<MudTooltip Text="Видимость колонок">
-			<ColumnVisibilitySelector Columns="columns" VisibleColumnsChanged="StateHasChanged" />
-		</MudTooltip>
 
 		<MudTooltip Text="Показать/скрыть удаленных сотрудников">
 			<MudSwitch @bind-Value="showDeleted" @bind-Value:after="OnShowDeletedChanged" Color="Color.Primary" Label="Показать удаленных" />
@@ -54,44 +54,30 @@
 	</ToolBarContent>
 
 	<Columns>
-		<!-- Всегда рендерим ВСЕ колонки в фиксированном порядке, управляем видимостью через Hidden -->
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.LastName"
-						Title="Фамилия" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.LastName))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.Name"
-						Title="Имя" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Name))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.Patronymic"
-						Title="Отчество" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Patronymic))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.Address"
-						Title="Адрес" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Address))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.Email"
-						Title="Email" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Email))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="string" Property="x => x.PhoneNumber"
-						Title="Номер телефона" Sortable="false" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.PhoneNumber))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="string" Property="@(x => x.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm"))"
-						Title="Дата создания" Sortable="true" Filterable="true" Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.CreatedDate))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="string" Property="@(x => x.ModifiedDate.HasValue ? x.ModifiedDate!.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "-")"
-						Title="Дата изменения" Sortable="true" Filterable="true" Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.ModifiedDate))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="Enum" Property="x => x.Role"
-						Title="Роль" Sortable="true" Filterable="true"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.Role))!.Visible)" />
-
-		<PropertyColumn T="Employee" TProperty="bool" Property="x => x.IsDeleted"
-						Title="Статус" Sortable="true" Filterable="false"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == nameof(Employee.IsDeleted))!.Visible)">
+		<PropertyColumn Property="x => x.FullName" Title="ФИО" Sortable="true" Filterable="true"
+						@bind-Hidden="_fullNameHidden" @bind-Hidden:after="SaveColumnStates"/>
+		<PropertyColumn Property="x => x.Address" Title="Адрес" Sortable="true" Filterable="true"
+						@bind-Hidden="_addressHidden" @bind-Hidden:after="SaveColumnStates" />
+		<PropertyColumn Property="x => x.Email" Title="Email" Sortable="true" Filterable="true"
+						@bind-Hidden="_emailHidden" @bind-Hidden:after="SaveColumnStates" />
+		<PropertyColumn Property="x => x.PhoneNumber" Title="Номер телефона" Sortable="false" Filterable="true"
+						@bind-Hidden="_phoneNumberHidden" @bind-Hidden:after="SaveColumnStates" />
+		<PropertyColumn Property="@(x => x.CreatedDate)" Title="Дата создания" Sortable="true" Filterable="true"
+						@bind-Hidden="_createdDateHidden" @bind-Hidden:after="SaveColumnStates">
+			<CellTemplate>
+				@context.Item.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.ModifiedDate" Title="Дата изменения" Sortable="true" Filterable="true"
+						@bind-Hidden="_modifiedDateHidden" @bind-Hidden:after="SaveColumnStates">
+			<CellTemplate>
+				@( context.Item.ModifiedDate.HasValue ? context.Item.ModifiedDate!.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "-" )
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.Role" Title="Роль" Sortable="true" Filterable="true"
+						@bind-Hidden="_roleHidden" @bind-Hidden:after="SaveColumnStates" />
+		<PropertyColumn Property="x => x.IsDeleted" Title="Статус" Sortable="true" Filterable="false"
+						@bind-Hidden="_statusHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
 				@if (context.Item.IsDeleted)
 				{
@@ -103,10 +89,8 @@
 				}
 			</CellTemplate>
 		</PropertyColumn>
-
-		<PropertyColumn T="Employee" TProperty="bool" Property="x => false"
-						Title="Действия" Filterable="false" Sortable="false"
-						Hidden="@(!columns.FirstOrDefault(x => x.Key == "Actions")!.Visible)">
+		<PropertyColumn Property="x => false" Title="Действия" Filterable="false" Sortable="false"
+						@bind-Hidden="_actionsHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
 				@{
 					async Task Edit() => await EditEmployee(context.Item);
@@ -140,20 +124,60 @@
 	private Timer? searchDebounceTimer;
 	private const int SEARCH_DEBOUNCE_MS = 500;
 
-	private List<ColumnVisibilityItem> columns = new()
+	private bool _fullNameHidden = false;
+	private bool _addressHidden = false;
+	private bool _emailHidden = false;
+	private bool _phoneNumberHidden = false;
+	private bool _createdDateHidden = false;
+	private bool _modifiedDateHidden = false;
+	private bool _roleHidden = false;
+	private bool _statusHidden = false;
+	private bool _actionsHidden = false;
+
+	protected override async Task OnInitializedAsync()
 	{
-		new ColumnVisibilityItem { Key = nameof(Employee.LastName), Label = "Фамилия" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Name), Label = "Имя" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Patronymic), Label = "Отчество" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Address), Label = "Адрес" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Email), Label = "Email" },
-		new ColumnVisibilityItem { Key = nameof(Employee.PhoneNumber), Label = "Телефон" },
-		new ColumnVisibilityItem { Key = nameof(Employee.CreatedDate), Label = "Дата создания" },
-		new ColumnVisibilityItem { Key = nameof(Employee.ModifiedDate), Label = "Дата изменения" },
-		new ColumnVisibilityItem { Key = nameof(Employee.Role), Label = "Роль" },
-		new ColumnVisibilityItem { Key = nameof(Employee.IsDeleted), Label = "Статус" },
-		new ColumnVisibilityItem { Key = "Actions", Label = "Действия" }
-	};
+		await LoadColumnStates();
+	}
+
+	private async Task LoadColumnStates()
+	{
+		var savedState = await UserPreferencesService.GetPreferenceAsync<Dictionary<string, bool>>("employees_column_hidden_state");
+		if (savedState == null) return;
+
+		foreach (var (key, value) in savedState)
+		{
+			switch (key)
+			{
+				case "FullName": _fullNameHidden = value; break;
+				case "Address": _addressHidden = value; break;
+				case "Email": _emailHidden = value; break;
+				case "PhoneNumber": _phoneNumberHidden = value; break;
+				case "CreatedDate": _createdDateHidden = value; break;
+				case "ModifiedDate": _modifiedDateHidden = value; break;
+				case "Role": _roleHidden = value; break;
+				case "Status": _statusHidden = value; break;
+				case "Actions": _actionsHidden = value; break;
+			}
+		}
+	}
+
+	private async Task SaveColumnStates()
+	{
+		var columnStates = new Dictionary<string, bool>
+		{
+			{ "FullName", _fullNameHidden },
+			{ "Address", _addressHidden },
+			{ "Email", _emailHidden },
+			{ "PhoneNumber", _phoneNumberHidden },
+			{ "CreatedDate", _createdDateHidden },
+			{ "ModifiedDate", _modifiedDateHidden },
+			{ "Role", _roleHidden },
+			{ "Status", _statusHidden },
+			{ "Actions", _actionsHidden }
+		};
+
+		await UserPreferencesService.SetPreferenceAsync("employees_column_hidden_state", columnStates);
+	}
 
 	private async Task<GridData<Employee>> ServerReload(GridState<Employee> state)
 	{
@@ -163,9 +187,32 @@
 		{
 			var sortBy = state.SortDefinitions.Select(sort => new GetByFiltersRequest.Sorting
 			{
-				Field = MapPropertyToField(sort.SortBy),
+				Field = sort.SortBy,
 				Direction = sort.Descending
 			}).ToList();
+
+			if(sortBy.Where(x => x.Field == "FullName").Any())
+			{
+				sortBy.AddRange<GetByFiltersRequest.Sorting>([
+					new()
+					{
+						Field = "LastName",
+						Direction = sortBy.Where(x => x.Field == "FullName").First().Direction
+					},
+					new()
+					{
+						Field = "Name",
+						Direction = sortBy.Where(x => x.Field == "FullName").First().Direction
+					},
+					new()
+					{
+						Field = "Patronymic",
+						Direction = sortBy.Where(x => x.Field == "FullName").First().Direction
+					}
+				]);
+				sortBy.RemoveAll(x => x.Field == "FullName");
+			}
+			
 
 			var filters = new List<GetByFiltersRequest.FilterCondition>();
 
@@ -184,7 +231,7 @@
 			{
 				filters.Add(new GetByFiltersRequest.FilterCondition
 				{
-					Field = "Name||LastName||PhoneNumber||Email||Address",
+					Field = "Name||LastName||Patronymic||PhoneNumber||Email||Address",
 					Operator = GetByFiltersRequest.FilterOperator.Contains,
 					Value = searchString,
 					ValueType = "string"
@@ -246,17 +293,7 @@
 	{
 		var mapping = new Dictionary<string, string>
 		{
-			{ "Id", "Id" },
-			{ "Name", "Name" },
-			{ "LastName", "LastName" },
-			{ "Patronymic", "Patronymic" },
-			{ "Address", "Address" },
-			{ "Email", "Email" },
-			{ "PhoneNumber", "PhoneNumber" },
-			{ "CreatedDate", "CreatedDate" },
-			{ "ModifiedDate", "ModifiedDate" },
-			{ "Role", "Role" },
-			{ "IsDeleted", "IsDeleted" }
+			{ "FullName", "LastName||Name||Patronymic" }
 		};
 		return mapping.TryGetValue(propertyName, out var field) ? field : propertyName;
 	}

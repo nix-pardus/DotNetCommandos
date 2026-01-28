@@ -17,4 +17,5 @@ public class Client
     public string PhoneNumber { get; set; } = string.Empty;
     public Guid CreatedById { get; set; }
     public Guid? ModifiedById { get; set; }
+    public string FullName => $"{LastName} {Name} {Patronymic}".Trim();
 }
