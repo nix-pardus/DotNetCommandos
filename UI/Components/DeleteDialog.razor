@@ -1,0 +1,93 @@
+﻿@typeparam T
+@using MudBlazor
+@using UI.Services
+@inject INotificationService NotificationService
+
+<MudDialog>
+	<DialogContent>
+		@if (!string.IsNullOrEmpty(ErrorMessage))
+		{
+			NotificationService.ShowError(ErrorMessage);
+		}
+
+		<MudAlert Severity="Severity.Normal" Icon="@Icons.Material.Filled.Warning">
+			<MudText Typo="Typo.body1">
+				@Title
+			</MudText>
+		</MudAlert>
+
+		@if (ConfirmationTemplate != null)
+		{
+			@ConfirmationTemplate(Item)
+		}
+		else
+		{
+			<div class="mt-3 pa-3">
+				<MudText>
+					Вы уверены, что хотите удалить
+					<MudText Color="Color.Error" Style="font-weight: bold; display: inline;">
+						@GetItemDisplayName()
+					</MudText>?
+				</MudText>
+			</div>
+		}
+	</DialogContent>
+
+	<DialogActions>
+		<MudButton OnClick="Cancel" Disabled="@IsDeleting">Отмена</MudButton>
+		<MudButton Color="Color.Error"
+				   OnClick="DeleteAsync"
+				   StartIcon="@Icons.Material.Filled.Delete">
+			Удалить
+		</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter]
+	protected IMudDialogInstance MudDialog { get; set; }
+
+	[Parameter]
+	public T Item { get; set; }
+
+	[Parameter]
+	public RenderFragment<T> ConfirmationTemplate { get; set; }
+
+	[Parameter]
+	public Func<T, Task<bool>> OnDelete { get; set; }
+
+	[Parameter]
+	public Func<T, string> GetDisplayName { get; set; }
+
+	[Parameter]
+	public string Title { get; set; } = "Подтверждение удаления";
+
+	protected bool IsDeleting { get; set; }
+	protected string ErrorMessage { get; set; }
+
+	protected virtual string GetItemDisplayName() => GetDisplayName?.Invoke(Item) ?? Item?.ToString() ?? "элемент";
+
+	protected virtual async Task DeleteAsync()
+	{
+		IsDeleting = true;
+		ErrorMessage = null;
+
+		try
+		{
+			if (OnDelete != null)
+				await OnDelete(Item);
+
+			MudDialog.Close(DialogResult.Ok(true));
+		}
+		catch (Exception ex)
+		{
+			ErrorMessage = $"Ошибка при удалении {GetItemDisplayName()}: {ex.Message}";
+		}
+		finally
+		{
+			IsDeleting = false;
+		}
+	}
+
+	protected void Cancel() => MudDialog.Cancel();
+}

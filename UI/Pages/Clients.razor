@@ -1,11 +1,10 @@
-﻿@page "/employees"
+@page "/clients"
 @using Microsoft.AspNetCore.Authorization
-@using System.Linq.Expressions
 @using UI.Models
-@using UI.Models.Employees
+@using UI.Models.Clients
 @using UI.Services
 @using UI.Components
-@inject IEmployeeService EmployeeService
+@inject IClientService ClientService
 @inject INotificationService NotificationService
 @inject IDialogService DialogService
 @inject IUserPreferencesService UserPreferencesService
@@ -13,7 +12,7 @@
 @attribute [Authorize]
 
 <MudDataGrid @ref="dataGrid"
-			 T="Employee"
+			 T="Client"
 			 ServerData="@ServerReload"
 			 Filterable
 			 FilterMode="DataGridFilterMode.ColumnFilterMenu"
@@ -30,14 +29,14 @@
 			 ColumnResizeMode="ResizeMode.Container">
 
 	<ToolBarContent>
-		<MudText Typo="Typo.h6">Сотрудники</MudText>
+		<MudText Typo="Typo.h6">Клиенты</MudText>
 		<MudSpacer />
 
-		<MudButton OnClick="CreateEmployee" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">
-			Создать сотрудника
+		<MudButton OnClick="CreateClient" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary">
+			Создать клиента
 		</MudButton>
 
-		<MudTooltip Text="Показать/скрыть удаленных сотрудников">
+		<MudTooltip Text="Показать/скрыть удаленных клиентов">
 			<MudSwitch @bind-Value="showDeleted" @bind-Value:after="OnShowDeletedChanged" Color="Color.Primary" Label="Показать удаленных" />
 		</MudTooltip>
 		<MudSpacer />
@@ -55,29 +54,41 @@
 
 	<Columns>
 		<PropertyColumn Property="x => x.FullName" Title="ФИО" Sortable="true" Filterable="true"
-						@bind-Hidden="_fullNameHidden" @bind-Hidden:after="SaveColumnStates"/>
+						@bind-Hidden="_fullNameHidden" @bind-Hidden:after="SaveColumnStates" />
 		<PropertyColumn Property="x => x.Address" Title="Адрес" Sortable="true" Filterable="true"
-						@bind-Hidden="_addressHidden" @bind-Hidden:after="SaveColumnStates" />
+						@bind-Hidden="_addressHidden" @bind-Hidden:after="SaveColumnStates">
+			<CellTemplate>
+				<MudTooltip Text="@context.Item.Address" Delay="500">
+					<MudText Style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+						@context.Item.Address
+					</MudText>
+				</MudTooltip>
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.City" Title="Город" Sortable="true" Filterable="true"
+						@bind-Hidden="_cityHidden" @bind-Hidden:after="SaveColumnStates" />
+		<PropertyColumn Property="x => x.Region" Title="Район" Sortable="true" Filterable="true"
+						@bind-Hidden="_regionHidden" @bind-Hidden:after="SaveColumnStates" />
+		<PropertyColumn Property="x => x.CompanyName" Title="Компания" Sortable="true" Filterable="true"
+						@bind-Hidden="_companyNameHidden" @bind-Hidden:after="SaveColumnStates" />
 		<PropertyColumn Property="x => x.Email" Title="Email" Sortable="true" Filterable="true"
 						@bind-Hidden="_emailHidden" @bind-Hidden:after="SaveColumnStates" />
-		<PropertyColumn Property="x => x.PhoneNumber" Title="Номер телефона" Sortable="false" Filterable="true"
+		<PropertyColumn Property="x => x.PhoneNumber" Title="Телефон" Sortable="false" Filterable="true"
 						@bind-Hidden="_phoneNumberHidden" @bind-Hidden:after="SaveColumnStates" />
-		<PropertyColumn Property="@(x => x.CreatedDate)" Title="Дата создания" Sortable="true" Filterable="true"
+		<PropertyColumn Property="x => x.CreatedDate" Title="Дата создания" Sortable="true" Filterable="false"
 						@bind-Hidden="_createdDateHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
 				@context.Item.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
 			</CellTemplate>
 		</PropertyColumn>
-		<PropertyColumn Property="x => x.ModifiedDate" Title="Дата изменения" Sortable="true" Filterable="true"
+		<PropertyColumn Property="x => x.ModifiedDate" Title="Дата изменения" Sortable="true" Filterable="false"
 						@bind-Hidden="_modifiedDateHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
-				@( context.Item.ModifiedDate.HasValue ? context.Item.ModifiedDate!.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "-" )
+				@(context.Item.ModifiedDate.HasValue? context.Item.ModifiedDate.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "-")
 			</CellTemplate>
 		</PropertyColumn>
-		<PropertyColumn Property="x => x.Role" Title="Роль" Sortable="true" Filterable="true"
-						@bind-Hidden="_roleHidden" @bind-Hidden:after="SaveColumnStates" />
-		<PropertyColumn Property="x => x.IsDeleted" Title="Статус" Sortable="true" Filterable="false"
-						@bind-Hidden="_statusHidden" @bind-Hidden:after="SaveColumnStates">
+		<PropertyColumn Property="x => x.IsDeleted" Title="Статус" Sortable="true" Filterable="true"
+						@bind-Hidden="_isDeletedHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
 				@if (context.Item.IsDeleted)
 				{
@@ -93,8 +104,8 @@
 						@bind-Hidden="_actionsHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
 				@{
-					async Task Edit() => await EditEmployee(context.Item);
-					async Task Delete() => await DeleteEmployee(context.Item);
+					async Task Edit() => await EditClient(context.Item);
+					async Task Delete() => await DeleteClient(context.Item);
 				}
 				<MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="Edit" />
 				<MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="Delete" />
@@ -103,7 +114,7 @@
 	</Columns>
 
 	<PagerContent>
-		<MudDataGridPager T="Employee" />
+		<MudDataGridPager T="Client" />
 	</PagerContent>
 
 	<LoadingContent>
@@ -111,13 +122,13 @@
 	</LoadingContent>
 
 	<NoRecordsContent>
-		<MudText Typo="Typo.body1" Class="pa-4">Нет сотрудников для отображения</MudText>
+		<MudText Typo="Typo.body1" Class="pa-4">Нет клиентов для отображения</MudText>
 	</NoRecordsContent>
 
 </MudDataGrid>
 
 @code {
-	private MudDataGrid<Employee> dataGrid;
+	private MudDataGrid<Client> dataGrid;
 	private bool loading = false;
 	private bool showDeleted = false;
 	private string searchString = string.Empty;
@@ -125,13 +136,15 @@
 	private const int SEARCH_DEBOUNCE_MS = 500;
 
 	private bool _fullNameHidden = false;
+	private bool _cityHidden = false;
 	private bool _addressHidden = false;
-	private bool _emailHidden = false;
+	private bool _regionHidden = false;
 	private bool _phoneNumberHidden = false;
+	private bool _emailHidden = false;
+	private bool _companyNameHidden = false;
 	private bool _createdDateHidden = false;
 	private bool _modifiedDateHidden = false;
-	private bool _roleHidden = false;
-	private bool _statusHidden = false;
+	private bool _isDeletedHidden = false;
 	private bool _actionsHidden = false;
 
 	protected override async Task OnInitializedAsync()
@@ -141,21 +154,23 @@
 
 	private async Task LoadColumnStates()
 	{
-		var savedState = await UserPreferencesService.GetPreferenceAsync<Dictionary<string, bool>>("employees_column_hidden_state");
-		if (savedState == null) return;
+		var savedStates = await UserPreferencesService.GetPreferenceAsync<Dictionary<string, bool>>("client_column_hidden_state");
+		if (savedStates == null) return;
 
-		foreach (var (key, value) in savedState)
+		foreach (var (key, value) in savedStates)
 		{
 			switch (key)
 			{
 				case "FullName": _fullNameHidden = value; break;
+				case "City": _cityHidden = value; break;
 				case "Address": _addressHidden = value; break;
-				case "Email": _emailHidden = value; break;
+				case "Region": _regionHidden = value; break;
 				case "PhoneNumber": _phoneNumberHidden = value; break;
+				case "Email": _emailHidden = value; break;
+				case "CompanyName": _companyNameHidden = value; break;
 				case "CreatedDate": _createdDateHidden = value; break;
 				case "ModifiedDate": _modifiedDateHidden = value; break;
-				case "Role": _roleHidden = value; break;
-				case "Status": _statusHidden = value; break;
+				case "IsDeleted": _isDeletedHidden = value; break;
 				case "Actions": _actionsHidden = value; break;
 			}
 		}
@@ -166,20 +181,22 @@
 		var columnStates = new Dictionary<string, bool>
 		{
 			{ "FullName", _fullNameHidden },
-			{ "Address", _addressHidden },
-			{ "Email", _emailHidden },
-			{ "PhoneNumber", _phoneNumberHidden },
-			{ "CreatedDate", _createdDateHidden },
-			{ "ModifiedDate", _modifiedDateHidden },
-			{ "Role", _roleHidden },
-			{ "Status", _statusHidden },
-			{ "Actions", _actionsHidden }
+			{"City", _cityHidden },
+			{"Address", _addressHidden },
+			{"Region", _regionHidden },
+			{"PhoneNumber", _phoneNumberHidden },
+			{"Email", _emailHidden },
+			{"CompanyName", _companyNameHidden },
+			{"CreatedDate", _createdDateHidden },
+			{"ModifiedDate", _modifiedDateHidden },
+			{"IsDeleted", _isDeletedHidden },
+			{"Actions", _actionsHidden  }
 		};
 
-		await UserPreferencesService.SetPreferenceAsync("employees_column_hidden_state", columnStates);
+		await UserPreferencesService.SetPreferenceAsync("client_column_hidden_state", columnStates);
 	}
 
-	private async Task<GridData<Employee>> ServerReload(GridState<Employee> state)
+	private async Task<GridData<Client>> ServerReload(GridState<Client> state)
 	{
 		loading = true;
 
@@ -191,7 +208,7 @@
 				Direction = sort.Descending
 			}).ToList();
 
-			if(sortBy.Where(x => x.Field == "FullName").Any())
+			if (sortBy.Where(x => x.Field == "FullName").Any())
 			{
 				sortBy.AddRange<GetByFiltersRequest.Sorting>([
 					new()
@@ -212,7 +229,6 @@
 				]);
 				sortBy.RemoveAll(x => x.Field == "FullName");
 			}
-			
 
 			var filters = new List<GetByFiltersRequest.FilterCondition>();
 
@@ -229,9 +245,10 @@
 
 			if (!string.IsNullOrWhiteSpace(searchString))
 			{
+				// один фильтр: Name||LastName -> сервер распарсит и сделает OR между полями
 				filters.Add(new GetByFiltersRequest.FilterCondition
 				{
-					Field = "Name||LastName||Patronymic||PhoneNumber||Email||Address",
+					Field = "Name||LastName||Patronymic||Address||City||Region||CompanyName||Email||PhoneNumber",
 					Operator = GetByFiltersRequest.FilterOperator.Contains,
 					Value = searchString,
 					ValueType = "string"
@@ -240,7 +257,7 @@
 
 			foreach (var filter in state.FilterDefinitions)
 			{
-				if (filter is IFilterDefinition<Employee> columnFilter)
+				if (filter is IFilterDefinition<Client> columnFilter)
 				{
 					string operatorString = !string.IsNullOrEmpty(columnFilter.Operator)
 						? columnFilter.Operator
@@ -266,9 +283,9 @@
 				Filters = filters
 			};
 
-			var response = await EmployeeService.GetAllEmployeesAsync(request);
+			var response = await ClientService.GetAllClientsAsync(request);
 
-			return new GridData<Employee>
+			return new GridData<Client>
 			{
 				TotalItems = response.TotalCount,
 				Items = response.Items
@@ -277,10 +294,10 @@
 		catch (Exception ex)
 		{
 			NotificationService.ShowError($"Ошибка загрузки данных: {ex.Message}");
-			return new GridData<Employee>
+			return new GridData<Client>
 			{
 				TotalItems = 0,
-				Items = new List<Employee>()
+				Items = new List<Client>()
 			};
 		}
 		finally
@@ -350,13 +367,13 @@
 		await dataGrid.ReloadServerData();
 	}
 
-	private async Task CreateEmployee()
+	private async Task CreateClient()
 	{
-		var newEmployee = new CreateEmployee();
+		var newClient = new CreateClient();
 
 		var parameters = new DialogParameters
 		{
-			["CreateEmployee"] = newEmployee,
+			["CreateClient"] = newClient,
 			["IsEdit"] = false
 		};
 
@@ -366,16 +383,16 @@
 			MaxWidth = MaxWidth.Medium
 		};
 
-		await DialogService.ShowAsync<EmployeeEditDialog>("Создание сотрудника", parameters, options);
+		await DialogService.ShowAsync<ClientEditDialog>("Создание клиента", parameters, options);
 
 		await dataGrid.ReloadServerData();
 	}
 
-	private async Task EditEmployee(Employee employee)
+	private async Task EditClient(Client client)
 	{
 		var parameters = new DialogParameters
 		{
-			["Employee"] = employee,
+			["Client"] = client,
 			["IsEdit"] = true
 		};
 
@@ -385,24 +402,25 @@
 			MaxWidth = MaxWidth.Medium
 		};
 
-		await DialogService.ShowAsync<EmployeeEditDialog>("Редактирование сотрудника", parameters, options);
+		await DialogService.ShowAsync<ClientEditDialog>("Редактирование клиента", parameters, options);
 
 		await dataGrid.ReloadServerData();
 	}
 
-	private async Task DeleteEmployee(Employee employee)
+	private async Task DeleteClient(Client client)
 	{
 		var deleted = await DialogServiceExtensions.ShowDeleteDialog(
 			DialogService,
-			employee,
-			"Удаление сотрудника",
-			emp => $"{emp.Name} {emp.LastName}",
+			client,
+			"Удаление клиента",
+			c => $"{c.Name} {c.LastName}",
 			null,
-			async emp => await EmployeeService.DeleteEmployeeAsync(emp.Id));
+			async (c) => await ClientService.DeleteClientAsync(c.Id)
+		);
 
 		if (deleted)
 		{
-			NotificationService.ShowSuccess($"Сотрудник {employee.Name} {employee.LastName} удален");
+			NotificationService.ShowSuccess($"Клиент {client.Name} {client.LastName} удален");
 			await dataGrid.ReloadServerData();
 		}
 	}

@@ -15,5 +15,6 @@ public class Employee
     public Guid CreatedById { get; set; }
     public Guid? ModifiedById { get; set; }
     public RoleType Role { get; set; }
+    public string FullName => $"{LastName} {Name} {Patronymic}".Trim();
 }
 
