@@ -25,5 +25,10 @@ public record ClientFullResponse(
     string CompanyName,
     string Email,
     string PhoneNumber,
+    string? Lead,
+    Guid CreatedById,
+    Guid? ModifiedById,
+    DateTime CreatedDate,
+    DateTime? ModifiedDate,
     bool IsDeleted
 );

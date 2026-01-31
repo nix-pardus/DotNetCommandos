@@ -45,7 +45,7 @@ public class ApiService : IApiService
         }
     }
 
-    public async Task PostAsync<T>(string endpoint, object data)
+    public async Task PostAsync(string endpoint, object data)
     {
         try
         {

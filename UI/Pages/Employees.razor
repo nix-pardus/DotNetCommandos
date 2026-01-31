@@ -303,15 +303,15 @@
 		if (string.IsNullOrEmpty(mudOperator))
 			return GetByFiltersRequest.FilterOperator.Contains;
 
-		return mudOperator.ToLower() switch
+		return mudOperator.Trim(' ').ToLower() switch
 		{
-			"contains" or "not contains" => GetByFiltersRequest.FilterOperator.Contains,
+			"contains" => GetByFiltersRequest.FilterOperator.Contains,
 			"equals" or "=" => GetByFiltersRequest.FilterOperator.Equals,
-			"not equals" or "!=" => GetByFiltersRequest.FilterOperator.NotEquals,
-			"greater than" or ">" => GetByFiltersRequest.FilterOperator.GreaterThan,
-			"less than" or "<" => GetByFiltersRequest.FilterOperator.LessThan,
-			"starts with" => GetByFiltersRequest.FilterOperator.StartsWith,
-			"ends with" => GetByFiltersRequest.FilterOperator.EndsWith,
+			"notequals" or "!=" => GetByFiltersRequest.FilterOperator.NotEquals,
+			"greaterthan" or ">" => GetByFiltersRequest.FilterOperator.GreaterThan,
+			"lessthan" or "<" => GetByFiltersRequest.FilterOperator.LessThan,
+			"startswith" => GetByFiltersRequest.FilterOperator.StartsWith,
+			"endswith" => GetByFiltersRequest.FilterOperator.EndsWith,
 			_ => GetByFiltersRequest.FilterOperator.Contains
 		};
 	}

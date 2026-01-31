@@ -12,6 +12,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.22" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.15" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.15" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.23" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
 		<PackageReference Include="MudBlazor" Version="8.15.0" />
 		<PackageReference Include="MudBlazor.Translations" Version="2.7.0" />

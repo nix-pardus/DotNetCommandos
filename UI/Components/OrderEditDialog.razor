@@ -1,0 +1,264 @@
+﻿@using UI.Models
+@using UI.Models.Clients
+@using UI.Models.Orders
+@using UI.Services
+@inject IOrderService OrderService
+@inject IClientService ClientService
+@inject INotificationService NotificationService
+<MudDialog>
+	<DialogContent>
+		<MudGrid>
+			@if (IsEdit)
+			{
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Order.ClientId" Label="Клиент" Required />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Order.Comment" Label="Комментарий" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Order.EquipmentType" Label="Тип техники" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Order.EquipmentModel" Label="Модель" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Order.IsWarranty" Label="Гарантия" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Order.Problem" Label="Проблема" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Order.Priority" Label="Приоритет" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Order.StartDateTime" Label="Начало выполнения" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="Order.EndDateTime" Label="Конец выполнения" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudSelect T="OrderStatus" @bind-Value="Order.Status" Label="Статус">
+						@foreach (var status in Enum.GetValues<OrderStatus>())
+						{
+							<MudSelectItem Value="status">@status</MudSelectItem>
+						}
+					</MudSelect>
+				</MudItem>
+			}
+			else
+			{
+
+				<MudItem xs="12" sm="6">
+					<MudAutocomplete T="Client" @bind-Value="selectedClient" Label="Клиент" Required
+									 SearchFunc="@SearchClients" ToStringFunc="@(c => c?.FullName ?? string.Empty)"
+									 MaxItems="100" DebounceInterval="300"
+									 MaxHeight="400" Placeholder="Начните вводить ФИО или адрес или телефон"
+									 ShowProgressIndicator>
+						<ItemTemplate>
+							<MudGrid>
+								<MudItem xs="12">
+									<MudText Typo="Typo.body2">@context.FullName</MudText>
+								</MudItem>
+								<MudItem xs="12">
+									<MudText Typo="Typo.caption" Color="Color.Success">
+										📞 @context.PhoneNumber 📧 @context.Email
+									</MudText>
+									<MudSpacer />
+									<MudText Typo="Typo.caption" Color="Color.Success">
+										📅 Создан: @context.CreatedDate.ToLocalTime().ToString("dd.MM.yy HH:mm")
+									</MudText>
+									<MudSpacer />
+									<MudText Typo="Typo.caption" Color="Color.Success">
+										📍@context.City, @context.Address
+									</MudText>
+								</MudItem>
+							</MudGrid>
+						</ItemTemplate>
+					</MudAutocomplete>
+				</MudItem>
+				if (selectedClient != null)
+				{
+					<MudItem xs="12" sm="6">
+						<MudText Color="Color.Info" Typo="Typo.subtitle2">@($"📍 {selectedClient.City}, {selectedClient.Address}")</MudText>
+						<MudText Color="Color.Info" Typo="Typo.subtitle2">@($"📞 {selectedClient.PhoneNumber}  📧 {selectedClient.Email}")</MudText>
+					</MudItem>
+				}
+				else
+				{
+					<MudItem xs="12" sm="6">
+						<MudText Color="Color.Info" Typo="Typo.subtitle2">📍</MudText>
+						<MudText Color="Color.Info" Typo="Typo.subtitle2">📞 📧</MudText>
+					</MudItem>
+				}
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="OrderCreate.EquipmentType" Label="Тип техники" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="OrderCreate.EquipmentModel" Label="Модель" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudCheckBox @bind-Value="OrderCreate.IsWarranty" Label="По гарантии" />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="OrderCreate.Problem" Label="Проблема" Required />
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudSelect T="int" @bind-Value="OrderCreate.Priority" Label="Приоритет">
+						<MudSelectItem Value="0"> Низкий </MudSelectItem>
+						<MudSelectItem Value="1"> Обычный </MudSelectItem>
+						<MudSelectItem Value="2"> Высокий </MudSelectItem>
+						<MudSelectItem Value="3"> Критический </MudSelectItem>
+					</MudSelect>
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="OrderCreate.Comment" Label="Комментарий" />
+				</MudItem>
+				<MudItem lg="3">
+					<MudDatePicker @bind-Date="startDate" Label="Дата выезда" />
+					<MudTimePicker @bind-Time="startTime" Label="Время выезда" />
+				</MudItem>
+				<MudItem lg="3">
+					<MudCard>
+						<MudCardContent>
+							<MudText Typo="Typo.body2">Время на выполнение</MudText>
+							<MudStack Row Spacing="2" Justify="Justify.SpaceBetween">
+								<MudNumericField Label="Часы" Min="0" />
+								<MudNumericField Label="Минуты" Min="0" />
+							</MudStack>
+						</MudCardContent>
+					</MudCard>
+				</MudItem>
+			}
+		</MudGrid>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="Cancel">Отмена</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Сохранить</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter]
+	IMudDialogInstance MudDialog { get; set; }
+
+	[Parameter]
+	public Order? Order { get; set; }
+
+	[Parameter]
+	public OrderCreate? OrderCreate { get; set; }
+
+	[Parameter]
+	public bool IsEdit { get; set; }
+
+	[Parameter]
+	public Guid? ClientId { get; set; }
+
+	private Client selectedClient;
+
+	private DateTime? startDate { get; set; }
+	private TimeSpan? startTime { get; set; }
+
+	private DateTime? startDateTime
+	{
+		get
+		{
+			if (startDate.HasValue)
+				return (startDate.Value + (startTime.HasValue ? startTime.Value : TimeSpan.Zero)).ToUniversalTime();
+			return null;
+		}
+		set
+		{
+			startDate = value?.Date;
+			startTime = value?.TimeOfDay;
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (ClientId.HasValue)
+			selectedClient = await ClientService.GetClientByIdAsync(ClientId.Value);
+	}
+
+	private async Task<IEnumerable<Client>> SearchClients(string searchText, CancellationToken token)
+	{
+		try
+		{
+			var request = new GetByFiltersRequest
+			{
+				PageNumber = 1,
+				PageSize = 100,
+				LogicalOperator = "AND",
+				SortBy = new List<GetByFiltersRequest.Sorting>
+				{
+					new() { Field = "CreatedDate", Direction = true }
+				},
+				Filters = new List<GetByFiltersRequest.FilterCondition>
+				{
+					new()
+					{
+						Field = "IsDeleted",
+						Operator = GetByFiltersRequest.FilterOperator.Equals,
+						Value = "false",
+						ValueType = "string"
+					},
+					new()
+					{
+						Field = "Name||LastName||Patronymic||Address||City||Region||CompanyName||Email||PhoneNumber",
+						Operator = GetByFiltersRequest.FilterOperator.Contains,
+						Value = searchText,
+						ValueType = "string"
+					}
+				}
+			};
+
+			var clients = await ClientService.GetAllClientsAsync(request);
+			return clients.Items ?? new List<Client>();
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка поиска клиентов. {ex.Message}");
+			return new List<Client>();
+		}
+	}
+
+	private async Task Save()
+	{
+		try
+		{
+			if (IsEdit && Order != null)
+			{
+				var dto = new OrderUpdate
+				{
+					Id = Order.Id,
+					ClientId = Order.ClientId,
+					Comment = Order.Comment,
+					EndDateTime = Order.EndDateTime,
+					EquipmentModel = Order.EquipmentModel,
+					EquipmentType = Order.EquipmentType,
+					IsWarranty = Order.IsWarranty,
+					Priority = Order.Priority,
+					Problem = Order.Problem,
+					StartDateTime = Order.StartDateTime,
+					Status = Order.Status
+				};
+
+				await OrderService.UpdateOrderAsync(dto);
+			}
+			else
+			{
+				OrderCreate.ClientId = selectedClient.Id;
+				OrderCreate.StartDateTime = startDateTime;
+				await OrderService.CreateOrderAsync(OrderCreate);
+			}
+
+			MudDialog.Close(DialogResult.Ok(true));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка при сохранении заявки. {ex.Message}");
+		}
+	}
+
+	void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,400 @@
+﻿@page "/orders"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.WebUtilities
+@using UI.Models
+@using UI.Models.Orders
+@using UI.Services
+@using UI.Components
+@inject IOrderService OrderService
+@inject INotificationService NotificationService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize]
+
+<MudDataGrid @ref="_dataGrid"
+			 T="Order"
+			 Filterable
+			 Hideable
+			 DragDropColumnReordering
+			 ColumnsPanelReordering
+			 FixedHeader
+			 Hover
+			 ShowMenuIcon
+			 FilterMode="DataGridFilterMode.ColumnFilterMenu"
+			 SortMode="SortMode.Multiple"
+			 RowsPerPage="10"
+			 ColumnResizeMode="ResizeMode.Container"
+			 ServerData="@ServerReload"
+			 Loading="@loading"
+			 Bordered
+			 Dense
+			 ApplyDropClassesOnDragStarted
+			 Elevation="5"
+			 Groupable>
+
+	<ToolBarContent>
+		<MudText Typo="Typo.h6">Заявки</MudText>
+		<MudSpacer />
+
+		<MudButton OnClick="CreateOrder" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary">
+			Создать заявку
+		</MudButton>
+
+		<MudTooltip Text="Показать/скрыть удаленные заявки">
+			<MudCheckBox TriState @bind-Value="showDeleted" @bind-Value:after="OnShowDeletedChanged" Color="Color.Primary"
+						 Label="@(!showDeleted.HasValue ? "Без фильтра" : (showDeleted.Value ? "Удаленные" : "Активные"))" Style="min-width: 200px;" />
+		</MudTooltip>
+		<MudSpacer />
+
+		<MudTextField T="string" Value="@searchString" ValueChanged="@OnSearch" Placeholder="Быстрый поиск..."
+					  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+					  IconSize="Size.Medium" Immediate Class="mt-0" />
+	</ToolBarContent>
+
+	<Columns>
+		<PropertyColumn Property="x => x.ClientId" Title="Клиент">
+			<CellTemplate>
+				<ClientNameCell Id="@context.Item.ClientId" />
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.CreatedDate" Title="Дата создания">
+			<CellTemplate>
+				@context.Item.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.EquipmentType" Title="Тип техники" />
+		<PropertyColumn Property="x => x.EquipmentModel" Title="Модель" />
+		<PropertyColumn Property="x => x.Problem" Title="Проблема" />
+		<PropertyColumn Property="x => x.Comment" Title="Комментарий" />
+		<PropertyColumn Property="x => x.IsWarranty" Title="Гарантия">
+			<CellTemplate>
+				@if (context.Item.IsWarranty)
+				{
+					<MudChip Color="Color.Success" Variant="Variant.Filled" Size="Size.Small">По гарантии</MudChip>
+				}
+				else
+				{
+					<MudChip Color="Color.Info" Variant="Variant.Filled" Size="Size.Small">Без гарантии</MudChip>
+				}
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.Priority" Title="Приоритет">
+			<CellTemplate>
+				@switch (context.Item.Priority)
+				{
+					case 0:
+						<MudChip Color="Color.Success" Variant="Variant.Filled" Size="Size.Small">Низкий</MudChip>
+						break;
+					case 1:
+						<MudChip Color="Color.Info" Variant="Variant.Filled" Size="Size.Small">Обычный</MudChip>
+						break;
+					case 2:
+						<MudChip Color="Color.Warning" Variant="Variant.Filled" Size="Size.Small">Высокий</MudChip>
+						break;
+					case 3:
+						<MudChip Color="Color.Error" Variant="Variant.Filled" Size="Size.Small">Критический</MudChip>
+						break;
+				}
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.Status" Title="Статус заявки" />
+		<PropertyColumn Property="x => x.StartDateTime" Title="Начало выполнения">
+			<CellTemplate>
+				@if (context.Item.StartDateTime.HasValue)
+				{
+					if (context.Item.StartDateTime.Value.ToLocalTime().Date == DateTime.Today)
+					{
+						<MudText Typo="Typo.body2">Сегодня в @context.Item.StartDateTime.Value.ToLocalTime().ToString("HH:mm")</MudText>
+					}
+					else if (context.Item.StartDateTime.Value.ToLocalTime().Date == DateTime.Today.AddDays(1))
+					{
+						<MudText Typo="Typo.body2">Завтра в @context.Item.StartDateTime.Value.ToLocalTime().ToString("HH:mm")</MudText>
+					}
+					else
+					{
+						<MudText Typo="Typo.body2">@context.Item.StartDateTime.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudText>
+					}
+				}
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.EndDateTime" Title="Время на выполнение">
+			<CellTemplate>
+				@if (context.Item.StartDateTime.HasValue && context.Item.EndDateTime.HasValue)
+				{
+					var time = context.Item.EndDateTime.Value - context.Item.StartDateTime.Value;
+					string timeText = string.Empty;
+					if (time.Days > 0)
+						timeText = $"{time.Days}д ";
+					timeText += $"{time.Hours}ч {time.Minutes}м";
+					<MudText Typo="Typo.body2">@timeText</MudText>
+				}
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.ModifiedDate" Title="Дата изменеия">
+			<CellTemplate>
+				@(context.Item.ModifiedDate.HasValue? context.Item.ModifiedDate.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "")
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.IsDeleted" Title="Статус">
+			<CellTemplate>
+				@if (context.Item.IsDeleted)
+				{
+					<MudChip Color="Color.Error" Variant="Variant.Filled" Size="Size.Small">Удален</MudChip>
+				}
+				else
+				{
+					<MudChip Color="Color.Success" Variant="Variant.Filled" Size="Size.Small">Активен</MudChip>
+				}
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => false" Title="Действия" Filterable="false" Sortable="false">
+			<CellTemplate>
+				@{
+					async Task Edit() => await EditOrder(context.Item);
+					async Task Delete() => await DeleteOrder(context.Item);
+				}
+				<MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="Edit" />
+				<MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="Delete" />
+			</CellTemplate>
+		</PropertyColumn>
+	</Columns>
+
+	<PagerContent>
+		<MudDataGridPager T="Order" />
+	</PagerContent>
+
+	<LoadingContent>
+		<MudProgressLinear Indeterminate Color="Color.Primary" />
+	</LoadingContent>
+
+	<NoRecordsContent>
+		<MudText Typo="Typo.body1" Class="pa-4">Нет заявок для отображения</MudText>
+	</NoRecordsContent>
+
+</MudDataGrid>
+
+@code {
+	private MudDataGrid<Order> _dataGrid;
+	private bool loading = false;
+	private bool? showDeleted;
+	private string searchString = string.Empty;
+	private Timer? searchDebounceTimer;
+	private const int SEARCH_DEBOUNCE_DELAY = 500;
+	private Guid? clientIdFromQuery;
+
+	private bool _clientHidden = false;
+	private bool _createdDateHidden = false;
+	private bool _equipmentTypeHidden = false;
+	private bool _equipmentModelHidden = false;
+	private bool _problemHidden = false;
+	private bool _commentHidden = false;
+	private bool _isWarrantyHidden = false;
+	private bool _priorityHidden = false;
+	private bool _statusHidden = false;
+	private bool _startDateTimeHidden = false;
+	private bool _endDateTimeHidden = false;
+	private bool _modifiedDateHidden = false;
+	private bool _isDeletedDateHidden = false;
+	private bool _actionsHidden = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await ParseQueryParameters();
+		await base.OnInitializedAsync();
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && clientIdFromQuery.HasValue)
+		{
+			await CreateOrder();
+		}
+		await base.OnAfterRenderAsync(firstRender);
+	}
+
+	private async Task ParseQueryParameters()
+	{
+		var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+		if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("clientId", out var clientIdString))
+		{
+			if (Guid.TryParse(clientIdString, out var clientId))
+			{
+				clientIdFromQuery = clientId;
+			}
+		}
+	}
+
+	private async Task<GridData<Order>> ServerReload(GridState<Order> state)
+	{
+		loading = true;
+
+		try
+		{
+			var sortBy = state.SortDefinitions.Select(sort => new GetByFiltersRequest.Sorting
+			{
+				Field = sort.SortBy,
+				Direction = sort.Descending
+			}).ToList();
+
+			var filters = new List<GetByFiltersRequest.FilterCondition>();
+
+			if (showDeleted.HasValue)
+			{
+				filters.Add(new GetByFiltersRequest.FilterCondition
+				{
+					Field = nameof(Order.IsDeleted),
+					Operator = GetByFiltersRequest.FilterOperator.Equals,
+					Value = showDeleted.Value.ToString(),
+					ValueType = "string"
+				});
+			}
+
+			if (!string.IsNullOrWhiteSpace(searchString))
+			{
+				filters.Add(new GetByFiltersRequest.FilterCondition
+				{
+					Field = "EquipmentType||EquipmentModel||Problem",
+					Operator = GetByFiltersRequest.FilterOperator.Contains,
+					Value = searchString,
+					ValueType = "string"
+				});
+			}
+
+			foreach (var filter in state.FilterDefinitions)
+			{
+				if (filter is IFilterDefinition<Order> columnFilter)
+				{
+					string operatorString = !string.IsNullOrEmpty(columnFilter.Operator)
+						? columnFilter.Operator : "contains";
+
+					var filterCondition = new GetByFiltersRequest.FilterCondition
+					{
+						Field = columnFilter.Column.PropertyName,
+						Operator = operatorString.Trim(' ').ToLower() switch
+						{
+							"contains" => GetByFiltersRequest.FilterOperator.Contains,
+							"equals" or "=" => GetByFiltersRequest.FilterOperator.Equals,
+							"notequals" or "!=" => GetByFiltersRequest.FilterOperator.NotEquals,
+							"greaterthan" or ">" => GetByFiltersRequest.FilterOperator.GreaterThan,
+							"lessthan" or "<" => GetByFiltersRequest.FilterOperator.LessThan,
+							"startswith" => GetByFiltersRequest.FilterOperator.StartsWith,
+							"endswith" => GetByFiltersRequest.FilterOperator.EndsWith,
+							_ => GetByFiltersRequest.FilterOperator.Contains
+						},
+						Value = columnFilter.Value?.ToString() ?? string.Empty,
+						ValueType = columnFilter.Value.GetType().Name.ToLower() switch
+						{
+							"string" => "string",
+							"int32" or "int64" => "number",
+							"datetime" => "date",
+							"boolean" => "boolean",
+							_ => "string"
+						}
+					};
+
+					filters.Add(filterCondition);
+				}
+			}
+
+			var request = new GetByFiltersRequest
+			{
+				PageNumber = state.Page + 1,
+				PageSize = state.PageSize,
+				LogicalOperator = "AND",
+				SortBy = sortBy,
+				Filters = filters
+			};
+
+			var response = await OrderService.GetOrdersAsync(request);
+
+			return new GridData<Order>
+			{
+				TotalItems = response.TotalCount,
+				Items = response.Items
+			};
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки данных: {ex.Message}");
+			return new GridData<Order>
+			{
+				TotalItems = 0,
+				Items = new List<Order>()
+			};
+		}
+		finally
+		{
+			loading = false;
+		}
+	}
+
+	private async Task OnSearch(string searchText)
+	{
+		searchString = searchText;
+
+		searchDebounceTimer?.Dispose();
+
+		searchDebounceTimer = new Timer(async _ =>
+		{
+			await InvokeAsync(async () =>
+			{
+				await _dataGrid.ReloadServerData();
+				StateHasChanged();
+			});
+		}, null, SEARCH_DEBOUNCE_DELAY, Timeout.Infinite);
+	}
+
+	private async Task OnShowDeletedChanged()
+	{
+		await _dataGrid.ReloadServerData();
+	}
+
+	private async Task CreateOrder()
+	{
+		var newOrder = new OrderCreate()
+		{
+			Priority = 1
+		};
+		var parameters = new DialogParameters
+		{
+			["OrderCreate"] = newOrder,
+			["IsEdit"] = false
+		};
+		if (clientIdFromQuery.HasValue)
+			parameters.Add("ClientId", clientIdFromQuery);
+
+		var options = new DialogOptions
+		{
+			CloseButton = true,
+			MaxWidth = MaxWidth.Medium
+		};
+
+		await DialogService.ShowAsync<OrderEditDialog>("Создание заявки", parameters, options);
+
+		await _dataGrid.ReloadServerData();
+	}
+
+	private async Task EditOrder(Order order)
+	{
+		var parameters = new DialogParameters
+		{
+			["Order"] = order,
+			["IsEdit"] = true
+		};
+
+		var options = new DialogOptions
+		{
+			CloseButton = true,
+			MaxWidth = MaxWidth.Medium
+		};
+
+		await DialogService.ShowAsync<OrderEditDialog>("Редактирование заявки", parameters, options);
+		await _dataGrid.ReloadServerData();
+	}
+
+	private async Task DeleteOrder(Order order)
+	{
+		throw new NotImplementedException();
+	}
+}

@@ -17,14 +17,14 @@ public class ClientService : IClientService
         return await _apiService.GetAsync<PagingResponse<Client>>("api/Client/get-by-filters", request);
     }
 
-    public Task<Client> GetClientByIdAsync(Guid id)
+    public async Task<Client> GetClientByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await _apiService.GetAsync<Client>("api/Client/get-by-id", id);
     }
 
     public async Task CreateClientAsync(CreateClient client)
     {
-        await _apiService.PostAsync<CreateClient>("api/Client/create", client);
+        await _apiService.PostAsync("api/Client/create", client);
     }
 
     public async Task<bool> UpdateClientAsync(ClientUpdate client)

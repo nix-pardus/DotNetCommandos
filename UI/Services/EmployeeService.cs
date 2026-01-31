@@ -22,7 +22,7 @@ public class EmployeeService : IEmployeeService
 
     public async Task CreateEmployeeAsync(CreateEmployee employee)
     {
-        await _apiService.PostAsync<CreateEmployee>("api/Employee/create", employee);
+        await _apiService.PostAsync("api/Employee/create", employee);
     }
     public async Task<bool> UpdateEmployeeAsync(EmployeeUpdate employee)
     {

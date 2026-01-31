@@ -14,6 +14,7 @@ public interface IClientService
     Task CreateAsync(ClientCreateRequest dto);
     Task UpdateAsync(ClientUpdateRequest dto);
     Task<PagedResponse<ClientFullResponse>> GetByFiltersAsync(GetByFiltersRequest request);
+    Task<ClientFullResponse> GetByIdAsync(Guid id);
     /// <summary>
     /// Удаление клиента по идентификатору
     /// </summary>

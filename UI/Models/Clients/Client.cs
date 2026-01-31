@@ -15,6 +15,7 @@ public class Client
     public string? CompanyName { get; set; }
     public string? Email { get; set; }
     public string PhoneNumber { get; set; } = string.Empty;
+    public string? Lead { get; set; }
     public Guid CreatedById { get; set; }
     public Guid? ModifiedById { get; set; }
     public string FullName => $"{LastName} {Name} {Patronymic}".Trim();

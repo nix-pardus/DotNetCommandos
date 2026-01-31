@@ -8,6 +8,7 @@
 @inject INotificationService NotificationService
 @inject IDialogService DialogService
 @inject IUserPreferencesService UserPreferencesService
+@inject NavigationManager NavigationManager
 
 @attribute [Authorize]
 
@@ -87,6 +88,8 @@
 				@(context.Item.ModifiedDate.HasValue? context.Item.ModifiedDate.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "-")
 			</CellTemplate>
 		</PropertyColumn>
+		<PropertyColumn Property="x => x.Lead" Title="Откуда узнал о нас" Sortable="true" Filterable="true"
+						@bind-Hidden="_leadHidden" @bind-Hidden:after="SaveColumnStates" />
 		<PropertyColumn Property="x => x.IsDeleted" Title="Статус" Sortable="true" Filterable="true"
 						@bind-Hidden="_isDeletedHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
@@ -106,9 +109,17 @@
 				@{
 					async Task Edit() => await EditClient(context.Item);
 					async Task Delete() => await DeleteClient(context.Item);
+					void CreateOrder() => CreateOrderForClient(context.Item);
 				}
-				<MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="Edit" />
-				<MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="Delete" />
+				<MudTooltip Delay="500" Text="Создать заявку">
+					<MudIconButton Icon="@Icons.Material.Filled.AddTask" Size="Size.Small" Color="Color.Primary" OnClick="CreateOrder"/>
+				</MudTooltip>
+				<MudTooltip Delay="500" Text="Редактировать">
+					<MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="Edit" />
+				</MudTooltip>
+				<MudTooltip Delay="500" Text="Удалить">
+					<MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="Delete" />
+				</MudTooltip>
 			</CellTemplate>
 		</PropertyColumn>
 	</Columns>
@@ -146,6 +157,7 @@
 	private bool _modifiedDateHidden = false;
 	private bool _isDeletedHidden = false;
 	private bool _actionsHidden = false;
+	private bool _leadHidden = false;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -172,6 +184,7 @@
 				case "ModifiedDate": _modifiedDateHidden = value; break;
 				case "IsDeleted": _isDeletedHidden = value; break;
 				case "Actions": _actionsHidden = value; break;
+				case "Lead": _leadHidden = value; break;
 			}
 		}
 	}
@@ -190,7 +203,8 @@
 			{"CreatedDate", _createdDateHidden },
 			{"ModifiedDate", _modifiedDateHidden },
 			{"IsDeleted", _isDeletedHidden },
-			{"Actions", _actionsHidden  }
+			{"Actions", _actionsHidden  },
+			{"Lead", _leadHidden  }
 		};
 
 		await UserPreferencesService.SetPreferenceAsync("client_column_hidden_state", columnStates);
@@ -365,6 +379,11 @@
 	private async Task OnShowDeletedChanged()
 	{
 		await dataGrid.ReloadServerData();
+	}
+
+	private void CreateOrderForClient(Client client)
+	{
+		NavigationManager.NavigateTo($"/orders?clientId={client.Id}");
 	}
 
 	private async Task CreateClient()
