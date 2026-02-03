@@ -11,34 +11,80 @@
 			@if (IsEdit)
 			{
 				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Order.ClientId" Label="Клиент" Required />
+					<MudAutocomplete T="Client" @bind-Value="selectedClient" Label="Клиент" Required
+									 SearchFunc="@SearchClients" ToStringFunc="@(c => c?.FullName ?? string.Empty)"
+									 MaxItems="100" DebounceInterval="300"
+									 MaxHeight="400" Placeholder="Начните вводить ФИО или адрес или телефон"
+									 ShowProgressIndicator>
+						<ItemTemplate>
+							<MudGrid>
+								<MudItem xs="12">
+									<MudText Typo="Typo.body2">@context.FullName</MudText>
+								</MudItem>
+								<MudItem xs="12">
+									<MudText Typo="Typo.caption" Color="Color.Success">
+										📞 @context.PhoneNumber 📧 @context.Email
+									</MudText>
+									<MudSpacer />
+									<MudText Typo="Typo.caption" Color="Color.Success">
+										📅 Создан: @context.CreatedDate.ToLocalTime().ToString("dd.MM.yy HH:mm")
+									</MudText>
+									<MudSpacer />
+									<MudText Typo="Typo.caption" Color="Color.Success">
+										📍@context.City, @context.Address
+									</MudText>
+								</MudItem>
+							</MudGrid>
+						</ItemTemplate>
+					</MudAutocomplete>
+				</MudItem>
+				if (selectedClient != null)
+				{
+					<MudItem xs="12" sm="6">
+						<MudText Color="Color.Info" Typo="Typo.subtitle2">@($"📍 {selectedClient.City}, {selectedClient.Address}")</MudText>
+						<MudText Color="Color.Info" Typo="Typo.subtitle2">@($"📞 {selectedClient.PhoneNumber}  📧 {selectedClient.Email}")</MudText>
+					</MudItem>
+				}
+				else
+				{
+					<MudItem xs="12" sm="6">
+						<MudText Color="Color.Info" Typo="Typo.subtitle2">📍</MudText>
+						<MudText Color="Color.Info" Typo="Typo.subtitle2">📞 📧</MudText>
+					</MudItem>
+				}
+				<MudItem xs="12" sm="6">
+					<MudTextField @bind-Value="OrderEdit.EquipmentType" Label="Тип техники" />
 				</MudItem>
 				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Order.Comment" Label="Комментарий" />
+					<MudTextField @bind-Value="OrderEdit.EquipmentModel" Label="Модель" />
 				</MudItem>
 				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Order.EquipmentType" Label="Тип техники" />
+					<MudCheckBox @bind-Value="OrderEdit.IsWarranty" Label="По гарантии" />
 				</MudItem>
 				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Order.EquipmentModel" Label="Модель" />
+					<MudTextField @bind-Value="OrderEdit.Problem" Label="Проблема" Required />
 				</MudItem>
 				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Order.IsWarranty" Label="Гарантия" />
+					<MudSelect T="int" @bind-Value="OrderEdit.Priority" Label="Приоритет">
+						<MudSelectItem Value="0"> Низкий </MudSelectItem>
+						<MudSelectItem Value="1"> Обычный </MudSelectItem>
+						<MudSelectItem Value="2"> Высокий </MudSelectItem>
+						<MudSelectItem Value="3"> Критический </MudSelectItem>
+					</MudSelect>
 				</MudItem>
 				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Order.Problem" Label="Проблема" />
+					<MudTextField @bind-Value="OrderEdit.Comment" Label="Комментарий" />
+				</MudItem>
+				<MudItem lg="3">
+					<MudDatePicker @bind-Date="startDate" Label="Дата выезда" />
+					<MudTimePicker @bind-Time="startTime" Label="Время выезда" />
+				</MudItem>
+				<MudItem lg="3">
+					<MudDatePicker @bind-Date="endDate" Label="Дата выполнения" />
+					<MudTimePicker @bind-Time="endTime" Label="Время выполнения" />
 				</MudItem>
 				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Order.Priority" Label="Приоритет" />
-				</MudItem>
-				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Order.StartDateTime" Label="Начало выполнения" />
-				</MudItem>
-				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Order.EndDateTime" Label="Конец выполнения" />
-				</MudItem>
-				<MudItem xs="12" sm="6">
-					<MudSelect T="OrderStatus" @bind-Value="Order.Status" Label="Статус">
+					<MudSelect T="OrderStatus" @bind-Value="OrderEdit.Status" Label="Статус">
 						@foreach (var status in Enum.GetValues<OrderStatus>())
 						{
 							<MudSelectItem Value="status">@status</MudSelectItem>
@@ -119,15 +165,8 @@
 					<MudTimePicker @bind-Time="startTime" Label="Время выезда" />
 				</MudItem>
 				<MudItem lg="3">
-					<MudCard>
-						<MudCardContent>
-							<MudText Typo="Typo.body2">Время на выполнение</MudText>
-							<MudStack Row Spacing="2" Justify="Justify.SpaceBetween">
-								<MudNumericField Label="Часы" Min="0" />
-								<MudNumericField Label="Минуты" Min="0" />
-							</MudStack>
-						</MudCardContent>
-					</MudCard>
+					<MudDatePicker @bind-Date="endDate" Label="Дата выполнения" />
+					<MudTimePicker @bind-Time="endTime" Label="Время выполнения" />
 				</MudItem>
 			}
 		</MudGrid>
@@ -143,7 +182,7 @@
 	IMudDialogInstance MudDialog { get; set; }
 
 	[Parameter]
-	public Order? Order { get; set; }
+	public OrderUpdate? OrderEdit { get; set; }
 
 	[Parameter]
 	public OrderCreate? OrderCreate { get; set; }
@@ -154,10 +193,15 @@
 	[Parameter]
 	public Guid? ClientId { get; set; }
 
+	[Parameter]
+	public EventCallback OnOrderSaved { get; set; }
+
 	private Client selectedClient;
 
 	private DateTime? startDate { get; set; }
 	private TimeSpan? startTime { get; set; }
+	private DateTime? endDate { get; set; }
+	private TimeSpan? endTime { get; set; }
 
 	private DateTime? startDateTime
 	{
@@ -174,10 +218,38 @@
 		}
 	}
 
+	private DateTime? endDateTime
+	{
+		get
+		{
+			if (endDate.HasValue)
+				return (endDate.Value + (endTime.HasValue ? endTime.Value : TimeSpan.Zero)).ToUniversalTime();
+			return null;
+		}
+		set
+		{
+			endDate = value?.Date;
+			endTime = value?.TimeOfDay;
+		}
+	}
+
 	protected override async Task OnInitializedAsync()
 	{
-		if (ClientId.HasValue)
-			selectedClient = await ClientService.GetClientByIdAsync(ClientId.Value);
+		if (!IsEdit)
+		{
+			if (ClientId.HasValue)
+				selectedClient = await ClientService.GetClientByIdAsync(ClientId.Value);
+		}
+		else
+		{
+			if (OrderEdit != null)
+			{
+				selectedClient = await ClientService.GetClientByIdAsync(OrderEdit.ClientId);
+				startDateTime = OrderEdit.StartDateTime.HasValue ? OrderEdit.StartDateTime.Value.ToLocalTime() : null;
+				endDateTime = OrderEdit.EndDateTime.HasValue ? OrderEdit.EndDateTime.Value.ToLocalTime() : null;
+			}
+		}
+
 	}
 
 	private async Task<IEnumerable<Client>> SearchClients(string searchText, CancellationToken token)
@@ -226,21 +298,21 @@
 	{
 		try
 		{
-			if (IsEdit && Order != null)
+			if (IsEdit && OrderEdit != null)
 			{
 				var dto = new OrderUpdate
 				{
-					Id = Order.Id,
-					ClientId = Order.ClientId,
-					Comment = Order.Comment,
-					EndDateTime = Order.EndDateTime,
-					EquipmentModel = Order.EquipmentModel,
-					EquipmentType = Order.EquipmentType,
-					IsWarranty = Order.IsWarranty,
-					Priority = Order.Priority,
-					Problem = Order.Problem,
-					StartDateTime = Order.StartDateTime,
-					Status = Order.Status
+					Id = OrderEdit.Id,
+					ClientId = OrderEdit.ClientId,
+					Comment = OrderEdit.Comment,
+					EndDateTime = endDateTime,
+					EquipmentModel = OrderEdit.EquipmentModel,
+					EquipmentType = OrderEdit.EquipmentType,
+					IsWarranty = OrderEdit.IsWarranty,
+					Priority = OrderEdit.Priority,
+					Problem = OrderEdit.Problem,
+					StartDateTime = startDateTime,
+					Status = OrderEdit.Status
 				};
 
 				await OrderService.UpdateOrderAsync(dto);
@@ -249,9 +321,11 @@
 			{
 				OrderCreate.ClientId = selectedClient.Id;
 				OrderCreate.StartDateTime = startDateTime;
+				OrderCreate.EndDateTime = endDateTime;
 				await OrderService.CreateOrderAsync(OrderCreate);
 			}
 
+			await OnOrderSaved.InvokeAsync();
 			MudDialog.Close(DialogResult.Ok(true));
 		}
 		catch (Exception ex)

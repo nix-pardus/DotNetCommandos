@@ -58,9 +58,36 @@
 				<ClientNameCell Id="@context.Item.ClientId" />
 			</CellTemplate>
 		</PropertyColumn>
-		<PropertyColumn Property="x => x.CreatedDate" Title="Дата создания">
+		<PropertyColumn Property="x => x.StartDateTime" Title="Время выезда">
 			<CellTemplate>
-				@context.Item.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+				@if (context.Item.StartDateTime.HasValue)
+				{
+					if (context.Item.StartDateTime.Value.ToLocalTime().Date == DateTime.Today)
+					{
+						<MudText Typo="Typo.body2">Сегодня в @context.Item.StartDateTime.Value.ToLocalTime().ToString("HH:mm")</MudText>
+					}
+					else if (context.Item.StartDateTime.Value.ToLocalTime().Date == DateTime.Today.AddDays(1))
+					{
+						<MudText Typo="Typo.body2">Завтра в @context.Item.StartDateTime.Value.ToLocalTime().ToString("HH:mm")</MudText>
+					}
+					else
+					{
+						<MudText Typo="Typo.body2">@context.Item.StartDateTime.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudText>
+					}
+				}
+			</CellTemplate>
+		</PropertyColumn>
+		<PropertyColumn Property="x => x.EndDateTime" Title="Время на выполнение">
+			<CellTemplate>
+				@if (context.Item.StartDateTime.HasValue && context.Item.EndDateTime.HasValue)
+				{
+					var time = context.Item.EndDateTime.Value - context.Item.StartDateTime.Value;
+					string timeText = string.Empty;
+					if (time.Days > 0)
+						timeText = $"{time.Days}д ";
+					timeText += $"{time.Hours}ч {time.Minutes}м";
+					<MudText Typo="Typo.body2">@timeText</MudText>
+				}
 			</CellTemplate>
 		</PropertyColumn>
 		<PropertyColumn Property="x => x.EquipmentType" Title="Тип техники" />
@@ -98,37 +125,46 @@
 				}
 			</CellTemplate>
 		</PropertyColumn>
-		<PropertyColumn Property="x => x.Status" Title="Статус заявки" />
-		<PropertyColumn Property="x => x.StartDateTime" Title="Начало выполнения">
+		<PropertyColumn Property="x => x.Status" Title="Статус заявки">
 			<CellTemplate>
-				@if (context.Item.StartDateTime.HasValue)
+				@switch (context.Item.Status)
 				{
-					if (context.Item.StartDateTime.Value.ToLocalTime().Date == DateTime.Today)
-					{
-						<MudText Typo="Typo.body2">Сегодня в @context.Item.StartDateTime.Value.ToLocalTime().ToString("HH:mm")</MudText>
-					}
-					else if (context.Item.StartDateTime.Value.ToLocalTime().Date == DateTime.Today.AddDays(1))
-					{
-						<MudText Typo="Typo.body2">Завтра в @context.Item.StartDateTime.Value.ToLocalTime().ToString("HH:mm")</MudText>
-					}
-					else
-					{
-						<MudText Typo="Typo.body2">@context.Item.StartDateTime.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudText>
-					}
+					case OrderStatus.Canceled:
+						<MudStack Row>
+							<MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" />
+							<MudText Typo="Typo.body2">Отменено</MudText>
+						</MudStack>
+						break;
+					case OrderStatus.Created:
+						<MudStack Row>
+							<MudIcon Icon="@Icons.Material.Filled.Create" Color="Color.Info" />
+							<MudText Typo="Typo.body2">Создано</MudText>
+						</MudStack>
+						break;
+					case OrderStatus.Done:
+						<MudStack Row>
+							<MudIcon Icon="@Icons.Material.Filled.Done" Color="Color.Success" />
+							<MudText Typo="Typo.body2">Выполнено</MudText>
+						</MudStack>
+						break;
+					case OrderStatus.Planned:
+						<MudStack Row>
+							<MudIcon Icon="@Icons.Material.Filled.NextPlan" />
+							<MudText Typo="Typo.body2">Запланировано</MudText>
+						</MudStack>
+						break;
+					case OrderStatus.Processing:
+						<MudStack Row>
+							<MudIcon Icon="@Icons.Material.Filled.RunCircle" Color="Color.Primary" />
+							<MudText Typo="Typo.body2">Выполняется</MudText>
+						</MudStack>
+						break;
 				}
 			</CellTemplate>
 		</PropertyColumn>
-		<PropertyColumn Property="x => x.EndDateTime" Title="Время на выполнение">
+		<PropertyColumn Property="x => x.CreatedDate" Title="Дата создания">
 			<CellTemplate>
-				@if (context.Item.StartDateTime.HasValue && context.Item.EndDateTime.HasValue)
-				{
-					var time = context.Item.EndDateTime.Value - context.Item.StartDateTime.Value;
-					string timeText = string.Empty;
-					if (time.Days > 0)
-						timeText = $"{time.Days}д ";
-					timeText += $"{time.Hours}ч {time.Minutes}м";
-					<MudText Typo="Typo.body2">@timeText</MudText>
-				}
+				@context.Item.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
 			</CellTemplate>
 		</PropertyColumn>
 		<PropertyColumn Property="x => x.ModifiedDate" Title="Дата изменеия">
@@ -136,7 +172,7 @@
 				@(context.Item.ModifiedDate.HasValue? context.Item.ModifiedDate.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "")
 			</CellTemplate>
 		</PropertyColumn>
-		<PropertyColumn Property="x => x.IsDeleted" Title="Статус">
+		<PropertyColumn Property="x => x.IsDeleted" Title="Статус" Filterable="false">
 			<CellTemplate>
 				@if (context.Item.IsDeleted)
 				{
@@ -177,7 +213,7 @@
 @code {
 	private MudDataGrid<Order> _dataGrid;
 	private bool loading = false;
-	private bool? showDeleted;
+	private bool? showDeleted = false;
 	private string searchString = string.Empty;
 	private Timer? searchDebounceTimer;
 	private const int SEARCH_DEBOUNCE_DELAY = 500;
@@ -231,11 +267,26 @@
 
 		try
 		{
-			var sortBy = state.SortDefinitions.Select(sort => new GetByFiltersRequest.Sorting
+			var sortBy = new List<GetByFiltersRequest.Sorting>();
+			if (state.SortDefinitions.Any())
 			{
-				Field = sort.SortBy,
-				Direction = sort.Descending
-			}).ToList();
+				sortBy = state.SortDefinitions.Select(sort => new GetByFiltersRequest.Sorting
+				{
+					Field = sort.SortBy,
+					Direction = sort.Descending
+				}).ToList();
+			}
+			else
+			{
+				sortBy = new()
+				{
+					new()
+					{
+						Field = nameof(Order.CreatedDate),
+						Direction = true
+					}
+				};
+			}
 
 			var filters = new List<GetByFiltersRequest.FilterCondition>();
 
@@ -268,29 +319,51 @@
 					string operatorString = !string.IsNullOrEmpty(columnFilter.Operator)
 						? columnFilter.Operator : "contains";
 
+					string filterValue = columnFilter.Value?.ToString() ?? string.Empty;
+					string valueType = "string";
+
+					if (columnFilter.Value is DateTime dateTimeValue)
+					{
+						DateTime utcValue = dateTimeValue.Kind == DateTimeKind.Utc
+							? dateTimeValue
+							: dateTimeValue.ToUniversalTime();
+
+						filterValue = utcValue.ToString("yyyy-MM-ddTHH:mm:ssZ");
+						valueType = "date";
+					}
+					else if (columnFilter.Value != null)
+					{
+						valueType = columnFilter.Value.GetType().Name.ToLower() switch
+						{
+							"string" => "string",
+							"int32" or "int64" => "number",
+							"datetime" => "date",
+							"boolean" => "boolean",
+							"enum" => "number",
+							_ => "string"
+						};
+					}
+
 					var filterCondition = new GetByFiltersRequest.FilterCondition
 					{
 						Field = columnFilter.Column.PropertyName,
 						Operator = operatorString.Trim(' ').ToLower() switch
 						{
 							"contains" => GetByFiltersRequest.FilterOperator.Contains,
-							"equals" or "=" => GetByFiltersRequest.FilterOperator.Equals,
-							"notequals" or "!=" => GetByFiltersRequest.FilterOperator.NotEquals,
-							"greaterthan" or ">" => GetByFiltersRequest.FilterOperator.GreaterThan,
-							"lessthan" or "<" => GetByFiltersRequest.FilterOperator.LessThan,
+							"equals" or "=" or "is" => GetByFiltersRequest.FilterOperator.Equals,
+							"notequals" or "!=" or "is not" => GetByFiltersRequest.FilterOperator.NotEquals,
+							"greaterthan" or ">" or "is after" => GetByFiltersRequest.FilterOperator.GreaterThan,
+							"is on or after" => GetByFiltersRequest.FilterOperator.GreaterThanOrEqual,
+							"lessthan" or "<" or "is before" => GetByFiltersRequest.FilterOperator.LessThan,
+							"is on or before" => GetByFiltersRequest.FilterOperator.LessThanOrEqual,
 							"startswith" => GetByFiltersRequest.FilterOperator.StartsWith,
 							"endswith" => GetByFiltersRequest.FilterOperator.EndsWith,
+							"is empty" => GetByFiltersRequest.FilterOperator.IsNull,
+							"is not empty" => GetByFiltersRequest.FilterOperator.IsNotNull,
 							_ => GetByFiltersRequest.FilterOperator.Contains
 						},
-						Value = columnFilter.Value?.ToString() ?? string.Empty,
-						ValueType = columnFilter.Value.GetType().Name.ToLower() switch
-						{
-							"string" => "string",
-							"int32" or "int64" => "number",
-							"datetime" => "date",
-							"boolean" => "boolean",
-							_ => "string"
-						}
+						Value = filterValue,
+						ValueType = valueType
 					};
 
 					filters.Add(filterCondition);
@@ -359,7 +432,11 @@
 		var parameters = new DialogParameters
 		{
 			["OrderCreate"] = newOrder,
-			["IsEdit"] = false
+			["IsEdit"] = false,
+			["OnOrderSaved"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await _dataGrid.ReloadServerData();
+			})
 		};
 		if (clientIdFromQuery.HasValue)
 			parameters.Add("ClientId", clientIdFromQuery);
@@ -379,8 +456,25 @@
 	{
 		var parameters = new DialogParameters
 		{
-			["Order"] = order,
-			["IsEdit"] = true
+			["OrderEdit"] = new OrderUpdate
+			{
+				ClientId = order.ClientId,
+				Comment = order.Comment,
+				EndDateTime = order.EndDateTime,
+				EquipmentModel = order.EquipmentModel,
+				EquipmentType = order.EquipmentType,
+				Id = order.Id,
+				IsWarranty = order.IsWarranty,
+				Priority = order.Priority,
+				Problem = order.Problem,
+				StartDateTime = order.StartDateTime,
+				Status = order.Status
+			},
+			["IsEdit"] = true,
+			["OnOrderSaved"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await _dataGrid.ReloadServerData();
+			})
 		};
 
 		var options = new DialogOptions
@@ -390,11 +484,23 @@
 		};
 
 		await DialogService.ShowAsync<OrderEditDialog>("Редактирование заявки", parameters, options);
-		await _dataGrid.ReloadServerData();
 	}
 
 	private async Task DeleteOrder(Order order)
 	{
-		throw new NotImplementedException();
+		var deleted = await DialogServiceExtensions.ShowDeleteDialog(
+			DialogService,
+			order,
+			"Удаление заявки",
+			o => $"заявку от {o.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")}",
+			null,
+			async (o) => await OrderService.DeleteOrderAsync(o.Id)
+		);
+
+		if (deleted)
+		{
+			NotificationService.ShowSuccess("Заявка удалена");
+			await _dataGrid.ReloadServerData();
+		}
 	}
 }

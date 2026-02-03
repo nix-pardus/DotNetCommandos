@@ -14,9 +14,9 @@ public class OrderService(IApiService apiService) : IOrderService
         await apiService.PostAsync("api/Order/create", order);
     }
 
-    public Task<bool> DeleteOrderAsync(Guid id)
+    public async Task<bool> DeleteOrderAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await apiService.DeleteAsync($"api/Order/delete?orderId={id}");
     }
 
     public Task<Order> GetOrderByIdAsync(Guid id)
