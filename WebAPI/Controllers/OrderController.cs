@@ -14,6 +14,17 @@ public class OrderController(IOrderService orderService) : ControllerBase
     [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Create([FromBody] OrderCreateRequest order)
     {
+        if (order.StartDateTime != null)
+        {
+            if (order.EndDateTime == null)
+                return BadRequest("Не указана время окончания визита");
+            else
+            {
+                //проверяем, что дата начала и окончания визита совпадают и что начало визита раньше его окончания
+                if ((order.StartDateTime.Value.Date!=order.EndDateTime.Value.Date)||(order.StartDateTime.Value > order.EndDateTime.Value))
+                    return BadRequest("Неверно указана дата визита");
+            }
+        }
         await orderService.CreateAsync(order);
         return Ok();
     }
@@ -48,6 +59,17 @@ public class OrderController(IOrderService orderService) : ControllerBase
     [Authorize(Policy = "All")]
     public async Task<IActionResult> Update([FromBody] OrderUpdateRequest order)
     {
+        if (order.StartDateTime != null)  
+        {
+            if (order.EndDateTime == null)
+                return BadRequest("Не указана время окончания визита");
+            else
+            {
+                //проверяем, что дата начала и окончания визита совпадают и что начало визита раньше его окончания
+                if ((order.StartDateTime.Value.Date != order.EndDateTime.Value.Date) || (order.StartDateTime.Value > order.EndDateTime.Value))
+                    return BadRequest("Неверно указана дата визита");
+            }
+        }
         await orderService.UpdateAsync(order);
         return Ok();
     }
