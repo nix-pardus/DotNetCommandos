@@ -37,6 +37,17 @@ namespace ServiceCenter.Application.Helpers
             .Select(date =>
             {
                 var schedule = schedules.LastOrDefault(x => x.EffectiveFrom <= date && (x.EffectiveTo >= date || x.EffectiveTo == null));
+
+                if (schedule == null)
+                {
+                    return new ScheduleDayDto(
+                                                "Нет расписания",
+                                                TimeOnly.MinValue,
+                                                TimeOnly.MinValue,
+                                                date
+                                             );
+                }
+
                 var workDays = schedule.Pattern.Split('/').Select(x => int.Parse(x)).ToArray();
                 return new ScheduleDayDto
                 (
