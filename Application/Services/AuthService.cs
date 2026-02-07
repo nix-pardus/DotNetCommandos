@@ -2,16 +2,17 @@
 using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace ServiceCenter.Application.Services
 {
+    /// <summary>
+    /// Сервис аутентификации
+    /// Реализует <see cref="IAuthService"/>
+    /// </summary>
     public class AuthService : IAuthService
     {
+        private readonly IRefreshTokenStore _refreshTokenStore;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IJwtTokenService _jwtTokenService;
@@ -19,11 +20,13 @@ namespace ServiceCenter.Application.Services
         public AuthService(
             IEmployeeRepository employeeRepository,
             IPasswordHasher passwordHasher,
-            IJwtTokenService jwtTokenService)
+            IJwtTokenService jwtTokenService,
+            IRefreshTokenStore refreshTokenStore)
         {
             _employeeRepository = employeeRepository;
             _passwordHasher = passwordHasher;
             _jwtTokenService = jwtTokenService;
+            _refreshTokenStore = refreshTokenStore;
         }
 
         public async Task<AuthResponse?> LoginAsync(LoginRequest request)
@@ -31,16 +34,15 @@ namespace ServiceCenter.Application.Services
             var employee = await _employeeRepository.GetByEmailAsync(request.Email);
 
             
-            if (!_passwordHasher.VerifyPassword(request.Password, employee.PasswordHash))
+            if (employee is null || !_passwordHasher.VerifyPassword(request.Password, employee?.PasswordHash))
                 return null;
 
-            await _employeeRepository.UpdateAsync(employee);
-
             var token = _jwtTokenService.GenerateToken(employee);
-
+            var refreshToken = _refreshTokenStore.GenerateRefreshToken(employee.Id,7);
             return new AuthResponse
             {
                 Token = token,
+                RefreshToken = refreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60),
                 Employee = new EmployeeMinimalResponse
                 (
@@ -64,6 +66,35 @@ namespace ServiceCenter.Application.Services
             await _employeeRepository.UpdateAsync(employee);
 
             return true;
+        }
+
+        public async Task<AuthResponse?> RefreshTokenAsync(string refreshToken)
+        {
+            var employeeId = _refreshTokenStore.ValidateRefreshToken(refreshToken);
+            if (employeeId == null) return null;
+
+            var employee = await _employeeRepository.GetByIdAsync(employeeId.Value);
+            if (employee == null) return null;
+
+
+            _refreshTokenStore.RemoveRefreshToken(refreshToken);
+
+            var newAccessToken = _jwtTokenService.GenerateToken(employee);
+            var newRefreshToken = _refreshTokenStore.GenerateRefreshToken(employee.Id, 7);
+
+            return new AuthResponse
+            {
+                Token = newAccessToken,
+                RefreshToken = newRefreshToken,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(60),
+                Employee = new EmployeeMinimalResponse
+                (
+                    employee.Id,
+                    employee.Name,
+                    employee.LastName,
+                    employee.Patronymic
+                )
+            };
         }
     }
 }
