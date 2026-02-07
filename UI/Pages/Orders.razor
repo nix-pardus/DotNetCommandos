@@ -190,6 +190,7 @@
 					async Task Edit() => await EditOrder(context.Item);
 					async Task Delete() => await DeleteOrder(context.Item);
 				}
+				<MudIconButton Icon="@Icons.Material.Filled.Assignment" Size="Size.Small" Color="Color.Info" OnClick="@(() => AssignToOrder(context.Item))" />
 				<MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="Edit" />
 				<MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="Delete" />
 			</CellTemplate>
@@ -502,5 +503,26 @@
 			NotificationService.ShowSuccess("Заявка удалена");
 			await _dataGrid.ReloadServerData();
 		}
+	}
+
+	private async Task AssignToOrder(Order order)
+	{
+		var parameters = new DialogParameters
+		{
+			["OrderId"] = order.Id,
+			["OnAssignmentSaved"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await _dataGrid.ReloadServerData();
+			})
+		};
+
+		var options = new DialogOptions
+		{
+			CloseButton = true,
+			MaxWidth = MaxWidth.Medium,
+			FullWidth = true
+		};
+
+		await DialogService.ShowAsync<AssignmentDialog>("Назначение на заявку", parameters, options);
 	}
 }

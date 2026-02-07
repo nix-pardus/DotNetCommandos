@@ -86,6 +86,11 @@ namespace ServiceCenter.Infrascructure.DataAccess.Specifications
                 underlyingEnumType = propertyType;
             }
 
+            if(filter.Operator.ToUpper() == "IN")
+            {
+                return BuildInExpression(property, filter.Value, propertyType, isEnum, isNullableEnum, underlyingEnumType);
+            }
+
             Expression propertyForComparison = property;
             ConstantExpression value;
 
@@ -126,7 +131,7 @@ namespace ServiceCenter.Infrascructure.DataAccess.Specifications
                 "LESSTHAN" => Expression.LessThan(property, value),
                 "GREATERTHANOREQUAL" => Expression.GreaterThanOrEqual(property, value),
                 "LESSTHANOREQUAL" => Expression.LessThanOrEqual(property, value),
-                "ISNULL" => BuildIsNullExpression(property),
+                "IN" => BuildInExpression(property, filter.Value, propertyType, isEnum, isNullableEnum, underlyingEnumType),
                 _ => throw new ArgumentException($"Unknown operator: {filter.Operator}")
             };
         }
@@ -198,6 +203,46 @@ namespace ServiceCenter.Infrascructure.DataAccess.Specifications
             }
 
             throw new ArgumentException($"Cannot convert value '{stringValue}' to type {targetType.Name}");
+        }
+
+        private Expression BuildInExpression(MemberExpression property, string valueString, Type propertyType, bool isEnum, bool isNullableEnum, Type underlyingEnumType)
+        {
+            if (string.IsNullOrWhiteSpace(valueString))
+                return Expression.Constant(false);
+
+            var stringValues = valueString.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .ToList();
+
+            if(!stringValues.Any())
+                return Expression.Constant(false);
+
+            Expression result = null;
+
+            foreach(var stringVal  in stringValues)
+            {
+                Expression equalExpression;
+
+                if(isEnum || isNullableEnum)
+                {
+                    var value = ConvertEnumValueToInt(stringVal, underlyingEnumType, isNullableEnum);
+                    Expression propertyForComparsion = isNullableEnum
+                        ? Expression.Convert(property, typeof(int?))
+                        : Expression.Convert(property, typeof(int));
+                    equalExpression = Expression.Equal(propertyForComparsion, value);
+                }
+                else
+                {
+                    var value = ConvertValue(stringVal, propertyType);
+                    equalExpression = Expression.Equal(property, value);
+                }
+
+                result = result == null
+                    ? equalExpression
+                    : Expression.OrElse(result, equalExpression);
+            }
+
+            return result ?? Expression.Constant(false);
         }
 
         private ConstantExpression ConvertEnumValueToInt(string stringValue, Type enumType, bool isNullable)

@@ -10,4 +10,5 @@ public interface IOrderService
     Task CreateOrderAsync(OrderCreate order);
     Task<bool> UpdateOrderAsync(OrderUpdate order);
     Task<bool> DeleteOrderAsync(Guid id);
+    Task<bool> UpdateOrderStatusAsync(Guid orderId, OrderStatus status);
 }

@@ -33,4 +33,48 @@ public class EmployeeService : IEmployeeService
     {
         return await _apiService.DeleteAsync($"api/Employee/delete?id={id}");
     }
+
+    public async Task<List<EmployeeMinimal>> GetEmployeeMinimalByIdsAsync(IEnumerable<Guid> employeeIds)
+    {
+        try
+        {
+            if (!employeeIds.Any())
+                return new List<EmployeeMinimal>();
+
+            var request = new GetByFiltersRequest
+            {
+                PageNumber = 1,
+                PageSize = 1000,
+                Filters = new List<GetByFiltersRequest.FilterCondition>
+                {
+                    new()
+                    {
+                        Field = "Id",
+                        Operator = GetByFiltersRequest.FilterOperator.In,
+                        Value = string.Join(",", employeeIds.Distinct()),
+                        ValueType = "string"
+                    }
+                },
+                LogicalOperator = "AND",
+                SortBy = new List<GetByFiltersRequest.Sorting>
+                {
+                    new()
+                    {
+                        Field = "LastName",
+                        Direction = false
+                    }
+                }
+            };
+
+            var response = await GetAllEmployeesAsync(request);
+            return response.Items
+                .Select(EmployeeMinimal.FromEmployee)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка получения минимальных данных сотрудников: {ex.Message}");
+            return new List<EmployeeMinimal>();
+        }
+    }
 }

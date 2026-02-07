@@ -13,7 +13,7 @@ public class AssignmentController(IAssignmentService assignmentService) : Contro
 {
     [HttpPost("create")]
     [Authorize(Policy = "Operator")]
-    public async Task<IActionResult> Post([FromQuery] AssignmentCreateRequest request)
+    public async Task<IActionResult> Post([FromBody] AssignmentCreateRequest request)
     {
         await assignmentService.CreateAsync(request);
         return Ok();
@@ -33,6 +33,15 @@ public class AssignmentController(IAssignmentService assignmentService) : Contro
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
         var response = await assignmentService.GetByFiltersAsync(request);
+        return Ok(response);
+    }
+
+    [HttpPost("get-by-order-id")]
+    [Authorize(Policy = "Operator")]
+    [ProducesResponseType(typeof(PagedResponse<AssignmentResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByOrderId([FromBody] Guid orderId)
+    {
+        var response = await assignmentService.GetAllByOrderIdAsync(orderId);
         return Ok(response);
     }
 }

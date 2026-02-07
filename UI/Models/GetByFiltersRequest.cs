@@ -32,8 +32,8 @@ public class GetByFiltersRequest
         EndsWith, //не реалзован
         GreaterThan,
         LessThan,
-        GreaterThanOrEqual, //не реалзован
-        LessThanOrEqual, //не реалзован
+        GreaterThanOrEqual,
+        LessThanOrEqual,
         In,//я не хочу его делать=(
         IsNull,
         IsNotNull

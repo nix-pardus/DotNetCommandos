@@ -185,11 +185,26 @@
 
 		try
 		{
-			var sortBy = state.SortDefinitions.Select(sort => new GetByFiltersRequest.Sorting
+			var sortBy = new List<GetByFiltersRequest.Sorting>();
+			if (state.SortDefinitions.Any())
 			{
-				Field = sort.SortBy,
-				Direction = sort.Descending
-			}).ToList();
+				sortBy = state.SortDefinitions.Select(sort => new GetByFiltersRequest.Sorting
+				{
+					Field = sort.SortBy,
+					Direction = sort.Descending
+				}).ToList();
+			}
+			else
+			{
+				sortBy = new()
+				{
+					new()
+					{
+						Field = nameof(Employee.LastName),
+						Direction = false
+					}
+				};
+			}
 
 			if(sortBy.Where(x => x.Field == "FullName").Any())
 			{
@@ -212,7 +227,7 @@
 				]);
 				sortBy.RemoveAll(x => x.Field == "FullName");
 			}
-			
+
 
 			var filters = new List<GetByFiltersRequest.FilterCondition>();
 
@@ -365,7 +380,11 @@
 		var parameters = new DialogParameters
 		{
 			["CreateEmployee"] = newEmployee,
-			["IsEdit"] = false
+			["IsEdit"] = false,
+			["OnEmployeeSaved"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await dataGrid.ReloadServerData();
+			})
 		};
 
 		var options = new DialogOptions
@@ -384,7 +403,11 @@
 		var parameters = new DialogParameters
 		{
 			["Employee"] = employee,
-			["IsEdit"] = true
+			["IsEdit"] = true,
+			["OnEmployeeSaved"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await dataGrid.ReloadServerData();
+			})
 		};
 
 		var options = new DialogOptions
@@ -394,8 +417,6 @@
 		};
 
 		await DialogService.ShowAsync<EmployeeEditDialog>("Редактирование сотрудника", parameters, options);
-
-		await dataGrid.ReloadServerData();
 	}
 
 	private async Task DeleteEmployee(Employee employee)
