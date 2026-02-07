@@ -75,6 +75,12 @@ namespace ServiceCenter.Application.Services
             };
         }
 
+        public virtual async Task<TResponse> GetByIdAsync(Guid id)
+        {
+            var response = await _repository.GetByIdAsync(id);
+            return ToDto(response);
+        }
+
         public virtual async Task UpdateAsync(TUpdateRequest dto)
         {
             var entity = ToEntity(dto);

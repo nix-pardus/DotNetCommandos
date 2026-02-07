@@ -54,29 +54,29 @@
 	</ToolBarContent>
 
 	<Columns>
-		<PropertyColumn Property="x => x.FullName" Title="ФИО" Sortable="true" Filterable="true"
+		<PropertyColumn Property="x => x.FullName" Title="ФИО"
 						@bind-Hidden="_fullNameHidden" @bind-Hidden:after="SaveColumnStates"/>
-		<PropertyColumn Property="x => x.Address" Title="Адрес" Sortable="true" Filterable="true"
+		<PropertyColumn Property="x => x.Address" Title="Адрес"
 						@bind-Hidden="_addressHidden" @bind-Hidden:after="SaveColumnStates" />
-		<PropertyColumn Property="x => x.Email" Title="Email" Sortable="true" Filterable="true"
+		<PropertyColumn Property="x => x.Email" Title="Email"
 						@bind-Hidden="_emailHidden" @bind-Hidden:after="SaveColumnStates" />
-		<PropertyColumn Property="x => x.PhoneNumber" Title="Номер телефона" Sortable="false" Filterable="true"
+		<PropertyColumn Property="x => x.PhoneNumber" Title="Номер телефона" Sortable="false"
 						@bind-Hidden="_phoneNumberHidden" @bind-Hidden:after="SaveColumnStates" />
-		<PropertyColumn Property="@(x => x.CreatedDate)" Title="Дата создания" Sortable="true" Filterable="true"
+		<PropertyColumn Property="@(x => x.CreatedDate)" Title="Дата создания"
 						@bind-Hidden="_createdDateHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
 				@context.Item.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
 			</CellTemplate>
 		</PropertyColumn>
-		<PropertyColumn Property="x => x.ModifiedDate" Title="Дата изменения" Sortable="true" Filterable="true"
+		<PropertyColumn Property="x => x.ModifiedDate" Title="Дата изменения"
 						@bind-Hidden="_modifiedDateHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
 				@( context.Item.ModifiedDate.HasValue ? context.Item.ModifiedDate!.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm") : "-" )
 			</CellTemplate>
 		</PropertyColumn>
-		<PropertyColumn Property="x => x.Role" Title="Роль" Sortable="true" Filterable="true"
+		<PropertyColumn Property="x => x.Role" Title="Роль"
 						@bind-Hidden="_roleHidden" @bind-Hidden:after="SaveColumnStates" />
-		<PropertyColumn Property="x => x.IsDeleted" Title="Статус" Sortable="true" Filterable="false"
+		<PropertyColumn Property="x => x.IsDeleted" Title="Статус" Filterable="false"
 						@bind-Hidden="_statusHidden" @bind-Hidden:after="SaveColumnStates">
 			<CellTemplate>
 				@if (context.Item.IsDeleted)
@@ -185,11 +185,26 @@
 
 		try
 		{
-			var sortBy = state.SortDefinitions.Select(sort => new GetByFiltersRequest.Sorting
+			var sortBy = new List<GetByFiltersRequest.Sorting>();
+			if (state.SortDefinitions.Any())
 			{
-				Field = sort.SortBy,
-				Direction = sort.Descending
-			}).ToList();
+				sortBy = state.SortDefinitions.Select(sort => new GetByFiltersRequest.Sorting
+				{
+					Field = sort.SortBy,
+					Direction = sort.Descending
+				}).ToList();
+			}
+			else
+			{
+				sortBy = new()
+				{
+					new()
+					{
+						Field = nameof(Employee.LastName),
+						Direction = false
+					}
+				};
+			}
 
 			if(sortBy.Where(x => x.Field == "FullName").Any())
 			{
@@ -212,7 +227,7 @@
 				]);
 				sortBy.RemoveAll(x => x.Field == "FullName");
 			}
-			
+
 
 			var filters = new List<GetByFiltersRequest.FilterCondition>();
 
@@ -246,12 +261,51 @@
 						? columnFilter.Operator
 						: "contains";
 
+					string filterValue = columnFilter.Value?.ToString() ?? string.Empty;
+					string valueType = "string";
+
+					if (columnFilter.Value is DateTime dateTimeValue)
+					{
+						DateTime utcValue = dateTimeValue.Kind == DateTimeKind.Utc
+							? dateTimeValue
+							: dateTimeValue.ToUniversalTime();
+
+						filterValue = utcValue.ToString("yyyy-MM-ddTHH:mm:ssZ");
+						valueType = "date";
+					}
+					else if (columnFilter.Value != null)
+					{
+						valueType = columnFilter.Value.GetType().Name.ToLower() switch
+						{
+							"string" => "string",
+							"int32" or "int64" => "number",
+							"datetime" => "date",
+							"boolean" => "boolean",
+							"enum" => "number",
+							_ => "string"
+						};
+					}
+
 					var filterCondition = new GetByFiltersRequest.FilterCondition
 					{
-						Field = MapPropertyToField(columnFilter.Column.PropertyName),
-						Operator = MapFilterOperator(operatorString),
-						Value = columnFilter.Value?.ToString() ?? "",
-						ValueType = GetValueType(columnFilter.Value)
+						Field = columnFilter.Column.PropertyName,
+						Operator = operatorString.Trim(' ').ToLower() switch
+						{
+							"contains" => GetByFiltersRequest.FilterOperator.Contains,
+							"equals" or "=" or "is" => GetByFiltersRequest.FilterOperator.Equals,
+							"notequals" or "!=" or "is not" => GetByFiltersRequest.FilterOperator.NotEquals,
+							"greaterthan" or ">" or "is after" => GetByFiltersRequest.FilterOperator.GreaterThan,
+							"is on or after" => GetByFiltersRequest.FilterOperator.GreaterThanOrEqual,
+							"lessthan" or "<" or "is before" => GetByFiltersRequest.FilterOperator.LessThan,
+							"is on or before" => GetByFiltersRequest.FilterOperator.LessThanOrEqual,
+							"startswith" => GetByFiltersRequest.FilterOperator.StartsWith,
+							"endswith" => GetByFiltersRequest.FilterOperator.EndsWith,
+							"is empty" => GetByFiltersRequest.FilterOperator.IsNull,
+							"is not empty" => GetByFiltersRequest.FilterOperator.IsNotNull,
+							_ => GetByFiltersRequest.FilterOperator.Contains
+						},
+						Value = filterValue,
+						ValueType = valueType
 					};
 					filters.Add(filterCondition);
 				}
@@ -298,37 +352,6 @@
 		return mapping.TryGetValue(propertyName, out var field) ? field : propertyName;
 	}
 
-	private GetByFiltersRequest.FilterOperator MapFilterOperator(string mudOperator)
-	{
-		if (string.IsNullOrEmpty(mudOperator))
-			return GetByFiltersRequest.FilterOperator.Contains;
-
-		return mudOperator.ToLower() switch
-		{
-			"contains" or "not contains" => GetByFiltersRequest.FilterOperator.Contains,
-			"equals" or "=" => GetByFiltersRequest.FilterOperator.Equals,
-			"not equals" or "!=" => GetByFiltersRequest.FilterOperator.NotEquals,
-			"greater than" or ">" => GetByFiltersRequest.FilterOperator.GreaterThan,
-			"less than" or "<" => GetByFiltersRequest.FilterOperator.LessThan,
-			"starts with" => GetByFiltersRequest.FilterOperator.StartsWith,
-			"ends with" => GetByFiltersRequest.FilterOperator.EndsWith,
-			_ => GetByFiltersRequest.FilterOperator.Contains
-		};
-	}
-
-	private string GetValueType(object value)
-	{
-		if (value == null) return "string";
-		return value.GetType().Name.ToLower() switch
-		{
-			"string" => "string",
-			"int32" or "int64" => "number",
-			"datetime" => "date",
-			"boolean" => "boolean",
-			_ => "string"
-		};
-	}
-
 	private async Task OnSearch(string searchText)
 	{
 		searchString = searchText;
@@ -357,7 +380,11 @@
 		var parameters = new DialogParameters
 		{
 			["CreateEmployee"] = newEmployee,
-			["IsEdit"] = false
+			["IsEdit"] = false,
+			["OnEmployeeSaved"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await dataGrid.ReloadServerData();
+			})
 		};
 
 		var options = new DialogOptions
@@ -376,7 +403,11 @@
 		var parameters = new DialogParameters
 		{
 			["Employee"] = employee,
-			["IsEdit"] = true
+			["IsEdit"] = true,
+			["OnEmployeeSaved"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await dataGrid.ReloadServerData();
+			})
 		};
 
 		var options = new DialogOptions
@@ -386,8 +417,6 @@
 		};
 
 		await DialogService.ShowAsync<EmployeeEditDialog>("Редактирование сотрудника", parameters, options);
-
-		await dataGrid.ReloadServerData();
 	}
 
 	private async Task DeleteEmployee(Employee employee)

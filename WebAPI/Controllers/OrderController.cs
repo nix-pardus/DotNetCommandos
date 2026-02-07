@@ -20,7 +20,7 @@ public class OrderController(IOrderService orderService) : ControllerBase
 
     [HttpDelete("delete")]
     [Authorize(Policy = "Operator")]
-    public async Task<IActionResult> Delete([FromBody] Guid orderId)
+    public async Task<IActionResult> Delete([FromQuery] Guid orderId)
     {
         await orderService.DeleteAsync(orderId);
         return Ok();

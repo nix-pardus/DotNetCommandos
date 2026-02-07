@@ -13,7 +13,8 @@ namespace ServiceCenter.Infrascructure.DataAccess.Specifications
             IEnumerable<(string Field, string Operator, string Value)> filters,
             string logicalOperator)
         {
-            return new DynamicSpecification<T>(filters, logicalOperator);
+            var result = new DynamicSpecification<T>(filters, logicalOperator);
+            return result;
         }
     }
 }

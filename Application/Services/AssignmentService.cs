@@ -52,9 +52,34 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequ
         throw new NotImplementedException();
     }
 
-    public Task<PagedResponse<AssignmentResponse>> GetAllByOrderIdAsync(Guid orderId)
+    public async Task<PagedResponse<AssignmentResponse>> GetAllByOrderIdAsync(Guid orderId)
     {
-        throw new NotImplementedException();
+        var filterConditions = new List<(string, string, string)>
+        {
+            ("OrderId", "Equals", $"{orderId}"),
+            ("IsDeleted", "Equals", "false")
+        };
+
+        var assignments = await _repository.GetByFiltersPagedAsync(filterConditions, "AND", 1, 100);
+
+        return new PagedResponse<AssignmentResponse>
+        {
+            TotalCount = assignments.TotalCount,
+            PageNumber = 1,
+            PageSize = 100,
+            Items = assignments.Items.Select(a => new AssignmentResponse
+            (
+                Id: a.Id,
+                CreatedDate: a.CreatedDate,
+                ModifiedDate: a.ModifiedDate,
+                IsDeleted: a.IsDeleted,
+                OrderId: a.OrderId,
+                EmployeeId: a.EmployeeId,
+                IsPrimary: a.IsPrimary,
+                CreatedById: a.CreatedById,
+                ModifiedById: a.ModifiedById
+            )).ToList()
+        };
     }
 
     protected override AssignmentResponse ToDto(OrderEmployee entity) => AssignmentMapper.ToResponse(entity);

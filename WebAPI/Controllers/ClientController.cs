@@ -45,10 +45,19 @@ public class ClientController(IClientService clientService) : ControllerBase
     
     [HttpPost("get-by-filters")]
     [Authorize(Policy = "Operator")]
-    [ProducesResponseType(typeof(PagedResponse<Client>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponse<ClientFullResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByFilters([FromBody] GetByFiltersRequest request)
     {
         var response = await clientService.GetByFiltersAsync(request);
+        return Ok(response);
+    }
+
+    [HttpPost("get-by-id")]
+    [Authorize(Policy = "Operator")]
+    [ProducesResponseType(typeof(ClientFullResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetById([FromBody] Guid id)
+    {
+        var response = await clientService.GetByIdAsync(id);
         return Ok(response);
     }
 }

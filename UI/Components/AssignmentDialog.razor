@@ -1,0 +1,287 @@
+﻿@using UI.Models
+@using UI.Models.Assignments
+@using UI.Models.Employees
+@using UI.Services
+@inject IEmployeeService EmployeeService
+@inject INotificationService NotificationService
+@inject IAssignmentService AssignmentService
+@inject IOrderService OrderService
+
+<MudDialog>
+	<TitleContent>
+		<MudText Typo="Typo.h6">Назначение мастеров на заявку</MudText>
+	</TitleContent>
+	<DialogContent>
+		@if (loading)
+		{
+			<MudProgressLinear Indeterminate Color="Color.Primary" />
+		}
+		else
+		{
+			<div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--mud-palette-lines-default); border-radius: 4px;">
+				<MudList T="EmployeeMinimal"
+						 Dense
+						 SelectedValues="@selectedEmployees"
+						 SelectionMode="SelectionMode.MultiSelection"
+						 SelectedValuesChanged="@((e) => ToggleEmployeeSelection(e))"
+						 CheckBoxColor="Color.Tertiary">
+
+					<MudListSubheader>
+						Выберите одного или несколько мастеров
+					</MudListSubheader>
+					@foreach (var employee in availableEmployees)
+					{
+						<MudListItem Value="employee" Text="@employee.FullName" />
+					}
+				</MudList>
+			</div>
+
+			@if (selectedEmployees.Any())
+			{
+				<MudText Typo="Typo.subtitle2" Class="mt-4 mb-3">Назначенные мастера (первый = главный):</MudText>
+
+				<MudList T="Employee">
+					@for (int i = 0; i < selectedEmployees.Count; i++)
+					{
+						var employee = selectedEmployees[i];
+						<MudListItem>
+							<MudStack Row>
+								<MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
+											   Size="Size.Small"
+											   OnClick="@(() => MoveEmployeeUp(employee))"
+											   Disabled="@(selectedEmployees.IndexOf(employee) == 0)" 
+											   Color="Color.Info"/>
+
+								<MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
+											   Size="Size.Small"
+											   OnClick="@(() => MoveEmployeeDown(employee))" 
+											   Disabled="@(employee.Equals(selectedEmployees.LastOrDefault()))"
+											   Color="Color.Secondary"/>
+
+								<MudText Class="ml-2">@employee.FullName @(selectedEmployees.IndexOf(employee) == 0 && selectedEmployees.Count > 1 ? "(главный)" : "")</MudText>
+							</MudStack>
+						</MudListItem>
+					}
+				</MudList>
+			}
+		}
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="Cancel">Отмена</MudButton>
+		<MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!selectedEmployees.Any())">
+			Сохранить
+		</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter]
+	IMudDialogInstance MudDialog { get; set; }
+
+	[Parameter]
+	public Guid OrderId { get; set; }
+
+	[Parameter]
+	public EventCallback OnAssignmentSaved { get; set; }
+
+	private bool loading = true;
+	private List<EmployeeMinimal> availableEmployees = new();
+	private List<EmployeeMinimal> selectedEmployees = new();
+	private string primaryEmolyeeId = string.Empty;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadData();
+		loading = false;
+	}
+
+	private async Task LoadData()
+	{
+		try
+		{
+			availableEmployees = new();
+			selectedEmployees = new();
+			primaryEmolyeeId = string.Empty;
+
+			var filterConditions = new GetByFiltersRequest
+			{
+				PageNumber = 1,
+				PageSize = 100,
+				Filters = new List<GetByFiltersRequest.FilterCondition>
+				{
+					new()
+					{
+						Field = nameof(Employee.Role),
+						Operator = GetByFiltersRequest.FilterOperator.Equals,
+						Value = RoleType.Master.ToString(),
+						ValueType = "string"
+					},
+					new()
+					{
+						Field = nameof(Employee.IsDeleted),
+						Operator = GetByFiltersRequest.FilterOperator.Equals,
+						Value = "false",
+						ValueType = "string"
+					}
+				},
+				LogicalOperator = "AND",
+				SortBy = new List<GetByFiltersRequest.Sorting>
+				{
+					new()
+					{
+						Field = nameof(Employee.LastName),
+						Direction = true
+					}
+				}
+			};
+
+			var employeesResponse = await EmployeeService.GetAllEmployeesAsync(filterConditions);
+
+			availableEmployees = employeesResponse.Items
+			.Where(e => e != null)
+			.Select(EmployeeMinimal.FromEmployee)
+			.ToList() ?? new();
+
+			var assignmentResponse = await AssignmentService.GetAssignmentsByOrderIdAsync(OrderId);
+			if (assignmentResponse != null && assignmentResponse.Items.Any())
+			{
+				var assignedEmployeeIds = assignmentResponse.Items
+					.OrderByDescending(a => a.IsPrimary)
+					.ThenBy(a => a.CreatedDate)
+					.Select(a => a.EmployeeId)
+					.Distinct()
+					.ToList();
+
+				var assignedEmployees = await EmployeeService.GetEmployeeMinimalByIdsAsync(assignedEmployeeIds);
+
+				assignedEmployees = assignedEmployees?
+					.Where(e => e != null)
+					.ToList() ?? new();
+
+				selectedEmployees = new List<EmployeeMinimal>();
+
+				foreach (var assignment in assignmentResponse.Items
+					.OrderByDescending(a => a.IsPrimary)
+					.ThenBy(a => a.CreatedDate))
+				{
+					var employee = assignedEmployees.FirstOrDefault(e => e.Id == assignment.EmployeeId);
+					if (employee != null && !selectedEmployees.Any(e => e.Id == employee.Id))
+					{
+						selectedEmployees.Add(employee);
+						if (assignment.IsPrimary)
+						{
+							primaryEmolyeeId = assignment.EmployeeId.ToString();
+						}
+					}
+				}
+
+				var primaryAssignment = assignmentResponse.Items.FirstOrDefault(a => a.IsPrimary);
+				if (primaryAssignment != null)
+				{
+					primaryEmolyeeId = primaryAssignment.EmployeeId.ToString();
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки данных: {ex.Message}");
+		}
+	}
+
+	private void ToggleEmployeeSelection(IReadOnlyCollection<EmployeeMinimal> employees)
+	{
+		if (employees == null) return;
+
+		selectedEmployees.Clear();
+		selectedEmployees.AddRange(employees);
+	}
+
+	private void MoveEmployeeUp(EmployeeMinimal employee)
+	{
+		if (employee == null) return;
+
+		var index = selectedEmployees.FindIndex(e => e.Id == employee.Id);
+		if (index > 0)
+		{
+			selectedEmployees.RemoveAt(index);
+			selectedEmployees.Insert(index - 1, employee);
+			StateHasChanged();
+		}
+	}
+
+	private void MoveEmployeeDown(EmployeeMinimal employee)
+	{
+		if (employee == null) return;
+
+		var index = selectedEmployees.FindIndex(e => e.Id == employee.Id);
+		if (index < selectedEmployees.Count - 1)
+		{
+			selectedEmployees.RemoveAt(index);
+			selectedEmployees.Insert(index + 1, employee);
+			StateHasChanged();
+		}
+	}
+
+	private bool IsEmployeeSelected(EmployeeMinimal employee)
+	{
+		if (employee == null) return false;
+		return selectedEmployees?.Any(e => e.Id == employee.Id) ?? false;
+	}
+
+	private async Task Save()
+	{
+		try
+		{
+			// 1. Удаляем старые назначения
+			var currentAssignments = await AssignmentService.GetAssignmentsByOrderIdAsync(OrderId);
+			foreach (var assignment in currentAssignments.Items)
+			{
+				await AssignmentService.DeleteAssignmentAsync(assignment.Id);
+			}
+
+			// 2. Создаем новые назначения
+			for (int i = 0; i < selectedEmployees.Count; i++)
+			{
+				var employee = selectedEmployees[i];
+				var isPrimary = employee.Id.ToString() == primaryEmolyeeId;
+
+				var assignment = new AssignmentCreate
+				{
+					OrderId = OrderId,
+					EmployeeId = employee.Id,
+					IsPrimary = isPrimary
+				};
+
+				await AssignmentService.CreateAssignmentAsync(assignment);
+			}
+
+			// 3. Обновляем статус заявки на "Запланировано"
+			try
+			{
+				var updateResult = await OrderService.UpdateOrderStatusAsync(OrderId, OrderStatus.Planned);
+
+				if (!updateResult)
+				{
+					NotificationService.ShowWarning("Мастера назначены, но не удалось обновить статус заявки.");
+				}
+			}
+			catch (Exception ex)
+			{
+				NotificationService.ShowWarning($"Мастера назначены, но не удалось обновить статус заявки. {ex.Message}");
+			}
+
+			NotificationService.ShowSuccess($"{(selectedEmployees.Count > 1 ? "Мастера" : "Мастер")} успешно {(selectedEmployees.Count > 1 ? "назначены" : "назначен")}.");
+			await OnAssignmentSaved.InvokeAsync();
+			MudDialog.Close();
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка сохранения: {ex.Message}");
+		}
+	}
+
+	private void Cancel()
+	{
+		MudDialog.Cancel();
+	}
+}

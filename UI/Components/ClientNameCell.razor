@@ -1,0 +1,30 @@
+﻿@using UI.Services
+@inject IClientService ClientService
+
+<MudText>@ClientName</MudText>
+
+@code {
+	[Parameter]
+	public Guid Id { get; set; }
+
+	private string ClientName { get; set; } = "Загрузка...";
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if(Id != Guid.Empty)
+		{
+			try
+			{
+				var client = await ClientService.GetClientByIdAsync(Id);
+				if(client != null)
+				{
+					ClientName = client.FullName ?? "Неизвестный клиент";
+				}
+			}
+			catch
+			{
+				ClientName = "Ошибка загрузки";
+			}
+		}
+	}
+}
