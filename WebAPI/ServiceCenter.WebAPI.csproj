@@ -24,7 +24,7 @@
     <ProjectReference Include="..\Application\ServiceCenter.Application.csproj" />
     <ProjectReference Include="..\DataAccess\ServiceCenter.Infrascructure.DataAccess.csproj" />
     <ProjectReference Include="..\Domain\ServiceCenter.Domain.csproj" />
-    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\Infrastructure\ServiceCenter.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceCenter.Domain", "Dom
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI", "UI\UI.csproj", "{EB4D7DAB-384E-450F-ADF6-F4E869E1405D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{C4F5A0DA-11A5-4147-9F6E-83855C010DDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceCenter.Infrastructure", "Infrastructure\ServiceCenter.Infrastructure.csproj", "{C4F5A0DA-11A5-4147-9F6E-83855C010DDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

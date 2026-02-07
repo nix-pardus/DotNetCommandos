@@ -11,6 +11,7 @@ namespace ServiceCenter.Application.DTO.Requests;
 /// <param name="Address">Домашний адрес</param>
 /// <param name="Email">Электронная почта</param>
 /// <param name="PhoneNumber">Номер телефона</param>
+/// <param name="Password">Пароль</param>
 /// <param name="Role">Роль</param>
 public record EmployeeCreateRequest
 (
@@ -20,5 +21,6 @@ public record EmployeeCreateRequest
     string Address,
     string Email,
     string PhoneNumber,
+    string Password,
     RoleType Role
 );

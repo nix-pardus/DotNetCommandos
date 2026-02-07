@@ -12,6 +12,7 @@ using ServiceCenter.Domain.ValueObjects.Enums;
 using ServiceCenter.Infrascructure.DataAccess;
 using ServiceCenter.Infrascructure.DataAccess.Repositories;
 using ServiceCenter.Infrascructure.DataAccess.Specifications;
+using ServiceCenter.Infrastructure.Services;
 using System.Data;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -66,6 +67,7 @@ builder.Services.AddScoped<IScheduleExceptionService, ScheduleExceptionService>(
 builder.Services.AddScoped(typeof(IFilterBuilder<>), typeof(FilterBuilder<>));
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
+builder.Services.AddSingleton<IRefreshTokenStore, RefreshTokenStore>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -182,6 +184,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 
 app.UseAuthorization();
 
