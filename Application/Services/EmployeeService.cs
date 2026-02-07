@@ -6,6 +6,7 @@ using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Entities;
 using ServiceCenter.Domain.Interfaces;
+using System.Reflection;
 
 namespace ServiceCenter.Application.Services;
 
@@ -25,6 +26,24 @@ public class EmployeeService : BaseService<Employee, EmployeeCreateRequest, Empl
     protected override Employee ToEntity(EmployeeCreateRequest dto) => EmployeeMapper.ToEntity(dto);
     protected override Employee ToEntity(EmployeeUpdateRequest dto) => EmployeeMapper.ToEntity(dto);
 
+    public override async Task CreateAsync(EmployeeCreateRequest dto)
+    {
+        var passwordHash = _passwordHasher.HashPassword(dto.Password);
+        var entity = ToEntity(dto);
+
+        entity.CreatedDate = DateTime.UtcNow;
+        entity.PasswordHash = passwordHash;
+        if (_currentUserService?.UserId is Guid userId)
+        {
+            var prop = entity.GetType().GetProperty("CreatedById", BindingFlags.Public | BindingFlags.Instance);
+            if (prop != null && prop.CanWrite && prop.PropertyType == typeof(Guid))
+            {
+                prop.SetValue(entity, userId);
+            }
+        }
+
+        await _repository.AddAsync(entity);
+    }
     public async Task<PagedResponse<EmployeeWithOrdersResponse>> GetByFiltersWithOrdersAsync(GetByFiltersRequest request)
     {
         var filterConditions = request.Filters?.Select(f =>
