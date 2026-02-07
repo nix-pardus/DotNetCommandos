@@ -90,9 +90,23 @@
 	{
 		try
 		{
-			if (IsEdit)
+			if (IsEdit && Employee != null)
 			{
-				await EmployeeService.UpdateEmployeeAsync(Employee);
+				// формируем корректный DTO для обновления (без служебных полей)
+				var dto = new EmployeeUpdate
+				{
+					Id = Employee.Id,
+					Name = Employee.Name ?? string.Empty,
+					LastName = Employee.LastName ?? string.Empty,
+					Patronymic = Employee.Patronymic,
+					Address = Employee.Address ?? string.Empty,
+					Email = Employee.Email ?? string.Empty,
+					PhoneNumber = Employee.PhoneNumber ?? string.Empty,
+					Role = Employee.Role,
+					IsDeleted = Employee.IsDeleted
+				};
+
+				await EmployeeService.UpdateEmployeeAsync(dto);
 			}
 			else
 			{
@@ -101,7 +115,7 @@
 
 			MudDialog.Close(DialogResult.Ok(true));
 		}
-		catch (Exception ex)
+		catch (Exception)
 		{
 			NotificationService.ShowError($"Ошибка при сохранении сотрудника");
 		}

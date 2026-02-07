@@ -45,7 +45,7 @@ public class ScheduleController(IScheduleService service) : ControllerBase
     }
     //TODO:кмк он должен быть в Employee
     [HttpGet("get-all-work-days-by-interval")]
-    [Authorize(Policy = "Administrator")]
+    [Authorize(Policy = "All")]
     [ProducesResponseType(typeof(ScheduleFullResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllDaysByInterval([FromQuery]DateOnly startDate, [FromQuery] DateOnly endDate)
     {
