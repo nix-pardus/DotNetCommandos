@@ -304,7 +304,7 @@
 
 					var filterCondition = new GetByFiltersRequest.FilterCondition
 					{
-						Field = columnFilter.Column.PropertyName,
+						Field = MapPropertyToField(columnFilter.Column.PropertyName),
 						Operator = operatorString.Trim(' ').ToLower() switch
 						{
 							"contains" => GetByFiltersRequest.FilterOperator.Contains,

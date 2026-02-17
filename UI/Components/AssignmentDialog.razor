@@ -31,7 +31,7 @@
 					</MudListSubheader>
 					@foreach (var employee in availableEmployees)
 					{
-						<MudListItem Value="employee" Text="@employee.FullName" />
+						<MudListItem Value="@employee" Text="@employee.FullName" />
 					}
 				</MudList>
 			</div>
@@ -40,7 +40,7 @@
 			{
 				<MudText Typo="Typo.subtitle2" Class="mt-4 mb-3">Назначенные мастера (первый = главный):</MudText>
 
-				<MudList T="Employee">
+				<MudList T="EmployeeMinimal" Dense>
 					@for (int i = 0; i < selectedEmployees.Count; i++)
 					{
 						var employee = selectedEmployees[i];
@@ -194,6 +194,15 @@
 
 		selectedEmployees.Clear();
 		selectedEmployees.AddRange(employees);
+
+		if (selectedEmployees.Any())
+		{
+			primaryEmolyeeId = selectedEmployees.First().Id.ToString();
+		}
+		else
+		{
+			primaryEmolyeeId = string.Empty;
+		}
 	}
 
 	private void MoveEmployeeUp(EmployeeMinimal employee)
