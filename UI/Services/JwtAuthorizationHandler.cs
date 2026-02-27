@@ -18,6 +18,19 @@ public class JwtAuthorizationHandler : DelegatingHandler
             httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
 
-        return await base.SendAsync(httpRequest, cancellationToken);
+        var response = await base.SendAsync(httpRequest, cancellationToken);
+
+        if(response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            var refreshed = await authService.RefreshTokenAsync();
+            if (refreshed)
+            {
+                var newToken = await authService.GetJwtTokenAsync();
+                httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newToken);
+                response = await base.SendAsync(httpRequest, cancellationToken);
+            }
+        }
+
+        return response;
     }
 }

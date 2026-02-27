@@ -1,6 +1,7 @@
 ﻿using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Domain.Entities;
 using ServiceCenter.Domain.Interfaces;
 
 
@@ -12,21 +13,21 @@ namespace ServiceCenter.Application.Services
     /// </summary>
     public class AuthService : IAuthService
     {
-        private readonly IRefreshTokenStore _refreshTokenStore;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IJwtTokenService _jwtTokenService;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
 
         public AuthService(
             IEmployeeRepository employeeRepository,
             IPasswordHasher passwordHasher,
             IJwtTokenService jwtTokenService,
-            IRefreshTokenStore refreshTokenStore)
+            IRefreshTokenRepository refreshTokenRepository)
         {
             _employeeRepository = employeeRepository;
             _passwordHasher = passwordHasher;
             _jwtTokenService = jwtTokenService;
-            _refreshTokenStore = refreshTokenStore;
+            _refreshTokenRepository = refreshTokenRepository;
         }
 
         public async Task<AuthResponse?> LoginAsync(LoginRequest request)
@@ -38,11 +39,14 @@ namespace ServiceCenter.Application.Services
                 return null;
 
             var token = _jwtTokenService.GenerateToken(employee);
-            var refreshToken = _refreshTokenStore.GenerateRefreshToken(employee.Id,7);
+            var refreshToken = GenerateRefreshToken(employee.Id);
+
+            await _refreshTokenRepository.AddAsync(refreshToken);
+
             return new AuthResponse
             {
                 Token = token,
-                RefreshToken = refreshToken,
+                RefreshToken = refreshToken.Token,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60),
                 Employee = new EmployeeMinimalResponse
                 (
@@ -65,27 +69,30 @@ namespace ServiceCenter.Application.Services
             employee.PasswordHash = _passwordHasher.HashPassword(newPassword);
             await _employeeRepository.UpdateAsync(employee);
 
+            await _refreshTokenRepository.RevokeAllForUserAsync(employeeId);
+
             return true;
         }
 
         public async Task<AuthResponse?> RefreshTokenAsync(string refreshToken)
         {
-            var employeeId = _refreshTokenStore.ValidateRefreshToken(refreshToken);
-            if (employeeId == null) return null;
+            var storedToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
+            if(storedToken == null) return null;
 
-            var employee = await _employeeRepository.GetByIdAsync(employeeId.Value);
+            await _refreshTokenRepository.RevokeAsync(refreshToken);
+
+            var employee = await _employeeRepository.GetByIdAsync(storedToken.EmployeeId);
             if (employee == null) return null;
 
-
-            _refreshTokenStore.RemoveRefreshToken(refreshToken);
-
             var newAccessToken = _jwtTokenService.GenerateToken(employee);
-            var newRefreshToken = _refreshTokenStore.GenerateRefreshToken(employee.Id, 7);
+            var newRefreshToken = GenerateRefreshToken(employee.Id);
+
+            await _refreshTokenRepository.AddAsync(newRefreshToken);
 
             return new AuthResponse
             {
                 Token = newAccessToken,
-                RefreshToken = newRefreshToken,
+                RefreshToken = newRefreshToken.Token,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60),
                 Employee = new EmployeeMinimalResponse
                 (
@@ -94,6 +101,18 @@ namespace ServiceCenter.Application.Services
                     employee.LastName,
                     employee.Patronymic
                 )
+            };
+        }
+
+        private RefreshToken GenerateRefreshToken(Guid employeeId)
+        {
+            return new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                Token = Guid.NewGuid().ToString("N"),
+                EmployeeId = employeeId,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                CreatedAt = DateTime.UtcNow
             };
         }
     }
