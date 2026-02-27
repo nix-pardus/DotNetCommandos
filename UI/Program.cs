@@ -30,12 +30,20 @@ builder.Services.AddScoped<IAssignmentService, AssignmentService>();
 builder.Services.AddScoped<IErrorHandler, ErrorHandler>();
 builder.Services.AddScoped<IThemeService, ThemeService>();
 builder.Services.AddScoped<IUserPreferencesService, UserPreferencesService>();
+builder.Services.AddScoped<CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthenticationStateProvider>());
+builder.Services.AddScoped<IAuthenticationStateNotifier>(sp => sp.GetRequiredService<CustomAuthenticationStateProvider>());
 
-builder.Services.AddHttpClient("AuthorizedClient", client =>
+builder.Services.AddHttpClient("PublicClient", client =>
 {
     client.BaseAddress = new Uri(apiBaseAddress);
-})
-    .AddHttpMessageHandler<JwtAuthorizationHandler>();
+});
+
+builder.Services.AddHttpClient("AuthorizedClient", client =>
+    {
+        client.BaseAddress = new Uri(apiBaseAddress);
+    }
+).AddHttpMessageHandler<JwtAuthorizationHandler>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AuthorizedClient"));
 

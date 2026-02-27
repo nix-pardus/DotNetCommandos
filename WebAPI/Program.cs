@@ -1,7 +1,6 @@
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
@@ -12,10 +11,7 @@ using ServiceCenter.Domain.ValueObjects.Enums;
 using ServiceCenter.Infrascructure.DataAccess;
 using ServiceCenter.Infrascructure.DataAccess.Repositories;
 using ServiceCenter.Infrascructure.DataAccess.Specifications;
-using ServiceCenter.Infrastructure.Services;
-using System.Data;
 using System.Text;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,7 +63,6 @@ builder.Services.AddScoped<IScheduleExceptionService, ScheduleExceptionService>(
 builder.Services.AddScoped(typeof(IFilterBuilder<>), typeof(FilterBuilder<>));
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
-builder.Services.AddSingleton<IRefreshTokenStore, RefreshTokenStore>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -75,6 +70,8 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<IRefreshTokenRepository, EFRefreshTokenRepository>();
 
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

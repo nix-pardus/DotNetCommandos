@@ -8,9 +8,9 @@ public class ApiService : IApiService
     private readonly HttpClient _httpClient;
     private readonly ILogger<ApiService> _logger;
 
-    public ApiService(HttpClient httpClient, ILogger<ApiService> logger)
+    public ApiService(IHttpClientFactory httpClientFactory, ILogger<ApiService> logger)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient("AuthorizedClient");
         _logger = logger;
     }
 

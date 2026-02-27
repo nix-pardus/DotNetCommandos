@@ -1,5 +1,5 @@
 ﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 using System.Net.Http.Json;
 using UI.Models;
 using UI.Models.Employees;
@@ -8,14 +8,15 @@ namespace UI.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILocalStorageService _localStorage;
-    private readonly AuthenticationStateProvider _authenticationStateProvider;
+    private readonly IAuthenticationStateNotifier _authenticationStateNotifier;
 
-    public AuthService(HttpClient httpClient, ILocalStorageService localStorage)
+    public AuthService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage, IAuthenticationStateNotifier authenticationStateNotifier)
     {
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
         _localStorage = localStorage;
+        _authenticationStateNotifier = authenticationStateNotifier;
     }
 
     public async Task<string> GetJwtTokenAsync()
@@ -37,7 +38,15 @@ public class AuthService : IAuthService
     public async Task<AuthResponse> LoginAsync(string email, string password)
     {
         var loginData = new {email, password};
-        var response = await _httpClient.PostAsJsonAsync("api/Auth/login", loginData);
+        var publicClient = _httpClientFactory.CreateClient("PublicClient");
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "api/Auth/login")
+        {
+            Content = JsonContent.Create(loginData)
+        };
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+        var response = await publicClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
             throw new Exception("Неудачная аутентификация.");
@@ -51,9 +60,43 @@ public class AuthService : IAuthService
 
         await _localStorage.SetItemAsync("showWelcome", true);
 
-        (_authenticationStateProvider as CustomAuthenticationStateProvider)?.NotifyAuthenticationStateChanged();
+        _authenticationStateNotifier.NotifyStateChanged();
 
         return authResponse;
+    }
+
+    public async Task<bool> RefreshTokenAsync()
+    {
+        try
+        {
+            var publicClient = _httpClientFactory.CreateClient("PublicClient");
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/Auth/refresh");
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
+            var response = await publicClient.SendAsync(request);
+            if(!response.IsSuccessStatusCode)
+            {
+                await LogoutAsync();
+                return false;
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            if(result == null)
+            {
+                await LogoutAsync();
+                return false;
+            }
+
+            await _localStorage.SetItemAsync("authToken", result.Token);
+            await _localStorage.SetItemAsync("employee", result.Employee);
+            return true;
+        }
+        catch
+        {
+            await LogoutAsync();
+            return false;
+        }
     }
 
     public async Task LogoutAsync()
@@ -62,7 +105,14 @@ public class AuthService : IAuthService
         await _localStorage.RemoveItemAsync("employee");
         await _localStorage.RemoveItemAsync("showWelcome");
 
-        (_authenticationStateProvider as CustomAuthenticationStateProvider)?.NotifyAuthenticationStateChanged();
+        try
+        {
+            var authorizedClient = _httpClientFactory.CreateClient("AuthorizedClient");
+            await authorizedClient.PostAsync("api/Auth/logout", null);
+        }
+        catch { }
+
+        _authenticationStateNotifier.NotifyStateChanged();
     }
 
     public async Task<bool> IsWelcomeFlagSet()

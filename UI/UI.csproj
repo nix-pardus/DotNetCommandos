@@ -16,10 +16,22 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
 		<PackageReference Include="MudBlazor" Version="8.15.0" />
 		<PackageReference Include="MudBlazor.Translations" Version="2.7.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Application\ServiceCenter.Application.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="t.ai.txt">
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>t.tt</DependentUpon>
+	  </None>
+	  <None Update="t.tt">
+	    <Generator>AiContextGenerator</Generator>
+	    <LastGenOutput>t.ai.txt</LastGenOutput>
+	  </None>
 	</ItemGroup>
 
 </Project>

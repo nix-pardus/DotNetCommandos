@@ -13,4 +13,5 @@ public interface IAuthService
 
     Task<bool> IsWelcomeFlagSet();
     Task ClearWelcomeFlag();
+    Task<bool> RefreshTokenAsync();
 }

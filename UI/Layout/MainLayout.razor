@@ -88,7 +88,6 @@
 	protected override async Task OnInitializedAsync()
 	{
 		AuthenticationStateTask = AuthenticationStateProvider.GetAuthenticationStateAsync();
-		var authState = await AuthenticationStateTask;
 
 		await LoadUserData();
 	}
