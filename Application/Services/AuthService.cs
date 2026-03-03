@@ -1,4 +1,5 @@
-﻿using ServiceCenter.Application.DTO.Requests;
+﻿using Microsoft.Extensions.Configuration;
+using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Domain.Entities;
@@ -17,25 +18,27 @@ namespace ServiceCenter.Application.Services
         private readonly IPasswordHasher _passwordHasher;
         private readonly IJwtTokenService _jwtTokenService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
-
+        private readonly IConfiguration _configuration;
         public AuthService(
             IEmployeeRepository employeeRepository,
             IPasswordHasher passwordHasher,
             IJwtTokenService jwtTokenService,
-            IRefreshTokenRepository refreshTokenRepository)
+            IRefreshTokenRepository refreshTokenRepository,
+            IConfiguration configuration)
         {
             _employeeRepository = employeeRepository;
             _passwordHasher = passwordHasher;
             _jwtTokenService = jwtTokenService;
             _refreshTokenRepository = refreshTokenRepository;
+            _configuration = configuration;
         }
 
         public async Task<AuthResponse?> LoginAsync(LoginRequest request)
         {
             var employee = await _employeeRepository.GetByEmailAsync(request.Email);
 
-            
-            if (employee is null || !_passwordHasher.VerifyPassword(request.Password, employee?.PasswordHash))
+
+            if (employee is null || employee.IsDeleted || !_passwordHasher.VerifyPassword(request.Password, employee?.PasswordHash))
                 return null;
 
             var token = _jwtTokenService.GenerateToken(employee);
@@ -47,7 +50,7 @@ namespace ServiceCenter.Application.Services
             {
                 Token = token,
                 RefreshToken = refreshToken.Token,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(60),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(GetJwtExpiryMinutes()),
                 Employee = new EmployeeMinimalResponse
                 (
                     employee.Id,
@@ -77,7 +80,7 @@ namespace ServiceCenter.Application.Services
         public async Task<AuthResponse?> RefreshTokenAsync(string refreshToken)
         {
             var storedToken = await _refreshTokenRepository.GetByTokenAsync(refreshToken);
-            if(storedToken == null) return null;
+            if (storedToken == null) return null;
 
             await _refreshTokenRepository.RevokeAsync(refreshToken);
 
@@ -93,7 +96,7 @@ namespace ServiceCenter.Application.Services
             {
                 Token = newAccessToken,
                 RefreshToken = newRefreshToken.Token,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(60),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(GetJwtExpiryMinutes()),
                 Employee = new EmployeeMinimalResponse
                 (
                     employee.Id,
@@ -114,6 +117,13 @@ namespace ServiceCenter.Application.Services
                 ExpiryDate = DateTime.UtcNow.AddDays(7),
                 CreatedAt = DateTime.UtcNow
             };
+        }
+
+        private int GetJwtExpiryMinutes()
+        {
+            if (!int.TryParse(_configuration["Jwt:ExpiryMinutes"], out int expiryMinutes))
+                expiryMinutes = 60;
+            return expiryMinutes;
         }
     }
 }
