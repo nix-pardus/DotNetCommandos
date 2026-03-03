@@ -31,19 +31,14 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequ
         );
         if (assignment.TotalCount == 0)
         {
-            var newAssignment = new AssignmentResponse
-            (
-                Id: Guid.NewGuid(),
-                CreatedDate: DateTime.UtcNow,
-                ModifiedDate: null,
-                IsDeleted: false,
-                OrderId: request.OrderId,
-                EmployeeId: request.EmployeeId,
-                IsPrimary: request.IsPrimary,
-                CreatedById: _currentUserService.UserId ?? Guid.Empty,
-                ModifiedById: null
-            );
-            await _repository.AddAsync(AssignmentMapper.ToEntity(newAssignment));
+            var newAssignment = AssignmentMapper.ToEntity(request);
+            
+            newAssignment.Id = Guid.NewGuid();
+            newAssignment.CreatedDate = DateTime.UtcNow;
+            newAssignment.IsDeleted = false;
+            newAssignment.CreatedById = _currentUserService.UserId ?? Guid.Empty;
+
+            await _repository.AddAsync(newAssignment);
         }
     }
 
