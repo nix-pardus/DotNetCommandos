@@ -40,6 +40,14 @@ namespace ServiceCenter.WebAPI.Controllers
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
             });
 
+            Response.Cookies.Append("accessToken", result.Token, new CookieOptions
+            {
+                HttpOnly= true,
+                Secure= true,
+                SameSite= SameSiteMode.Strict,
+                Expires = result.ExpiresAt
+            });
+
             return Ok(new
             {
                 result.Token,
@@ -90,12 +98,29 @@ namespace ServiceCenter.WebAPI.Controllers
                 Expires = DateTime.UtcNow.AddDays(7)
             });
 
+            Response.Cookies.Append("accessToken", result.Token, new CookieOptions
+            {
+                HttpOnly= true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = result.ExpiresAt
+            });
+
             return Ok(new
             {
                 result.Token,
                 result.ExpiresAt,
                 result.Employee
             });
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("refreshToken");
+            Response.Cookies.Delete("accessToken");
+            return Ok();
         }
     }
 }
