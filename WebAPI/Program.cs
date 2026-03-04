@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.PostgreSql;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,7 @@ using ServiceCenter.Domain.ValueObjects.Enums;
 using ServiceCenter.Infrascructure.DataAccess;
 using ServiceCenter.Infrascructure.DataAccess.Repositories;
 using ServiceCenter.Infrascructure.DataAccess.Specifications;
+using ServiceCenter.WebAPI.Filters;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,8 +36,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
-        //Убрал преобразование enum из числа в строку, чтоб в UI не делать обратно из строки в число
-        //options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 builder.Services.AddControllers();
@@ -90,7 +91,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!))
         };
-        
+
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -98,8 +99,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var token = context.Request.Headers["Authorization"].ToString();
                 if (!string.IsNullOrEmpty(token) && token.StartsWith("Bearer "))
                 {
-                    context.Token = token.Substring(7);
+                    token = token.Substring(7);
                 }
+                else if (string.IsNullOrEmpty(token))
+                {
+                    token = context.Request.Cookies["accessToken"];
+                }
+                context.Token = token;
                 return Task.CompletedTask;
             }
         };
@@ -114,11 +120,11 @@ builder.Services.AddAuthorization(options =>
     // для оператора
     options.AddPolicy("Operator", policy =>
         policy.RequireRole(RoleType.Operator.ToString(), RoleType.Administrator.ToString()));
-    
+
     // для всех
     options.AddPolicy("All", policy =>
         policy.RequireRole(RoleType.Operator.ToString(), RoleType.Master.ToString(), RoleType.Administrator.ToString()));
-    
+
     // для администратора
     options.AddPolicy("Administrator", policy =>
         policy.RequireRole(RoleType.Administrator.ToString()));
@@ -126,7 +132,7 @@ builder.Services.AddAuthorization(options =>
 
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(opt=> 
+builder.Services.AddSwaggerGen(opt =>
 {
     opt.MapType<DateOnly>(() => new OpenApiSchema
     {
@@ -165,6 +171,12 @@ builder.Services.AddSwaggerGen(opt=>
     });
 });
 
+builder.Services.AddHangfire(config =>
+    config.UsePostgreSqlStorage(options =>
+        options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"))));
+
+builder.Services.AddHangfireServer();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -173,17 +185,27 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        //options.SwaggerEndpoint("/swagger/v1/swagger.json", "Employee API v1");
-
         options.OAuthClientId("swagger-ui");
         options.OAuthAppName("Swagger UI");
     });
 }
 
-app.UseHttpsRedirection();
-app.UseAuthentication();
 
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireAuthorizationFilter() }
+});
+
+RecurringJob.AddOrUpdate<IRefreshTokenRepository>(
+    "cleanup-expired-refresh-tokens",
+    repo => repo.CleanupExpiredAsync(),
+    Cron.Weekly(DayOfWeek.Sunday, 3)
+);
 
 app.UseCors("AllowBlazorClient");
 
