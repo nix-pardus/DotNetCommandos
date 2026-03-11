@@ -43,4 +43,11 @@ public interface IEmployeeService
     /// <param name="request">Параметры запроса</param>
     /// <returns>Постраничный список сотрудников, включая назначенные заказы</returns>
     Task<PagedResponse<EmployeeWithOrdersResponse>> GetByFiltersWithOrdersAsync(GetByFiltersRequest request);
+
+    /// <summary>
+    /// Получение сотрудника по Id
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Task<EmployeeFullResponse> GetByIdAsync(Guid id);
 }
