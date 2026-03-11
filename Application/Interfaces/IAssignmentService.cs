@@ -47,4 +47,6 @@ public interface IAssignmentService
     /// <param name="request">Параметры запроса</param>
     /// <returns>Постраничный список назначений</returns>
     Task<PagedResponse<AssignmentResponse>> GetByFiltersAsync(GetByFiltersRequest request);
+
+    Task<Dictionary<Guid, List<OrderConflictInfo>>> CheckConflictsAsync(AssignmentConflictCheckRequest request);
 }

@@ -24,6 +24,11 @@ public class Order : EntityBase
     public Guid ClientId { get; set; }
 
     /// <summary>
+    /// Клиент
+    /// </summary>
+    public Client? Client { get; set; }
+
+    /// <summary>
     /// Тип оборудования.
     /// </summary>
     public string? EquipmentType { get; set; }

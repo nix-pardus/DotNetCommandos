@@ -6,70 +6,80 @@
 
 <MudDialog>
 	<DialogContent>
-		<MudGrid>
-			@if (IsEdit)
-			{
-				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Employee.Name" Label="Имя" Required="true" />
-				</MudItem>
-				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Employee.LastName" Label="Фамилия" Required="true" />
-				</MudItem>
-				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="Employee.Patronymic" Label="Отчество" />
-				</MudItem>
-				<MudItem xs="12">
-					<MudTextField @bind-Value="Employee.Email" Label="Email" Required="true" />
-				</MudItem>
-				<MudItem xs="12">
-					<MudTextField @bind-Value="Employee.PhoneNumber" Label="Номер телефона" Required="true" />
-				</MudItem>
-				<MudItem xs="12">
-					<MudTextField @bind-Value="Employee.Address" Label="Адрес" Lines="2" />
-				</MudItem>
-				<MudItem xs="12">
-					<MudSelect T="RoleType" @bind-Value="Employee.Role" Label="Роль">
-						@foreach (var role in Enum.GetValues<RoleType>())
-						{
-							<MudSelectItem Value="role">@role</MudSelectItem>
-						}
-					</MudSelect>
-				</MudItem>
-			}
-			else
-			{
-				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="CreateEmployee.Name" Label="Имя" Required="true" />
-				</MudItem>
-				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="CreateEmployee.LastName" Label="Фамилия" Required="true" />
-				</MudItem>
-				<MudItem xs="12" sm="6">
-					<MudTextField @bind-Value="CreateEmployee.Patronymic" Label="Отчество" />
-				</MudItem>
-				<MudItem xs="12">
-					<MudTextField @bind-Value="CreateEmployee.Email" Label="Email" Required="true" />
-				</MudItem>
-				<MudItem xs="12">
-					<MudTextField @bind-Value="CreateEmployee.PhoneNumber" Label="Номер телефона" Required="true" />
-				</MudItem>
-				<MudItem xs="12">
-					<MudTextField @bind-Value="CreateEmployee.Address" Label="Адрес" Lines="2" />
-				</MudItem>
-				<MudItem xs="12">
-					<MudSelect T="RoleType" @bind-Value="CreateEmployee.Role" Label="Роль">
-						@foreach (var role in Enum.GetValues<RoleType>())
-						{
-							<MudSelectItem Value="role">@role</MudSelectItem>
-						}
-					</MudSelect>
-				</MudItem>
-			}
-		</MudGrid>
+		<EditForm Model="@(IsEdit ? (object)EditEmployee : CreateEmployee)" OnInvalidSubmit="Save" @ref="editForm">
+			<DataAnnotationsValidator/>
+			<ValidationSummary class="mud-error-text"/>
+			<MudGrid>
+				@if (IsEdit)
+				{
+					<MudItem xs="12" sm="6">
+						<MudTextField @bind-Value="EditEmployee!.LastName" Label="Фамилия" Required For="@(() => EditEmployee!.LastName)" />
+					</MudItem>
+					<MudItem xs="12" sm="6">
+						<MudTextField @bind-Value="EditEmployee!.Name" Label="Имя" Required For="@(() => EditEmployee!.Name)" />
+					</MudItem>
+					<MudItem xs="12" sm="6">
+						<MudTextField @bind-Value="EditEmployee!.Patronymic" Label="Отчество" />
+					</MudItem>
+					<MudItem xs="12">
+						<MudTextField @bind-Value="EditEmployee!.Email" Label="Email" Required For="@(() => EditEmployee!.Email)" />
+					</MudItem>
+					<MudItem xs="12">
+						<MudTextField @bind-Value="EditEmployee!.PhoneNumber" Label="Номер телефона" Required For="@(() => EditEmployee!.PhoneNumber)" />
+					</MudItem>
+					<MudItem xs="12">
+						<MudTextField @bind-Value="EditEmployee!.Address" Label="Адрес" Lines="2" Required For="@(() => EditEmployee!.Address)" />
+					</MudItem>
+					<MudItem xs="12">
+						<MudSelect T="RoleType" @bind-Value="EditEmployee!.Role" Label="Роль" Required For="@(() => EditEmployee!.Role)" >
+							@foreach (var role in Enum.GetValues<RoleType>())
+							{
+								<MudSelectItem Value="role">@role</MudSelectItem>
+							}
+						</MudSelect>
+					</MudItem>
+				}
+				else
+				{
+					<MudItem xs="12" sm="6">
+						<MudTextField @bind-Value="CreateEmployee!.LastName" Label="Фамилия" Required For="@(() => CreateEmployee!.LastName)" />
+					</MudItem>
+					<MudItem xs="12" sm="6">
+						<MudTextField @bind-Value="CreateEmployee!.Name" Label="Имя" Required For="@(() => CreateEmployee!.Name)" />
+					</MudItem>
+					<MudItem xs="12" sm="6">
+						<MudTextField @bind-Value="CreateEmployee!.Patronymic" Label="Отчество" />
+					</MudItem>
+					<MudItem xs="12">
+						<MudTextField @bind-Value="CreateEmployee!.Email" Label="Email" Required For="@(() => CreateEmployee!.Email)" />
+					</MudItem>
+					<MudItem xs="12">
+						<MudTextField @bind-Value="CreateEmployee!.PhoneNumber" Label="Номер телефона" Required For="@(() => CreateEmployee!.PhoneNumber)" />
+					</MudItem>
+					<MudItem xs="12">
+						<MudTextField @bind-Value="CreateEmployee!.Address" Label="Адрес" Lines="2" Required For="@(() => CreateEmployee!.Address)" />
+					</MudItem>
+					<MudItem xs="12">
+						<MudSelect T="RoleType" @bind-Value="CreateEmployee!.Role" Label="Роль" Required For="@(() => CreateEmployee!.Role)">
+							@foreach (var role in Enum.GetValues<RoleType>())
+							{
+								<MudSelectItem Value="role">@role</MudSelectItem>
+							}
+						</MudSelect>
+					</MudItem>
+					<MudItem xs="12">
+						<MudTextField @bind-Value="CreateEmployee!.Password" Label="Пароль" InputType="InputType.Password" Required For="@(() => CreateEmployee!.Password)" />
+					</MudItem>
+					<MudItem xs="12">
+						<MudTextField @bind-Value="CreateEmployee!.ConfirmPassword" Label="Подтверждение пароля" InputType="InputType.Password" Required For="@(() => CreateEmployee!.ConfirmPassword)" />
+					</MudItem>
+				}
+			</MudGrid>
+		</EditForm>
 	</DialogContent>
 	<DialogActions>
 		<MudButton OnClick="Cancel">Отмена</MudButton>
-		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Сохранить</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitForm" Disabled="@(!IsValid)">Сохранить</MudButton>
 	</DialogActions>
 </MudDialog>
 
@@ -78,7 +88,7 @@
 	IMudDialogInstance MudDialog { get; set; }
 
 	[Parameter]
-	public Employee? Employee { get; set; }
+	public EmployeeUpdate? EditEmployee { get; set; }
 
 	[Parameter]
 	public CreateEmployee? CreateEmployee { get; set; }
@@ -89,27 +99,24 @@
 	[Parameter]
 	public EventCallback OnEmployeeSaved { get; set; }
 
+	private EditForm? editForm;
+	private bool IsValid => editForm?.EditContext?.Validate() ?? false;
+
+	private async Task SubmitForm()
+	{
+		if(editForm != null && editForm.EditContext != null && editForm.EditContext.Validate())
+		{
+			await Save();
+		}
+	}
+
 	private async Task Save()
 	{
 		try
 		{
-			if (IsEdit && Employee != null)
+			if (IsEdit && EditEmployee != null)
 			{
-				// формируем корректный DTO для обновления (без служебных полей)
-				var dto = new EmployeeUpdate
-				{
-					Id = Employee.Id,
-					Name = Employee.Name ?? string.Empty,
-					LastName = Employee.LastName ?? string.Empty,
-					Patronymic = Employee.Patronymic,
-					Address = Employee.Address ?? string.Empty,
-					Email = Employee.Email ?? string.Empty,
-					PhoneNumber = Employee.PhoneNumber ?? string.Empty,
-					Role = Employee.Role,
-					IsDeleted = Employee.IsDeleted
-				};
-
-				await EmployeeService.UpdateEmployeeAsync(dto);
+				await EmployeeService.UpdateEmployeeAsync(EditEmployee);
 			}
 			else
 			{
