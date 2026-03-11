@@ -45,6 +45,21 @@ public class ApiService : IApiService
         }
     }
 
+    public async Task<T> GetFromJsonAsync<T>(string endpoint)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync(endpoint);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<T>();
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex, $"Error in GET request to {endpoint}");
+            throw;
+        }
+    }
+
     public async Task PostAsync(string endpoint, object data)
     {
         try

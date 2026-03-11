@@ -9,4 +9,5 @@ public interface IAssignmentService
     Task<PagingResponse<Assignment>> GetAssignmentsByOrderIdAsync(Guid orderId);
     Task CreateAssignmentAsync(AssignmentCreate assignment);
     Task DeleteAssignmentAsync(Guid id);
+    Task<Dictionary<Guid, List<OrderConflictInfo>>> CheckConflictsAsync(List<Guid> employeeIds, DateTime start, DateTime end, Guid? excludeOrderId = null);
 }

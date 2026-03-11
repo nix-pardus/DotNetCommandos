@@ -1,4 +1,6 @@
-﻿namespace UI.Models.Orders;
+﻿using UI.Models.Clients;
+
+namespace UI.Models.Orders;
 
 public class Order
 {
@@ -6,10 +8,11 @@ public class Order
     public Guid CreatedById { get; set; }
     public Guid? ModifiedById { get; set; }
     public Guid ClientId { get; set; }
+    public Client? Client { get; set; }
     public string? EquipmentType { get; set; }
     public string? EquipmentModel { get; set; }
     public bool IsWarranty { get; set; }
-    public string Problem { get; set; }
+    public string Problem { get; set; } = string.Empty;
     public string? Comment { get; set; }
     public int Priority { get; set; }
     public DateTime CreatedDate { get; set; }

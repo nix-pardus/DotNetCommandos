@@ -1,18 +1,21 @@
 ﻿@using UI.Models
 @using UI.Models.Assignments
 @using UI.Models.Employees
+@using UI.Models.Orders
 @using UI.Services
 @inject IEmployeeService EmployeeService
 @inject INotificationService NotificationService
 @inject IAssignmentService AssignmentService
 @inject IOrderService OrderService
+@inject IScheduleService ScheduleService
+@inject IDialogService DialogService
 
 <MudDialog>
 	<TitleContent>
 		<MudText Typo="Typo.h6">Назначение мастеров на заявку</MudText>
 	</TitleContent>
 	<DialogContent>
-		@if (loading)
+		@if (_loading)
 		{
 			<MudProgressLinear Indeterminate Color="Color.Primary" />
 		}
@@ -21,7 +24,7 @@
 			<div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--mud-palette-lines-default); border-radius: 4px;">
 				<MudList T="EmployeeMinimal"
 						 Dense
-						 SelectedValues="@selectedEmployees"
+						 SelectedValues="@_selectedEmployees"
 						 SelectionMode="SelectionMode.MultiSelection"
 						 SelectedValuesChanged="@((e) => ToggleEmployeeSelection(e))"
 						 CheckBoxColor="Color.Tertiary">
@@ -29,36 +32,43 @@
 					<MudListSubheader>
 						Выберите одного или несколько мастеров
 					</MudListSubheader>
-					@foreach (var employee in availableEmployees)
+					@foreach (var employee in _availableEmployees)
 					{
 						<MudListItem Value="@employee" Text="@employee.FullName" />
 					}
 				</MudList>
 			</div>
 
-			@if (selectedEmployees.Any())
+			@if (_selectedEmployees.Any())
 			{
 				<MudText Typo="Typo.subtitle2" Class="mt-4 mb-3">Назначенные мастера (первый = главный):</MudText>
 
 				<MudList T="EmployeeMinimal" Dense>
-					@for (int i = 0; i < selectedEmployees.Count; i++)
+					@for (int i = 0; i < _selectedEmployees.Count; i++)
 					{
-						var employee = selectedEmployees[i];
+						var employee = _selectedEmployees[i];
 						<MudListItem>
 							<MudStack Row>
+								@if (_assignmentIds.ContainsKey(employee.Id))
+								{
+									<MudIconButton Icon="@Icons.Material.Filled.Delete"
+												   Size="Size.Small"
+												   OnClick="@(() => DeleteAssignment(employee))"
+												   Color="Color.Error" />
+								}
 								<MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
 											   Size="Size.Small"
 											   OnClick="@(() => MoveEmployeeUp(employee))"
-											   Disabled="@(selectedEmployees.IndexOf(employee) == 0)" 
-											   Color="Color.Info"/>
+											   Disabled="@(_selectedEmployees.IndexOf(employee) == 0)"
+											   Color="Color.Info" />
 
 								<MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
 											   Size="Size.Small"
-											   OnClick="@(() => MoveEmployeeDown(employee))" 
-											   Disabled="@(employee.Equals(selectedEmployees.LastOrDefault()))"
-											   Color="Color.Secondary"/>
+											   OnClick="@(() => MoveEmployeeDown(employee))"
+											   Disabled="@(employee.Equals(_selectedEmployees.LastOrDefault()))"
+											   Color="Color.Secondary" />
 
-								<MudText Class="ml-2">@employee.FullName @(selectedEmployees.IndexOf(employee) == 0 && selectedEmployees.Count > 1 ? "(главный)" : "")</MudText>
+								<MudText Class="ml-2">@employee.FullName @(_selectedEmployees.IndexOf(employee) == 0 && _selectedEmployees.Count > 1 ? "(главный)" : "")</MudText>
 							</MudStack>
 						</MudListItem>
 					}
@@ -68,7 +78,7 @@
 	</DialogContent>
 	<DialogActions>
 		<MudButton OnClick="Cancel">Отмена</MudButton>
-		<MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!selectedEmployees.Any())">
+		<MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_selectedEmployees.Any())">
 			Сохранить
 		</MudButton>
 	</DialogActions>
@@ -84,24 +94,29 @@
 	[Parameter]
 	public EventCallback OnAssignmentSaved { get; set; }
 
-	private bool loading = true;
-	private List<EmployeeMinimal> availableEmployees = new();
-	private List<EmployeeMinimal> selectedEmployees = new();
-	private string primaryEmolyeeId = string.Empty;
+	private bool _loading = true;
+	private List<EmployeeMinimal> _availableEmployees = new();
+	private List<EmployeeMinimal> _selectedEmployees = new();
+	private string _primaryEmolyeeId = string.Empty;
+
+	private Order? _order;
+	private Dictionary<Guid, Guid> _assignmentIds = new(); //employeeId -> assignmentId
+	private List<string> _conflicts = new();
 
 	protected override async Task OnInitializedAsync()
 	{
 		await LoadData();
-		loading = false;
+		_order = await OrderService.GetOrderByIdAsync(OrderId);
+		_loading = false;
 	}
 
 	private async Task LoadData()
 	{
 		try
 		{
-			availableEmployees = new();
-			selectedEmployees = new();
-			primaryEmolyeeId = string.Empty;
+			_availableEmployees = new();
+			_selectedEmployees = new();
+			_primaryEmolyeeId = string.Empty;
 
 			var filterConditions = new GetByFiltersRequest
 			{
@@ -137,12 +152,13 @@
 
 			var employeesResponse = await EmployeeService.GetAllEmployeesAsync(filterConditions);
 
-			availableEmployees = employeesResponse.Items
+			var allMasters = employeesResponse.Items
 			.Where(e => e != null)
 			.Select(EmployeeMinimal.FromEmployee)
 			.ToList() ?? new();
 
 			var assignmentResponse = await AssignmentService.GetAssignmentsByOrderIdAsync(OrderId);
+			_assignmentIds.Clear();
 			if (assignmentResponse != null && assignmentResponse.Items.Any())
 			{
 				var assignedEmployeeIds = assignmentResponse.Items
@@ -158,28 +174,37 @@
 					.Where(e => e != null)
 					.ToList() ?? new();
 
-				selectedEmployees = new List<EmployeeMinimal>();
+				_selectedEmployees = new List<EmployeeMinimal>();
 
 				foreach (var assignment in assignmentResponse.Items
 					.OrderByDescending(a => a.IsPrimary)
 					.ThenBy(a => a.CreatedDate))
 				{
 					var employee = assignedEmployees.FirstOrDefault(e => e.Id == assignment.EmployeeId);
-					if (employee != null && !selectedEmployees.Any(e => e.Id == employee.Id))
+					if (employee != null && !_selectedEmployees.Any(e => e.Id == employee.Id))
 					{
-						selectedEmployees.Add(employee);
+						_selectedEmployees.Add(employee);
 						if (assignment.IsPrimary)
 						{
-							primaryEmolyeeId = assignment.EmployeeId.ToString();
+							_primaryEmolyeeId = assignment.EmployeeId.ToString();
 						}
 					}
+
+					_assignmentIds[assignment.EmployeeId] = assignment.Id;
 				}
 
 				var primaryAssignment = assignmentResponse.Items.FirstOrDefault(a => a.IsPrimary);
 				if (primaryAssignment != null)
 				{
-					primaryEmolyeeId = primaryAssignment.EmployeeId.ToString();
+					_primaryEmolyeeId = primaryAssignment.EmployeeId.ToString();
 				}
+
+				var assignedIds = _selectedEmployees.Select(e => e.Id).ToHashSet();
+				_availableEmployees = allMasters.Where(e => !assignedIds.Contains(e.Id)).ToList();
+			}
+			else
+			{
+				_availableEmployees = allMasters;
 			}
 		}
 		catch (Exception ex)
@@ -188,20 +213,63 @@
 		}
 	}
 
+	private async Task<List<string>> CheckScheduleConflictsAsync()
+	{
+		var conflicts = new List<string>();
+		if (_order == null || !_order.StartDateTime.HasValue || !_order.EndDateTime.HasValue)
+			return conflicts;
+
+		var orderStartLocal = _order.StartDateTime.Value.ToLocalTime();
+		var orderEndLocal = _order.EndDateTime.Value.ToLocalTime();
+
+		var startDate = DateOnly.FromDateTime(orderStartLocal.Date);
+		var endDate = DateOnly.FromDateTime(orderEndLocal.Date);
+		var orderStartTime = TimeOnly.FromDateTime(orderStartLocal);
+		var orderEndTime = TimeOnly.FromDateTime(orderEndLocal);
+
+		foreach (var employee in _selectedEmployees)
+		{
+			var schedule = await ScheduleService.GetScheduleByEmployeeAsync(employee.Id, startDate, endDate);
+
+			for (var date = startDate; date <= endDate; date = date.AddDays(1))
+			{
+				var day = schedule.FirstOrDefault(d => d.Date == date);
+				if (day == null)
+				{
+					conflicts.Add($"{employee.FullName} - нет расписания на {date:dd.MM.yyyy}");
+					continue;
+				}
+
+				bool isWorking = day.DayType == "Рабочий";
+				if (!isWorking)
+				{
+					conflicts.Add($"{employee.FullName} - {date:dd.MM.yyyy} {day.DayType}");
+					continue;
+				}
+
+				if (orderStartTime < day.StartTime || orderEndTime > day.EndTime)
+				{
+					conflicts.Add($"{employee.FullName} - время заявки {orderStartTime}-{orderEndTime} не входит в рабочие часы {day.StartTime}-{day.EndTime} на {date:dd.MM.yyyy}");
+				}
+			}
+		}
+		return conflicts;
+	}
+
 	private void ToggleEmployeeSelection(IReadOnlyCollection<EmployeeMinimal> employees)
 	{
 		if (employees == null) return;
 
-		selectedEmployees.Clear();
-		selectedEmployees.AddRange(employees);
+		_selectedEmployees.Clear();
+		_selectedEmployees.AddRange(employees);
 
-		if (selectedEmployees.Any())
+		if (_selectedEmployees.Any())
 		{
-			primaryEmolyeeId = selectedEmployees.First().Id.ToString();
+			_primaryEmolyeeId = _selectedEmployees.First().Id.ToString();
 		}
 		else
 		{
-			primaryEmolyeeId = string.Empty;
+			_primaryEmolyeeId = string.Empty;
 		}
 	}
 
@@ -209,11 +277,11 @@
 	{
 		if (employee == null) return;
 
-		var index = selectedEmployees.FindIndex(e => e.Id == employee.Id);
+		var index = _selectedEmployees.FindIndex(e => e.Id == employee.Id);
 		if (index > 0)
 		{
-			selectedEmployees.RemoveAt(index);
-			selectedEmployees.Insert(index - 1, employee);
+			_selectedEmployees.RemoveAt(index);
+			_selectedEmployees.Insert(index - 1, employee);
 			StateHasChanged();
 		}
 	}
@@ -222,11 +290,11 @@
 	{
 		if (employee == null) return;
 
-		var index = selectedEmployees.FindIndex(e => e.Id == employee.Id);
-		if (index < selectedEmployees.Count - 1)
+		var index = _selectedEmployees.FindIndex(e => e.Id == employee.Id);
+		if (index < _selectedEmployees.Count - 1)
 		{
-			selectedEmployees.RemoveAt(index);
-			selectedEmployees.Insert(index + 1, employee);
+			_selectedEmployees.RemoveAt(index);
+			_selectedEmployees.Insert(index + 1, employee);
 			StateHasChanged();
 		}
 	}
@@ -234,13 +302,44 @@
 	private bool IsEmployeeSelected(EmployeeMinimal employee)
 	{
 		if (employee == null) return false;
-		return selectedEmployees?.Any(e => e.Id == employee.Id) ?? false;
+		return _selectedEmployees?.Any(e => e.Id == employee.Id) ?? false;
 	}
 
 	private async Task Save()
 	{
 		try
 		{
+			//Сверяемся с расписанием мастера
+			var scheduleConflicts = await CheckScheduleConflictsAsync();
+			var assignmentConflicts = await CheckAssignmentConflictsAsync();
+			var conflicts = scheduleConflicts.Concat(assignmentConflicts).ToList();
+			if (conflicts.Any())
+			{
+				var parameters = new DialogParameters
+				{
+					["Title"] = "Предупреждение",
+					["Message"] = "Обнаружены проблемы с расписанием мастеров:",
+					["ConfirmationContent"] = (RenderFragment)((builder) =>
+					{
+						builder.OpenElement(0, "ul");
+						foreach (var conflict in conflicts)
+						{
+							builder.OpenElement(1, "li");
+							builder.AddContent(2, conflict);
+							builder.CloseElement();
+						}
+						builder.CloseElement();
+					}),
+					["YesText"] = "Продолжить",
+					["NoText"] = "Отмена"
+				};
+				var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+				var dialog = await DialogService.ShowAsync<ConfirmationDialog>("Предупреждение", parameters, options);
+				var result = await dialog.Result;
+				if (result.Canceled || result.Data == null)
+					return;
+			}
+
 			// 1. Удаляем старые назначения
 			var currentAssignments = await AssignmentService.GetAssignmentsByOrderIdAsync(OrderId);
 			foreach (var assignment in currentAssignments.Items)
@@ -249,10 +348,10 @@
 			}
 
 			// 2. Создаем новые назначения
-			for (int i = 0; i < selectedEmployees.Count; i++)
+			for (int i = 0; i < _selectedEmployees.Count; i++)
 			{
-				var employee = selectedEmployees[i];
-				var isPrimary = employee.Id.ToString() == primaryEmolyeeId;
+				var employee = _selectedEmployees[i];
+				var isPrimary = employee.Id.ToString() == _primaryEmolyeeId;
 
 				var assignment = new AssignmentCreate
 				{
@@ -279,7 +378,7 @@
 				NotificationService.ShowWarning($"Мастера назначены, но не удалось обновить статус заявки. {ex.Message}");
 			}
 
-			NotificationService.ShowSuccess($"{(selectedEmployees.Count > 1 ? "Мастера" : "Мастер")} успешно {(selectedEmployees.Count > 1 ? "назначены" : "назначен")}.");
+			NotificationService.ShowSuccess($"{(_selectedEmployees.Count > 1 ? "Мастера" : "Мастер")} успешно {(_selectedEmployees.Count > 1 ? "назначены" : "назначен")}.");
 			await OnAssignmentSaved.InvokeAsync();
 			MudDialog.Close();
 		}
@@ -292,5 +391,48 @@
 	private void Cancel()
 	{
 		MudDialog.Cancel();
+	}
+
+	private async Task DeleteAssignment(EmployeeMinimal employee)
+	{
+		if (_assignmentIds.TryGetValue(employee.Id, out var assignmentId))
+		{
+			try
+			{
+				await AssignmentService.DeleteAssignmentAsync(assignmentId);
+				NotificationService.ShowSuccess($"Назначение для {employee.FullName} удалено");
+				await LoadData();
+				StateHasChanged();
+			}
+			catch (Exception ex)
+			{
+				NotificationService.ShowError($"Ошибка удаления: {ex.Message}");
+			}
+		}
+	}
+
+	private async Task<List<string>> CheckAssignmentConflictsAsync()
+	{
+		var conflicts = new List<string>();
+		if (_order == null || !_order.StartDateTime.HasValue || !_order.EndDateTime.HasValue)
+			return conflicts;
+
+		var employeeIds = _selectedEmployees.Select(e => e.Id).ToList();
+		if (!employeeIds.Any())
+			return conflicts;
+
+		var conflictDict = await AssignmentService.CheckConflictsAsync(employeeIds, _order.StartDateTime.Value, _order.EndDateTime.Value, OrderId);
+		foreach (var kv in conflictDict)
+		{
+			var employee = _selectedEmployees.FirstOrDefault(e => e.Id == kv.Key);
+			if (employee == null) continue;
+
+			foreach (var conflict in kv.Value)
+			{
+				conflicts.Add($"{employee.FullName} уже назначен на заявку ({conflict.ClientName} с {conflict.StartDateTime.ToLocalTime():dd.MM.yyyy HH:mm} по {conflict.EndDateTime.ToLocalTime():dd.MM.yyyy HH:mm})");
+			}
+		}
+
+		return conflicts;
 	}
 }

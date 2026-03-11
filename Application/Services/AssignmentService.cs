@@ -14,6 +14,28 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequ
     {
     }
 
+    public async Task<Dictionary<Guid, List<OrderConflictInfo>>> CheckConflictsAsync(AssignmentConflictCheckRequest request)
+    {
+        var result = new Dictionary<Guid, List<OrderConflictInfo>>();
+        foreach(var employeeId in request.EmployeeIds)
+        {
+            var conflicts = await _repository.GetConflictingAssignmentsAsync(employeeId, request.Start, request.End, request.ExcludeOrderId);
+            if(conflicts.Any())
+            {
+                result[employeeId] = conflicts.Select(oe => new OrderConflictInfo
+                {
+                    OrderId = oe.OrderId,
+                    StartDateTime = oe.Order.StartDateTime.Value,
+                    EndDateTime = oe.Order.EndDateTime.Value,
+                    ClientName = oe.Order.Client != null
+                        ? $"{oe.Order.Client.LastName} {oe.Order.Client.Name}"
+                        : "Неизвестно"
+                }).ToList();
+            }
+        }
+        return result;
+    }
+
     public async Task CreateAsync(AssignmentCreateRequest request)
     {
         var filterConditions = new List<(string, string, string)>

@@ -7,6 +7,7 @@ using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Entities;
 using ServiceCenter.Domain.Interfaces;
+using ServiceCenter.Domain.ValueObjects.Enums;
 using System.Collections.Concurrent;
 using System.Linq;
 
@@ -155,17 +156,19 @@ public class ScheduleService(
         if (!schedules.Any())
             yield break;
 
-        var exceptionDates = exceptions
+        var exceptionTypes = exceptions
             .SelectMany(ex =>
             {
                 if (ex.EffectiveTo != default && ex.EffectiveTo >= ex.EffectiveFrom)
                 {
                     var days = ex.EffectiveTo.DayNumber - ex.EffectiveFrom.DayNumber + 1;
-                    return Enumerable.Range(0, days).Select(offset => ex.EffectiveFrom.AddDays(offset));
+                    return Enumerable.Range(0, days).Select(offset => (ex.EffectiveFrom.AddDays(offset), ex.ExceptionType));
                 }
-                return new[] { ex.EffectiveFrom };
+                return new[] { (ex.EffectiveFrom, ex.ExceptionType) };
             })
-            .ToHashSet();
+            .ToDictionary(x => x.Item1, x => x.Item2);
+
+        var exceptionDates = exceptionTypes.Keys.ToHashSet();
 
         var schedule = schedules.LastOrDefault(x =>
             x.EffectiveFrom <= startDate &&
@@ -178,13 +181,21 @@ public class ScheduleService(
 
         for (var date = startDate; date <= endDate; date = date.AddDays(1))
         {
-            var dayType = exceptionDates.Contains(date)
-                ? "Исключение"
-                : ScheduleDaysCalculator.GetDayType(
-                    date,
-                    schedule.EffectiveFrom,
-                    workDays[0],
-                    workDays[1]);
+            string dayType;
+            if(exceptionDates.Contains(date))
+            {
+                var exType = exceptionTypes[date];
+                dayType = exType switch
+                {
+                    ScheduleExceptionType.Vacation => "Отпуск",
+                    ScheduleExceptionType.Sick => "Больничный",
+                    _ => "Исключение из расписания"
+                };
+            }
+            else
+            {
+                dayType = ScheduleDaysCalculator.GetDayType(date, schedule.EffectiveFrom, workDays[0], workDays[1]);
+            }
 
             yield return new ScheduleDayDto(
                 dayType,

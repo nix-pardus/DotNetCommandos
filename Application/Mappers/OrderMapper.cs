@@ -11,4 +11,14 @@ public static partial class OrderMapper
     public static partial Order ToEntity(OrderCreateRequest dto);
     public static partial Order ToEntity(OrderUpdateRequest dto);
     public static partial OrderFullResponse ToResponse(Order entity);
+
+    public static OrderFullResponse ToResponseWithClient(Order entity)
+    {
+        var dto = ToResponse(entity);
+        if(entity.Client != null)
+        {
+            dto = dto with { Client = ClientMapper.ToResponse(entity.Client) };
+        }
+        return dto;
+    }
 }

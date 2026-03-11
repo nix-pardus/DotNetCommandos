@@ -6,6 +6,19 @@ namespace UI.Services;
 
 public class AssignmentService(IApiService apiClient) : IAssignmentService
 {
+    public async Task<Dictionary<Guid, List<OrderConflictInfo>>> CheckConflictsAsync(List<Guid> employeeIds, DateTime start, DateTime end, Guid? excludeOrderId = null)
+    {
+        var request = new
+        {
+            EmployeeIds = employeeIds,
+            Start = start,
+            End = end,
+            ExcludeOrderId = excludeOrderId
+        };
+
+        return await apiClient.GetAsync<Dictionary<Guid, List<OrderConflictInfo>>>("api/Assignment/check-conflicts", request);
+    }
+
     public async Task CreateAssignmentAsync(AssignmentCreate assignment)
     {
         await apiClient.PostAsync("api/Assignment/create", assignment);

@@ -44,4 +44,12 @@ public class AssignmentController(IAssignmentService assignmentService) : Contro
         var response = await assignmentService.GetAllByOrderIdAsync(orderId);
         return Ok(response);
     }
+
+    [HttpPost("check-conflicts")]
+    [Authorize(Policy = "Operator")]
+    public async Task<IActionResult> CheckConflicts([FromBody] AssignmentConflictCheckRequest request)
+    {
+        var conflicts = await assignmentService.CheckConflictsAsync(request);
+        return Ok(conflicts);
+    }
 }

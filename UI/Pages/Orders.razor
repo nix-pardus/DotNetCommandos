@@ -53,11 +53,7 @@
 	</ToolBarContent>
 
 	<Columns>
-		<PropertyColumn Property="x => x.ClientId" Title="Клиент">
-			<CellTemplate>
-				<ClientNameCell Id="@context.Item.ClientId" />
-			</CellTemplate>
-		</PropertyColumn>
+		<PropertyColumn Property="x => x.Client.FullName" Title="Клиент" />
 		<PropertyColumn Property="x => x.StartDateTime" Title="Время выезда">
 			<CellTemplate>
 				@if (context.Item.StartDateTime.HasValue)
