@@ -9,6 +9,7 @@
 @inject INotificationService NotificationService
 @inject IDialogService DialogService
 @inject IUserPreferencesService UserPreferencesService
+@inject NavigationManager NavigationManager
 
 @attribute [Authorize]
 
@@ -27,7 +28,8 @@
 			 Hover
 			 Loading="@loading"
 			 ShowMenuIcon
-			 ColumnResizeMode="ResizeMode.Container">
+			 ColumnResizeMode="ResizeMode.Container"
+			 RowClick="@(context => NavigateToEmployee(context.Item))">
 
 	<ToolBarContent>
 		<MudText Typo="Typo.h6">Сотрудники</MudText>
@@ -435,4 +437,10 @@
 			await dataGrid.ReloadServerData();
 		}
 	}
+
+	private void NavigateToEmployee(Employee employee)
+	{
+		NavigationManager.NavigateTo($"/employee/{employee.Id}");
+	}
+
 }

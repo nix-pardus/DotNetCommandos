@@ -15,9 +15,9 @@ public class EmployeeService : IEmployeeService
     {
         return await _apiService.GetAsync<PagingResponse<Employee>>("api/Employee/get-by-filters", request);
     }
-    public Task<Employee> GetEmployeeByIdAsync(Guid id)
+    public async Task<Employee> GetEmployeeByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await _apiService.GetAsync<Employee>("api/Employee/get-by-id", id);
     }
 
     public async Task CreateEmployeeAsync(CreateEmployee employee)

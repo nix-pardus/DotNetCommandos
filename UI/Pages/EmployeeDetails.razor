@@ -1,0 +1,73 @@
+﻿@page "/employee/{Id:guid}"
+@using UI.Services
+@using UI.Models.Employees
+@using UI.Models.Orders
+@inject IEmployeeService EmployeeService
+@inject INotificationService NotificationService
+@inject NavigationManager NavigationManager
+
+<MudContainer>
+	@if(_loading)
+	{
+		<MudProgressCircular Indeterminate Size="Size.Large"/>
+	}
+	else if(_employee == null)
+	{
+		<MudAlert Severity="Severity.Error">Сотрудник не найден</MudAlert>
+	}
+	else
+	{
+		<MudPaper Class="pa-6" Elevation="2">
+			<MudText Typo="Typo.h4">@_employee.FullName</MudText>
+			<MudDivider Class="my-4"/>
+
+			<MudGrid>
+				<MudItem xs="12" sm="6">
+					<MudText Typo="Typo.body1"><strong>Email:</strong> @_employee.Email</MudText>
+					<MudText Typo="Typo.body1"><strong>Телефон:</strong> @_employee.PhoneNumber</MudText>
+					<MudText Typo="Typo.body1"><strong>Адрес:</strong> @_employee.Address</MudText>
+				</MudItem>
+				<MudItem xs="12" sm="6">
+					<MudText Typo="Typo.body1"><strong>Роль:</strong> @_employee.Role</MudText>
+					<MudText Typo="Typo.body1"><strong>Дата создания:</strong> @_employee.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudText>
+					@if(_employee.ModifiedDate.HasValue)
+					{
+						<MudText Typo="Typo.body1"><strong>Изменен:</strong> @_employee.ModifiedDate.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudText>
+					}
+				</MudItem>
+			</MudGrid>
+
+			<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Class="mt-4">Назад</MudButton>
+		</MudPaper>
+	}
+	</MudContainer>
+
+@code {
+	[Parameter] public Guid Id { get; set; }
+
+	private Employee? _employee;
+	private bool _loading = true;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadEmployee();
+	}
+
+	private async Task LoadEmployee()
+	{
+		try
+		{
+			_employee = await EmployeeService.GetEmployeeByIdAsync(Id);
+		}
+		catch(Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки данных: {ex.Message}");
+		}
+		finally
+		{
+			_loading = false;
+		}
+	}
+
+	private void GoBack() => NavigationManager.NavigateTo("/employees");
+}

@@ -38,6 +38,18 @@ public class EmployeeController(IEmployeeService employeeService) : ControllerBa
         return Ok(response);
     }
 
+    [HttpPost("get-by-id")]
+    [Authorize(Policy = "All")]
+    [ProducesResponseType(typeof(EmployeeFullResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById([FromBody] Guid id)
+    {
+        var employee = await employeeService.GetByIdAsync(id);
+        if(employee == null) 
+            return NotFound();
+        return Ok(employee);
+    }
+
     [HttpPut("update")]
     [Authorize(Policy = "Operator")]
     public async Task<IActionResult> Update([FromBody] EmployeeUpdateRequest employee)
