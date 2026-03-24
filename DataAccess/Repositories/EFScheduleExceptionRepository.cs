@@ -41,6 +41,11 @@ public class EFScheduleExceptionRepository(DataContext context) : IScheduleExcep
         return  await _context.ScheduleExceptions.Where(x=>x.EmployeeId==employeeId).Skip(pageSize*(page-1)).Take(pageSize).ToListAsync();
     }
 
+    public async Task<ScheduleException?> GetByIdAsync(Guid id)
+    {
+        return await _context.ScheduleExceptions.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+    }
+
     public async Task UpdateAsync(ScheduleException scheduleException)
     {
         _context.ScheduleExceptions.Update(scheduleException);

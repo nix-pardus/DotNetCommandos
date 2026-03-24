@@ -99,6 +99,23 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequ
         };
     }
 
+    public async Task<List<OrderAssignmentResponse>> GetAssignmentsByEmployeeAndPeriodAsync(Guid employeeId, DateTime start, DateTime end)
+    {
+        var assignments = await _repository.GetAssignmentsByEmployeeAndPeriodAsync(employeeId, start, end);
+
+        return assignments.Select(a => new OrderAssignmentResponse
+        (
+            a.Id,
+            OrderMapper.ToResponseWithClient(a.Order),
+            a.IsPrimary,
+            a.CreatedDate,
+            a.ModifiedDate,
+            a.IsDeleted,
+            a.CreatedById,
+            a.ModifiedById
+        )).ToList();
+    }
+
     protected override AssignmentResponse ToDto(OrderEmployee entity) => AssignmentMapper.ToResponse(entity);
 
     protected override OrderEmployee ToEntity(AssignmentCreateRequest request) => AssignmentMapper.ToEntity(request);

@@ -6,6 +6,7 @@ public class EmployeeMinimal
     public string Name { get; set; }
     public string LastName { get; set; }
     public string? Patronymic { get; set; }
+    public RoleType Role { get; set; }
     public string FullName => $"{LastName} {Name} {Patronymic}".Trim();
 
     public static EmployeeMinimal FromEmployee(Employee employee)
@@ -18,7 +19,8 @@ public class EmployeeMinimal
             Id = employee.Id,
             Name = employee.Name,
             LastName = employee.LastName,
-            Patronymic = employee.Patronymic
+            Patronymic = employee.Patronymic,
+            Role = employee.Role
         };
     }
 }

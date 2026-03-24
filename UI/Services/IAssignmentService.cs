@@ -10,4 +10,5 @@ public interface IAssignmentService
     Task CreateAssignmentAsync(AssignmentCreate assignment);
     Task DeleteAssignmentAsync(Guid id);
     Task<Dictionary<Guid, List<OrderConflictInfo>>> CheckConflictsAsync(List<Guid> employeeIds, DateTime start, DateTime end, Guid? excludeOrderId = null);
+    Task<List<OrderAssignmentResponse>> GetEmployeeAssignmentsAsync(Guid employeeId, DateTime start, DateTime end);
 }

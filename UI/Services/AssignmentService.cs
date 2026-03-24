@@ -38,4 +38,10 @@ public class AssignmentService(IApiService apiClient) : IAssignmentService
     {
         return await apiClient.GetAsync<PagingResponse<Assignment>>("api/Assignment/get-by-order-id", orderId);
     }
+
+    public async Task<List<OrderAssignmentResponse>> GetEmployeeAssignmentsAsync(Guid employeeId, DateTime start, DateTime end)
+    {
+        var url = $"api/Assignment/by-employee-poriod?employeeId={employeeId}&start={start:yyyy-MM-ddTHH:mm:ssZ}&end={end:yyyy-MM-ddTHH:mm:ssZ}";
+        return await apiClient.GetFromJsonAsync<List<OrderAssignmentResponse>>(url);
+    }
 }

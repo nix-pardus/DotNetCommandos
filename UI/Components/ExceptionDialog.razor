@@ -1,0 +1,71 @@
+﻿@using UI.Models
+@using UI.Models.Schedule
+@using UI.Services
+@inject IScheduleExceptionService ScheduleExceptionService
+@inject INotificationService NotificationService
+<MudDialog>
+	<TitleContent>
+		<MudText Typo="Typo.h6">@Title</MudText>
+	</TitleContent>
+	<DialogContent>
+		<MudGrid>
+			<MudItem xs="12">
+				<MudDateRangePicker @bind-DateRange="_dateRange"
+									Label="Диапазон дат"
+									Required
+									PickerVariant="PickerVariant.Inline" />
+			</MudItem>
+		</MudGrid>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="Cancel">Отмена</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save" Disabled="_dateRange.Start == null || _dateRange.End == null">
+			Сохранить
+		</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+	[Parameter] public Guid EmployeeId { get; set; }
+	[Parameter] public ScheduleExceptionType ExceptionType { get; set; }
+	[Parameter] public EventCallback OnSaved { get; set; }
+
+	private DateRange _dateRange = new();
+
+	private string Title => ExceptionType switch
+	{
+		ScheduleExceptionType.Vacation => "Добавить отпуск",
+		ScheduleExceptionType.Sick => "Добавить больничный",
+		_ => "Добавить исключение"
+	};
+
+	private async Task Save()
+	{
+		if (_dateRange.Start == null || _dateRange.End == null) return;
+
+		var exception = new ScheduleExceptionCreate
+		{
+			EmployeeId = EmployeeId,
+			ExceptionType = ExceptionType,
+			EffectiveFrom = DateOnly.FromDateTime(_dateRange.Start.Value.Date),
+			EffectiveTo = DateOnly.FromDateTime(_dateRange.End.Value.Date),
+		};
+
+		try
+		{
+			await ScheduleExceptionService.CreateScheduleExceptionAsync(exception);
+			await OnSaved.InvokeAsync();
+			string exType = Title.Split(' ').Last();
+			string exTypeNorm = char.ToUpper(exType[0]) + exType.Substring(1);
+			NotificationService.ShowSuccess($"{exTypeNorm} добавлен");
+			MudDialog.Close(DialogResult.Ok(true));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка сохранения: {ex.Message}");
+		}
+	}
+
+	private void Cancel() => MudDialog.Cancel();
+}

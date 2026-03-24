@@ -28,6 +28,7 @@ public class ScheduleService(
     /// 
     private readonly ReaderWriterLockSlim _cacheLock = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _keyLocks = new();
+
     public async Task CreateAsync(ScheduleCreateRequest dto)
     {
         var entity = ScheduleMapper.ToEntity(dto);
@@ -231,7 +232,23 @@ public class ScheduleService(
         ).ToList();
 
         memoryCache.Set(cacheKey, result, TimeSpan.FromMinutes(5));
+
+        AddKeyToEmployeeCacheList(employeeId, cacheKey);
+
         return result;
+    }
+
+    private void AddKeyToEmployeeCacheList(Guid employeeId, string cacheKey)
+    {
+        var listKey = $"EmployeeCacheKeys_{employeeId}";
+        var keys = memoryCache.GetOrCreate(listKey, entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+            return new HashSet<string>();
+        });
+
+        keys.Add(cacheKey);
+        memoryCache.Set(listKey, keys, TimeSpan.FromHours(1));
     }
 
     /// <inheritdoc />
@@ -259,6 +276,20 @@ public class ScheduleService(
         finally
         {
             _cacheLock.ExitWriteLock();
+        }
+    }
+
+    public void InvalidateCacheForEmployee(Guid employeeId)
+    {
+        var listKey = $"EmployeeCacheKeys_{employeeId}";
+        var keys = memoryCache.Get<HashSet<string>>(listKey);
+        if(keys != null)
+        {
+            foreach(var key in keys)
+            {
+                memoryCache.Remove(key);
+            }
+            memoryCache.Remove(listKey);
         }
     }
 }

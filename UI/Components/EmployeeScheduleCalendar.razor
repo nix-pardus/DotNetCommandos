@@ -1,0 +1,373 @@
+﻿@using UI.Models
+@using UI.Models.Assignments
+@using UI.Models.Shedule
+@using UI.Models.Employees
+@using UI.Models.Orders
+@using Heron.MudCalendar
+@using UI.Services
+@inject IScheduleService ScheduleService
+@inject IAssignmentService AssignmentService
+@inject IEmployeeService EmployeeService
+@inject INotificationService NotificationService
+@inject IDialogService DialogService
+
+<MudPaper Class="pa-6 mb-4" Elevation="3">
+	<MudContainer Class="d-flex justify-space-between">
+		<MudText Typo="Typo.h5" Class="mb-4">Расписание</MudText>
+
+		@if (CanEditSchedule)
+		{
+			<MudStack Row Class="mb-4">
+				<MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => OpenExceptionDialog(ScheduleExceptionType.Vacation)">
+					Добавить отпуск
+				</MudButton>
+				<MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="() => OpenExceptionDialog(ScheduleExceptionType.Sick)">
+					Добавить больничный
+				</MudButton>
+			</MudStack>
+		}
+	</MudContainer>
+
+	@if (_loading)
+	{
+		<MudProgressCircular Indeterminate Size="Size.Large" />
+	}
+	else
+	{
+		<MudCalendar T="CustomItem"
+					 Items="_calendarItems"
+					 @bind-View="_currentCalendarView"
+					 CurrentDay="_currentDate"
+					 Outlined
+					 MonthCellMinHeight="115"
+					 ShowDay="false"
+					 CurrentDayChanged="@OnDateChanged"
+					 ItemClicked="@OnEventClick">
+			<MonthTemplate>
+				<div class="d-flex flex-wrap gap-1 align-center">
+					@if (_calendarItems.Any(x => x.Start.Day == context.Start.Day && x.Order != null))
+					{
+						@if (context.Text != "Заявка")
+						{
+							<MudIcon Icon="@Icons.Material.Filled.Circle" Color="@context.Color" Size="Size.Medium" />
+						}
+					}
+					else
+					{
+						<MudIcon Icon="@Icons.Material.Outlined.Circle" Color="@context.Color" Size="Size.Medium" />
+					}
+					@if (context.Order == null)
+					{
+						<MudText Typo="Typo.body2">@context.Text</MudText>
+					}
+					else
+					{
+						<MudContainer Class="d-flex justify-center">
+							<MudText Color="Color.Tertiary" Typo="Typo.body1">@context.Order.StartDateTime.Value.ToLocalTime().ToString("HH:mm") - @context.Order.EndDateTime.Value.ToLocalTime().ToString("HH:mm")</MudText>
+						</MudContainer>
+					}
+				</div>
+				@if (context.Order == null)
+				{
+					<div class="d-flex justify-center mt-1">
+						<MudText Typo="Typo.caption" Color="@GetOrdersCountColor(GetOrdersCountForDay(context.Start.Date))">
+							@GetOrdersCountDisplay(GetOrdersCountForDay(context.Start.Date))
+						</MudText>
+					</div>
+				}
+			</MonthTemplate>
+			<WeekTemplate>
+				@if (context.Order != null)
+				{
+					<MudChip T="string" Variant="Variant.Filled" Color="Color.Info" Class="ma-0 d-block overflow-hidden" Style="width: 100%; height: 100%; white-space: normal; word-break: break-word; box-shadow: 0px 0px 10px 1px #333;">
+						<MudTooltip>
+							<ChildContent>
+								<MudText Typo="Typo.subtitle2" Color="Color.Dark">
+									С @context.Order.StartDateTime.Value.ToLocalTime().ToShortTimeString() до @context.Order.EndDateTime.Value.ToLocalTime().ToShortTimeString().
+								</MudText>
+							</ChildContent>
+							<TooltipContent>
+								<MudCard>
+									<MudCardContent>
+										<MudPaper Outlined Class="pa-2 d-flex flex-column align-start">
+											<MudText Typo="Typo.body2"> <strong>Адрес: </strong>@context.Order.Client.City, @context.Order.Client.Address </MudText>
+											<MudText Typo="Typo.body2"> <strong>Район: </strong>@context.Order.Client.Region </MudText>
+											<MudText Typo="Typo.body2"> <strong>ФИО клиента: </strong>@context.Order.Client.FullName </MudText>
+											<MudText Typo="Typo.body2"> <strong>Телефон клиента: </strong>@context.Order.Client.PhoneNumber </MudText>
+											<MudText Typo="Typo.body2"> <strong>Тип техники: </strong>@context.Order.EquipmentType </MudText>
+											<MudText Typo="Typo.body2"> <strong>Модель: </strong>@context.Order.EquipmentModel </MudText>
+											<MudText Typo="Typo.body2"> <strong>По гарантии: </strong>@(context.Order.IsWarranty ? "Да" : "Нет")</MudText>
+											<MudText Typo="Typo.body2"> <strong>Проблема: </strong>@context.Order.Problem </MudText>
+											<MudText Typo="Typo.body2"> <strong>Комментарий: </strong>@context.Order.Comment </MudText>
+											@if (_orderEmployees.ContainsKey(context.Order.Id) && _orderEmployees[context.Order.Id].Any())
+											{
+												<MudText Typo="Typo.body2" Class="mt-2"><strong>Назначенные мастера:</strong></MudText>
+												<MudList T="string" Dense>
+													@foreach (var empInfo in _orderEmployees[context.Order.Id])
+													{
+														<MudListItem>
+															<MudText Typo="Typo.body2">
+																@(_orderEmployees[context.Order.Id].IndexOf(empInfo) + 1).
+																@empInfo.Employee.FullName
+																@if (empInfo.IsPrimary)
+																{
+																	<MudChip Size="Size.Small" Color="Color.Primary" Class="ml-2">главный</MudChip>
+																}
+															</MudText>
+														</MudListItem>
+													}
+												</MudList>
+											}
+										</MudPaper>
+									</MudCardContent>
+								</MudCard>
+							</TooltipContent>
+						</MudTooltip>
+					</MudChip>
+				}
+			</WeekTemplate>
+		</MudCalendar>
+	}
+</MudPaper>
+
+@code {
+	[Parameter] public Guid EmployeeId { get; set; }
+	[Parameter] public bool CanEditSchedule { get; set; }
+	[Parameter] public EventCallback OnExceptionChanged { get; set; }
+
+	private bool _loading = true;
+	private CalendarView _currentCalendarView = CalendarView.Month;
+	private DateTime _currentDate = DateTime.Today;
+	private List<ScheduleDayDto> _scheduleDays = new();
+	private List<CustomItem> _calendarItems = new();
+	private List<OrderAssignmentResponse> _assignments = new();
+	private Dictionary<Guid, List<OrderEmployeeInfo>> _orderEmployees = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadDataForDate(_currentDate);
+	}
+
+	private async Task LoadDataForDate(DateTime date)
+	{
+		_loading = true;
+		_calendarItems = new();
+		_scheduleDays = new();
+		_assignments = new();
+
+		var scheduleTask = LoadScheduleDataAsync(date);
+		var assignmentsTask = LoadAssignmentsDataAsync(date);
+		await Task.WhenAll(scheduleTask, assignmentsTask);
+
+		BuildCalendarItems();
+		_loading = false;
+		StateHasChanged();
+	}
+
+	private async Task LoadScheduleDataAsync(DateTime date)
+	{
+		var startDate = DateOnly.FromDateTime(new DateTime(date.Year, date.Month, 1));
+		var endDate = startDate.AddMonths(1).AddDays(-1);
+		try
+		{
+			_scheduleDays = await ScheduleService.GetScheduleByEmployeeAsync(EmployeeId, startDate, endDate);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки расписания: {ex.Message}");
+		}
+	}
+
+	private async Task LoadAssignmentsDataAsync(DateTime date)
+	{
+		var startDate = new DateTime(date.Year, date.Month, 1);
+		var endDate = startDate.AddMonths(1).AddDays(-1);
+		try
+		{
+			_assignments = await AssignmentService.GetEmployeeAssignmentsAsync(EmployeeId, startDate, endDate);
+			await LoadOrderEmployeesAsync();
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки заявок: {ex.Message}");
+		}
+	}
+
+	private async Task LoadOrderEmployeesAsync()
+	{
+		if (_assignments == null || !_assignments.Any()) return;
+
+		var uniqueOrderIds = _assignments.Select(a => a.Order.Id).Distinct().ToList();
+		var allEmployeeIds = new HashSet<Guid>();
+
+		var assignmentTasks = uniqueOrderIds.Select(async orderId =>
+		{
+			var response = await AssignmentService.GetAssignmentsByOrderIdAsync(orderId);
+			return (orderId, assignments: response?.Items ?? new List<Assignment>());
+		});
+
+		var orderAssignments = await Task.WhenAll(assignmentTasks);
+
+		foreach (var (orderId, assignments) in orderAssignments)
+		{
+			foreach (var assignment in assignments)
+			{
+				allEmployeeIds.Add(assignment.EmployeeId);
+			}
+		}
+
+		var employeesDict = (await EmployeeService.GetEmployeeMinimalByIdsAsync(allEmployeeIds)).ToDictionary(e => e.Id, e => e);
+
+		_orderEmployees.Clear();
+		foreach (var (orderId, assignments) in orderAssignments)
+		{
+			_orderEmployees[orderId] = assignments
+				.Select(a => new OrderEmployeeInfo
+				{
+					Employee = employeesDict.TryGetValue(a.EmployeeId, out var emp) ? emp : null,
+					IsPrimary = a.IsPrimary
+				})
+				.Where(info => info.Employee != null)
+				.OrderByDescending(info => info.IsPrimary)
+				.ThenBy(info => info.Employee.LastName)
+				.ToList();
+		}
+	}
+
+	private void BuildCalendarItems()
+	{
+		var items = new List<CustomItem>();
+
+		foreach (var day in _scheduleDays)
+		{
+			items.Add(new CustomItem
+			{
+				Start = day.Date.ToDateTime(TimeOnly.MinValue),
+				End = day.Date.ToDateTime(TimeOnly.MinValue).AddMinutes(1),
+				AllDay = true,
+				Text = day.DayType,
+				Color = GetColor(day.DayType)
+			});
+		}
+
+		foreach (var assignment in _assignments)
+		{
+			if (!assignment.Order.StartDateTime.HasValue) continue;
+
+			items.Add(new CustomItem
+			{
+				AllDay = false,
+				Color = Color.Info,
+				Order = assignment.Order,
+				Text = "Заявка",
+				Start = assignment.Order.StartDateTime.Value.ToLocalTime(),
+				End = assignment.Order.EndDateTime.Value.ToLocalTime()
+			});
+		}
+
+		_calendarItems = items;
+	}
+
+	private Color GetColor(string dayType) => dayType switch
+	{
+		"Рабочий" => Color.Info,
+		"Выходной" => Color.Error,
+		"Отпуск" => Color.Success,
+		"Больничный" => Color.Warning,
+		"Исключение из расписания" => Color.Secondary,
+		_ => Color.Default
+	};
+
+	private int GetOrdersCountForDay(DateTime day)
+	{
+		return _calendarItems.Count(x => x.Order != null && x.Start.Date == day.Date);
+	}
+
+	private string GetOrdersCountDisplay(int count)
+	{
+		return count == 0 ? "нет заявок" : $"заявок: {count}";
+	}
+
+	private Color GetOrdersCountColor(int count)
+	{
+		return count > 0 ? Color.Success : Color.Default;
+	}
+
+	private async Task OnDateChanged(DateTime newDate)
+	{
+		_currentDate = newDate;
+		await LoadDataForDate(_currentDate);
+	}
+
+	private async Task OnEventClick(CalendarItem calendarItem)
+	{
+		// Если кликнули по дню (AllDay и нет заявки) и текущий вид — месяц, переключаем на неделю
+		if (calendarItem.AllDay && calendarItem is CustomItem item && item.Order == null && _currentCalendarView == CalendarView.Month)
+		{
+			_currentCalendarView = CalendarView.Week;
+			_currentDate = calendarItem.Start.Date;
+			StateHasChanged();
+			return;
+		}
+
+		// Иначе обрабатываем как клик по событию (удаление исключения)
+		if (!CanEditSchedule) return;
+
+		var selectedDate = DateOnly.FromDateTime(calendarItem.Start);
+		var day = _scheduleDays.FirstOrDefault(d => d.Date == selectedDate);
+
+		if (day == null) return;
+
+		if (day.DayType is "Отпуск" or "Больничный" or "Исключение из расписания")
+		{
+			var confirm = await DialogService.ShowMessageBox(
+				"Подтверждение",
+				$"Удалить исключение на {selectedDate:dd.MM.yyyy}?",
+				yesText: "Да",
+				noText: "Нет"
+			);
+
+			if (confirm == true)
+			{
+				await DeleteExceptionForDate(selectedDate);
+			}
+		}
+	}
+
+	private async Task DeleteExceptionForDate(DateOnly date)
+	{
+		// Здесь должна быть реализация удаления исключения
+		NotificationService.ShowWarning("Удаление исключений пока не реализовано");
+		// После удаления нужно обновить данные:
+		// await LoadDataForDate(_currentDate);
+		// await OnExceptionChanged.InvokeAsync();
+	}
+
+	private async Task OpenExceptionDialog(ScheduleExceptionType type)
+	{
+		var parameters = new DialogParameters
+		{
+			["EmployeeId"] = EmployeeId,
+			["ExceptionType"] = type,
+			["OnSaved"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await LoadDataForDate(_currentDate);
+				await OnExceptionChanged.InvokeAsync();
+			})
+		};
+		var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+		await DialogService.ShowAsync<ExceptionDialog>("Добавление исключения", parameters, options);
+	}
+
+	private class CustomItem : CalendarItem
+	{
+		public Color Color { get; set; } = Color.Primary;
+		public Order? Order { get; set; }
+	}
+
+	private class OrderEmployeeInfo
+	{
+		public EmployeeMinimal Employee { get; set; }
+		public bool IsPrimary { get; set; }
+	}
+}
