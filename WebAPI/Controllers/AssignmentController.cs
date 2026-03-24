@@ -52,4 +52,13 @@ public class AssignmentController(IAssignmentService assignmentService) : Contro
         var conflicts = await assignmentService.CheckConflictsAsync(request);
         return Ok(conflicts);
     }
+
+    [HttpGet("by-employee-poriod")]
+    [Authorize(Policy = "All")]
+    [ProducesResponseType(typeof(List<OrderAssignmentResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByEmployeeAndPeriod([FromQuery] Guid employeeId, [FromQuery] DateTime start, [FromQuery] DateTime end)
+    {
+        var assignments = await assignmentService.GetAssignmentsByEmployeeAndPeriodAsync(employeeId, start, end);
+        return Ok(assignments);
+    }
 }

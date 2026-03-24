@@ -56,7 +56,8 @@ namespace ServiceCenter.Application.Services
                     employee.Id,
                     employee.Name,
                     employee.LastName,
-                    employee.Patronymic
+                    employee.Patronymic,
+                    employee.Role
                 )
             };
         }
@@ -102,7 +103,8 @@ namespace ServiceCenter.Application.Services
                     employee.Id,
                     employee.Name,
                     employee.LastName,
-                    employee.Patronymic
+                    employee.Patronymic,
+                    employee.Role
                 )
             };
         }

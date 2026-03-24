@@ -48,5 +48,12 @@ public interface IAssignmentService
     /// <returns>Постраничный список назначений</returns>
     Task<PagedResponse<AssignmentResponse>> GetByFiltersAsync(GetByFiltersRequest request);
 
+    /// <summary>
+    /// Проверяет пересечение с другими заявками
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     Task<Dictionary<Guid, List<OrderConflictInfo>>> CheckConflictsAsync(AssignmentConflictCheckRequest request);
+
+    Task<List<OrderAssignmentResponse>> GetAssignmentsByEmployeeAndPeriodAsync(Guid employeeId, DateTime start, DateTime end);
 }

@@ -1,4 +1,6 @@
-﻿namespace ServiceCenter.Application.DTO.Responses;
+﻿using ServiceCenter.Domain.ValueObjects.Enums;
+
+namespace ServiceCenter.Application.DTO.Responses;
 
 /// <summary>
 /// Сотрудник
@@ -11,6 +13,7 @@ public record EmployeeMinimalResponse(
     Guid Id,
     string Name,
     string LastName,
-    string? Patronymic
+    string? Patronymic,
+    RoleType Role
 );
 

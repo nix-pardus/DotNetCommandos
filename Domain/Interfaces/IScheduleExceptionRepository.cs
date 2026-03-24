@@ -30,5 +30,6 @@ public interface IScheduleExceptionRepository
     /// </summary>
     /// <param name="id">Идентификатор исключения из графика</param>
     Task DeleteAsync(Guid id);
+    Task<ScheduleException?> GetByIdAsync(Guid id);
 }
 

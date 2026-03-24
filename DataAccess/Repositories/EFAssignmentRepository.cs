@@ -10,6 +10,27 @@ public class EFAssignmentRepository : BaseRepository<OrderEmployee>, IAssignment
     {
     }
 
+    public async Task<List<OrderEmployee>> GetAssignmentsByEmployeeAndPeriodAsync(Guid employeeId, DateTime start, DateTime end, bool includeDeleted = false)
+    {
+        var query = _context.OrderEmployees
+            .Include(oe => oe.Order)
+            .ThenInclude(o => o.Client)
+            .Where(oe => oe.EmployeeId == employeeId);
+
+        if(!includeDeleted)
+        {
+            query = query.Where(oe => !oe.IsDeleted && (oe.Order == null || !oe.Order.IsDeleted));
+        }
+
+        query = query.Where(oe => oe.Order != null
+        && oe.Order.StartDateTime.HasValue
+        && oe.Order.EndDateTime.HasValue
+        && oe.Order.StartDateTime < end
+        && oe.Order.EndDateTime > start);
+
+        return await query.ToListAsync();
+    }
+
     public async Task<List<OrderEmployee>> GetConflictingAssignmentsAsync(Guid employeeId, DateTime start, DateTime end, Guid? excludeOrderId = null)
     {
         var query = _context.OrderEmployees

@@ -11,7 +11,7 @@ namespace ServiceCenter.Application.Services;
 /// Сервис для работы с графиком работы
 /// Реализует <see cref="IScheduleService"/>
 /// </summary>
-public class ScheduleExceptionService(IScheduleExceptionRepository repository, ICurrentUserService currentUserService) : IScheduleExceptionService
+public class ScheduleExceptionService(IScheduleExceptionRepository repository, ICurrentUserService currentUserService, IScheduleService scheduleService) : IScheduleExceptionService
 {
     /// <inheritdoc />
     public async Task CreateAsync(ScheduleExceptionCreateRequest dto)
@@ -20,11 +20,20 @@ public class ScheduleExceptionService(IScheduleExceptionRepository repository, I
         entity.CreatedById = currentUserService.UserId ?? Guid.Empty;
         entity.CreatedDate = DateTime.UtcNow;
         await repository.AddAsync(entity);
+
+        scheduleService.InvalidateCacheForEmployee(dto.EmployeeId);
     }
 
     public async Task DeleteAsync(Guid id)
     {
+        var exception = await repository.GetByIdAsync(id);
+        if (exception == null)
+            throw new InvalidOperationException($"Исключение с id {id} не найдено.");
+
+        var employeeId = exception.EmployeeId;
         await repository.DeleteAsync(id);
+
+        scheduleService.InvalidateCacheForEmployee(employeeId);
     }
 
     public async Task<IEnumerable<ScheduleExceptionFullResponse>> GetAllByEmployeePaged(Guid employeeId, int page, int pageSize)

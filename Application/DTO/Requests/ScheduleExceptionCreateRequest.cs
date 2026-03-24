@@ -8,7 +8,7 @@ namespace ServiceCenter.Application.DTO.Requests;
 /// <param name="Id">Идентификатор графика</param>
 //TODO: заполнить
 public record ScheduleExceptionCreateRequest(
-    ScheduleExceptionType? exceptionType,
+    ScheduleExceptionType? ExceptionType,
     DateOnly EffectiveFrom,
     DateOnly EffectiveTo,
     Guid EmployeeId

@@ -20,4 +20,5 @@ public interface IScheduleService
     Task DeleteAsync(Guid id);
     Task<IEnumerable<ScheduleDayDto>> GetScheduleByEmployee(Guid employeeId, DateOnly startDate, DateOnly endDate);
     Task<IDictionary<EmployeeMinimalResponse, IEnumerable<ScheduleDayDto>>> GetSchedule(DateOnly startDate, DateOnly endDate);
+    void InvalidateCacheForEmployee(Guid employeeId);
 }
