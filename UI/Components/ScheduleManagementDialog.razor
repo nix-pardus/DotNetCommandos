@@ -1,0 +1,126 @@
+﻿@using UI.Models
+@using UI.Models.Schedule
+@using UI.Services
+@inject IScheduleService ScheduleService
+@inject INotificationService NotificationService
+
+<MudDialog>
+	<TitleContent>
+		<MudText Typo="Typo.h6">@(IsEdit ? "Редактирование графика" : "Добавление графика")</MudText>
+	</TitleContent>
+	<DialogContent>
+		<EditForm Model="@_model" OnValidSubmit="Save" @ref="_editForm">
+			<DataAnnotationsValidator />
+			<MudGrid>
+				<MudItem xs="12">
+					<MudTextField @bind-Value="_model.Pattern" Label="График работы (например: 5/2, 2/2)" Required For="@(() => _model.Pattern)" />
+				</MudItem>
+				<MudItem xs="6">
+					<MudDatePicker @bind-Date="_model.EffectiveFromDate" Label="Дата начала" Required For="@(() => _model.EffectiveFromDate)" />
+				</MudItem>
+				<MudItem xs="6">
+					<MudDatePicker @bind-Date="_model.EffectiveToDate" Label="Дата окончания (необязательно)" Clearable />
+				</MudItem>
+				<MudItem xs="6">
+					<MudTimePicker @bind-Time="_model.StartTime" Label="Время начала" Required For="@(() => _model.StartTime)" />
+				</MudItem>
+				<MudItem xs="6">
+					<MudTimePicker @bind-Time="_model.EndTime" Label="Время окончания" Required For="@(() => _model.EndTime)" />
+				</MudItem>
+			</MudGrid>
+		</EditForm>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="Cancel">Отмена</MudButton>
+		<MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_editForm?.EditContext?.Validate() == false)">Сохранить</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+	[Parameter] public Guid EmployeeId { get; set; }
+	[Parameter] public Schedule? EditSchedule { get; set; }
+	[Parameter] public bool IsEdit { get; set; }
+
+	private ScheduleFormModel _model = new();
+	private EditForm? _editForm;
+
+	protected override void OnParametersSet()
+	{
+		if (IsEdit && EditSchedule != null)
+		{
+			_model = new ScheduleFormModel
+			{
+				Pattern = EditSchedule.Pattern,
+				EffectiveFromDate = EditSchedule.EffectiveFrom.ToDateTime(TimeOnly.MinValue),
+				EffectiveToDate = EditSchedule.EffectiveTo?.ToDateTime(TimeOnly.MinValue),
+				StartTime = EditSchedule.StartTime.ToTimeSpan(),
+				EndTime = EditSchedule.EndTime.ToTimeSpan(),
+				EmployeeId = EditSchedule.EmployeeId
+			};
+		}
+		else
+		{
+			_model = new ScheduleFormModel
+			{
+				EmployeeId = EmployeeId,
+				EffectiveFromDate = DateTime.Today,
+				StartTime = new TimeSpan(9, 0, 0),
+				EndTime = new TimeSpan(18, 0, 0)
+			};
+		}
+	}
+
+	private void Submit()
+	{
+		if (_editForm?.EditContext?.Validate() == true)
+		{
+			Save();
+		}
+	}
+
+	private async Task Save()
+	{
+		try
+		{
+			if (IsEdit && EditSchedule != null)
+			{
+				var update = new ScheduleUpdate
+				{
+					Id = EditSchedule.Id,
+					Pattern = _model.Pattern,
+					EffectiveFrom = DateOnly.FromDateTime(_model.EffectiveFromDate!.Value),
+					EffectiveTo = _model.EffectiveToDate.HasValue ? DateOnly.FromDateTime(_model.EffectiveToDate.Value) : null,
+					StartTime = TimeOnly.FromTimeSpan(_model.StartTime!.Value),
+					EndTime = TimeOnly.FromTimeSpan(_model.EndTime!.Value),
+					EmployeeId = _model.EmployeeId,
+					IsDeleted = EditSchedule.IsDeleted
+				};
+				await ScheduleService.UpdateScheduleAsync(update);
+				NotificationService.ShowSuccess("График обновлен");
+			}
+			else
+			{
+				var create = new ScheduleCreate
+				{
+					Pattern = _model.Pattern,
+					EffectiveFrom = DateOnly.FromDateTime(_model.EffectiveFromDate!.Value),
+					EffectiveTo = _model.EffectiveToDate.HasValue ? DateOnly.FromDateTime(_model.EffectiveToDate.Value) : null,
+					StartTime = TimeOnly.FromTimeSpan(_model.StartTime!.Value),
+					EndTime = TimeOnly.FromTimeSpan(_model.EndTime!.Value),
+					EmployeeId = _model.EmployeeId
+				};
+				await ScheduleService.CreateScheduleAsync(create);
+				NotificationService.ShowSuccess("График добавлен");
+			}
+			MudDialog.Close(DialogResult.Ok(true));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка сохранения расписания: {ex.Message}");
+		}
+	}
+
+	private void Cancel() => MudDialog.Cancel();
+}

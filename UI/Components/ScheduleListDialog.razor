@@ -1,0 +1,137 @@
+﻿@using UI.Models.Schedule
+@using UI.Services
+@inject IDialogService DialogService
+@inject IScheduleService ScheduleService
+@inject INotificationService NotificationService
+
+<MudDialog>
+	<TitleContent>
+		<MudText Typo="Typo.h6">Графики работы</MudText>
+	</TitleContent>
+	<DialogContent>
+		@if(_loading)
+		{
+			<MudProgressCircular Indeterminate/>
+		}
+		else if(!_schedules.Any())
+		{
+			<MudText>Нет графиков. Добавьте график.</MudText>
+		}
+		else
+		{
+			<MudTable T="Schedule" Items="_schedules" Dense>
+				<HeaderContent>
+					<MudTh>График работы</MudTh>
+					<MudTh>Действует с</MudTh>
+					<MudTh>по</MudTh>
+					<MudTh>Время</MudTh>
+					<MudTh>Действия</MudTh>
+				</HeaderContent>
+				<RowTemplate>
+					<MudTd>@context.Pattern</MudTd>
+					<MudTd>@context.EffectiveFrom.ToString("dd.MM.yyyy")</MudTd>
+					<MudTd>@(context.EffectiveTo?.ToString("dd.MM.yyyy") ?? "бессрочно")</MudTd>
+					<MudTd>@context.StartTime.ToString("HH:mm") - @context.EndTime.ToString("HH:mm")</MudTd>
+					<MudTd>
+						<MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="() => EditSchedule(context)"/>
+						<MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteSchedule(context)" />
+					</MudTd>
+				</RowTemplate>
+			</MudTable>
+		}
+	</DialogContent>
+	<DialogActions>
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddSchedule">Добавить график</MudButton>
+		<MudButton OnClick="Close">Закрыть</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+	[Parameter] public Guid EmployeeId { get; set; }
+	[Parameter] public List<Schedule> Schedules { get; set; } = new();
+	[Parameter] public EventCallback OnScheduleChanged { get; set; }
+
+	private List<Schedule> _schedules = new();
+	private bool _loading;
+
+	protected override void OnInitialized()
+	{
+		_schedules = Schedules;
+	}
+
+	private async Task AddSchedule()
+	{
+		var parameters = new DialogParameters
+			{
+				["EmployeeId"] = EmployeeId,
+				["IsEdit"] = false
+			};
+
+		var options = new DialogOptions
+			{
+				CloseButton = true,
+				MaxWidth = MaxWidth.Medium
+			};
+
+		var dialog = await DialogService.ShowAsync<ScheduleManagementDialog>("Добавление графика", parameters, options);
+		var result = await dialog.Result;
+		if (!result.Canceled)
+		{
+			await OnScheduleChanged.InvokeAsync();
+			MudDialog.Close();
+		}
+	}
+
+	private async Task EditSchedule(Schedule schedule)
+	{
+		var parameters = new DialogParameters
+			{
+				["EmployeeId"] = EmployeeId,
+				["EditSchedule"] = schedule,
+				["IsEdit"] = true
+			};
+
+		var options = new DialogOptions
+			{
+				CloseButton = true,
+				MaxWidth = MaxWidth.Medium
+			};
+
+		var dialog = await DialogService.ShowAsync<ScheduleManagementDialog>("Редактирование графика", parameters, options);
+		var result = await dialog.Result;
+		if (!result.Canceled)
+		{
+			await OnScheduleChanged.InvokeAsync();
+			MudDialog.Close();
+		}
+
+	}
+
+	private async Task DeleteSchedule(Schedule schedule)
+	{
+		var confirm = await DialogService.ShowMessageBox(
+			"Подтверждение",
+			$"Удалить график ({schedule.Pattern})?",
+			yesText: "Да",
+			noText: "Нет"
+		);
+		if(confirm == true)
+		{
+			try
+			{
+				await ScheduleService.DeleteScheduleAsync(schedule.Id);
+				NotificationService.ShowSuccess("График удален");
+				await OnScheduleChanged.InvokeAsync();
+				MudDialog.Close();
+			}
+			catch(Exception ex)
+			{
+				NotificationService.ShowError($"Ошибка удаления: {ex.Message}");
+			}
+		}
+	}
+
+	private void Close() => MudDialog.Close();
+}

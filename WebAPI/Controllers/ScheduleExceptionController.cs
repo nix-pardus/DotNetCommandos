@@ -19,7 +19,7 @@ public class ScheduleExceptionController(IScheduleExceptionService service) : Co
 
     [HttpDelete("delete")]
     [Authorize(Policy = "Operator")]
-    public async Task<IActionResult> DeleteById([FromBody] Guid id)
+    public async Task<IActionResult> DeleteById([FromQuery] Guid id)
     {
         try
         {

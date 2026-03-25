@@ -1,4 +1,4 @@
-﻿namespace UI.Models.Shedule;
+﻿namespace UI.Models.Schedule;
 
 public class ScheduleDayDto
 {

@@ -18,9 +18,9 @@ namespace ServiceCenter.Application.Services;
 /// Реализует <see cref="IScheduleService"/>
 /// </summary>
 public class ScheduleService(
-    IScheduleRepository repository, 
-    IScheduleExceptionRepository exceptionRepository, 
-    IEmployeeRepository employeeRepository, 
+    IScheduleRepository repository,
+    IScheduleExceptionRepository exceptionRepository,
+    IEmployeeRepository employeeRepository,
     ICurrentUserService currentUserService,
     IMemoryCache memoryCache) : IScheduleService
 {
@@ -36,7 +36,7 @@ public class ScheduleService(
         entity.CreatedDate = DateTime.UtcNow;
         await repository.AddAsync(entity);
         //чистим кеш
-        InvalidateScheduleCache();
+        InvalidateCacheForEmployee(dto.EmployeeId);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -171,19 +171,25 @@ public class ScheduleService(
 
         var exceptionDates = exceptionTypes.Keys.ToHashSet();
 
-        var schedule = schedules.LastOrDefault(x =>
-            x.EffectiveFrom <= startDate &&
-            (x.EffectiveTo >= startDate || x.EffectiveTo == null));
-
-        if (schedule == null)
-            yield break;
-
-        var workDays = schedule.Pattern.Split('/').Select(int.Parse).ToArray();
-
         for (var date = startDate; date <= endDate; date = date.AddDays(1))
         {
+            var schedule = schedules.LastOrDefault(x =>
+                x.EffectiveFrom <= date &&
+                (x.EffectiveTo >= date || x.EffectiveTo == null));
+
+            if (schedule == null)
+            {
+                yield return new ScheduleDayDto(
+                    "Нет расписания",
+                    TimeOnly.MinValue,
+                    TimeOnly.MinValue,
+                    date);
+                continue;
+            }
+
+            var workDays = schedule.Pattern.Split('/').Select(int.Parse).ToArray();
             string dayType;
-            if(exceptionDates.Contains(date))
+            if (exceptionDates.Contains(date))
             {
                 var exType = exceptionTypes[date];
                 dayType = exType switch
@@ -218,8 +224,8 @@ public class ScheduleService(
             return cachedResult;
         }
 
-        var schedules = await repository.GetAllByIntervalAsync(employeeId, startDate, endDate);
-        var exceptions = await exceptionRepository.GetAllByIntervalAsync(employeeId, startDate, endDate);
+        var schedules = await repository.GetAllByIntervalAsync(startDate, endDate, employeeId);
+        var exceptions = await exceptionRepository.GetAllByIntervalAsync(startDate, endDate, employeeId);
 
         var orderedSchedules = schedules.OrderBy(x => x.EffectiveFrom).ToList();
         var orderedExceptions = exceptions.OrderBy(x => x.EffectiveFrom).ToList();
@@ -256,9 +262,9 @@ public class ScheduleService(
     {
         var entity = ScheduleMapper.ToEntity(dto);
         await repository.UpdateAsync(entity);
+        InvalidateCacheForEmployee(dto.EmployeeId);
         return ScheduleMapper.ToResponse(entity);
-        InvalidateScheduleCache();
-        
+
     }
 
     // чистим кеш от улючей
@@ -283,13 +289,20 @@ public class ScheduleService(
     {
         var listKey = $"EmployeeCacheKeys_{employeeId}";
         var keys = memoryCache.Get<HashSet<string>>(listKey);
-        if(keys != null)
+        if (keys != null)
         {
-            foreach(var key in keys)
+            foreach (var key in keys)
             {
                 memoryCache.Remove(key);
             }
             memoryCache.Remove(listKey);
         }
+    }
+
+    public async Task<IEnumerable<ScheduleFullResponse>> GetSchedulesByEmployeeAsync(Guid employeeId)
+    {
+        var schedules = await repository.GetAllByIntervalAsync(DateOnly.MinValue, DateOnly.MaxValue, employeeId);
+
+        return schedules.Select(ScheduleMapper.ToResponse);
     }
 }

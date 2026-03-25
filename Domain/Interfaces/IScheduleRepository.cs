@@ -8,18 +8,12 @@ namespace ServiceCenter.Domain.Interfaces;
 public interface IScheduleRepository
 {
     /// <summary>
-    /// Получить все графики сотрудника за период
+    /// Получить все графики или графики сотрудника за период
     /// </summary>
     /// <param name="employeeId">id сотрудника</param>
     /// <param name="startDate">Дата начала запрашиваемого интервала</param>
     /// <param name="endDate">Дата окончания запрашиваемого интервала</param>
-    Task<IEnumerable<Schedule>> GetAllByIntervalAsync(Guid? employeeId, DateOnly startDate, DateOnly endDate);
-    /// <summary>
-    /// Получить все графики всех сотрудников за период
-    /// </summary>
-    /// <param name="startDate">Дата начала запрашиваемого интервала</param>
-    /// <param name="endDate">Дата окончания запрашиваемого интервала</param>
-    Task<IEnumerable<Schedule>> GetAllByIntervalAsync(DateOnly startDate, DateOnly endDate);
+    Task<IEnumerable<Schedule>> GetAllByIntervalAsync(DateOnly startDate, DateOnly endDate, Guid? employeeId = null);
 
     /// <summary>
     /// Добавить график работы

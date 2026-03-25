@@ -1,0 +1,109 @@
+﻿@using UI.Models
+@using UI.Models.ScheduleExceptions
+@using UI.Services
+@inject IScheduleExceptionService ScheduleExceptionService
+@inject INotificationService NotificationService
+@inject IDialogService DialogService
+
+<MudDialog>
+	<TitleContent>
+		<MudText Typo="Typo.h6">Исключения из расписания</MudText>
+	</TitleContent>
+	<DialogContent>
+		@if(_loading)
+		{
+			<MudProgressCircular Indeterminate/>
+		}
+		else if(!_exceptions.Any())
+		{
+			<MudText>Нет исключений</MudText>
+		}
+		else
+		{
+			<MudTable Items="_exceptions" Dense>
+				<HeaderContent>
+					<MudTh>Тип</MudTh>
+					<MudTh>Дата начала</MudTh>
+					<MudTh>Дата окончания</MudTh>
+					<MudTh>Действия</MudTh>
+				</HeaderContent>
+				<RowTemplate>
+					<MudTd>@GetExceptionTypeName(context.ExceptionType)</MudTd>
+					<MudTd>@context.EffectiveFrom.ToString("dd.MM.yyyy")</MudTd>
+					<MudTd>@context.EffectiveTo.ToString("dd.MM.yyyy")</MudTd>
+					<MudTd>
+						<MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="() => DeleteException(context)"/>
+					</MudTd>
+				</RowTemplate>
+			</MudTable>
+		}
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="() => MudDialog.Close()">Закрыть</MudButton>
+	</DialogActions>
+</MudDialog>
+
+@code {
+	[CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+	[Parameter] public Guid EmployeeId { get; set; }
+	[Parameter] public EventCallback OnExceptionChanged { get; set; }
+
+	private List<ScheduleException> _exceptions = new();
+	private bool _loading = true;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadExceptions();
+	}
+
+	private async Task LoadExceptions()
+	{
+		_loading = true;
+		try
+		{
+			_exceptions = await ScheduleExceptionService.GetScheduleExceptionsByEmployeeAsync(EmployeeId);
+		}
+		catch(Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки исключений: {ex.Message}");
+		}
+		finally
+		{
+			_loading = false;
+		}
+	}
+
+	private async Task DeleteException(ScheduleException exception)
+	{
+		var confirm = await DialogService.ShowMessageBox(
+			"Подтверждение",
+			$"Удалить {GetExceptionTypeName(exception.ExceptionType)} с {exception.EffectiveFrom:dd.MM.yyyy} по {exception.EffectiveTo:dd.MM.yyyy}?",
+			yesText: "Да",
+			noText: "Нет"
+		);
+		if(confirm == true)
+		{
+			try
+			{
+				await ScheduleExceptionService.DeleteScheduleExceptionAsync(exception.Id);
+				NotificationService.ShowSuccess("Исключение удалено");
+				await LoadExceptions();
+				await OnExceptionChanged.InvokeAsync();
+			}
+			catch(Exception ex)
+			{
+				NotificationService.ShowError($"Ошибка удаления исключения: {ex.Message}");
+			}
+		}
+	}
+
+	private string GetExceptionTypeName(ScheduleExceptionType? type)
+	{
+		return type switch
+		{
+			ScheduleExceptionType.Vacation => "Отпуск",
+			ScheduleExceptionType.Sick => "Больничный",
+			_ => "Исключение"
+		};
+	}
+}
