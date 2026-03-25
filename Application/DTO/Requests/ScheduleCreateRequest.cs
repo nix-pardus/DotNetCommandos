@@ -8,7 +8,7 @@
 public record ScheduleCreateRequest(
     string Pattern,
     DateOnly EffectiveFrom,
-    DateOnly EffectiveTo,
+    DateOnly? EffectiveTo,
     TimeOnly StartTime,
     TimeOnly EndTime,
     Guid EmployeeId

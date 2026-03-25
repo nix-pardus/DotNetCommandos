@@ -1,6 +1,6 @@
 ﻿@using UI.Models
 @using UI.Models.Assignments
-@using UI.Models.Shedule
+@using UI.Models.Schedule
 @using UI.Models.Employees
 @using UI.Models.Orders
 @using Heron.MudCalendar
@@ -18,12 +18,20 @@
 		@if (CanEditSchedule)
 		{
 			<MudStack Row Class="mb-4">
-				<MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => OpenExceptionDialog(ScheduleExceptionType.Vacation)">
-					Добавить отпуск
+				<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenScheduleManagement">
+					Управление расписанием
 				</MudButton>
-				<MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="() => OpenExceptionDialog(ScheduleExceptionType.Sick)">
-					Добавить больничный
-				</MudButton>
+				<MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+					<MudButton OnClick="OpenExceptionManagement">
+						Управление исключениями
+					</MudButton>
+					<MudButton OnClick="() => OpenExceptionDialog(ScheduleExceptionType.Vacation)">
+						Добавить отпуск
+					</MudButton>
+					<MudButton OnClick="() => OpenExceptionDialog(ScheduleExceptionType.Sick)">
+						Добавить больничный
+					</MudButton>
+				</MudButtonGroup>
 			</MudStack>
 		}
 	</MudContainer>
@@ -142,6 +150,7 @@
 	private List<CustomItem> _calendarItems = new();
 	private List<OrderAssignmentResponse> _assignments = new();
 	private Dictionary<Guid, List<OrderEmployeeInfo>> _orderEmployees = new();
+	private List<Schedule> _schedules = new();
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -307,40 +316,7 @@
 			_currentCalendarView = CalendarView.Week;
 			_currentDate = calendarItem.Start.Date;
 			StateHasChanged();
-			return;
 		}
-
-		// Иначе обрабатываем как клик по событию (удаление исключения)
-		if (!CanEditSchedule) return;
-
-		var selectedDate = DateOnly.FromDateTime(calendarItem.Start);
-		var day = _scheduleDays.FirstOrDefault(d => d.Date == selectedDate);
-
-		if (day == null) return;
-
-		if (day.DayType is "Отпуск" or "Больничный" or "Исключение из расписания")
-		{
-			var confirm = await DialogService.ShowMessageBox(
-				"Подтверждение",
-				$"Удалить исключение на {selectedDate:dd.MM.yyyy}?",
-				yesText: "Да",
-				noText: "Нет"
-			);
-
-			if (confirm == true)
-			{
-				await DeleteExceptionForDate(selectedDate);
-			}
-		}
-	}
-
-	private async Task DeleteExceptionForDate(DateOnly date)
-	{
-		// Здесь должна быть реализация удаления исключения
-		NotificationService.ShowWarning("Удаление исключений пока не реализовано");
-		// После удаления нужно обновить данные:
-		// await LoadDataForDate(_currentDate);
-		// await OnExceptionChanged.InvokeAsync();
 	}
 
 	private async Task OpenExceptionDialog(ScheduleExceptionType type)
@@ -369,5 +345,63 @@
 	{
 		public EmployeeMinimal Employee { get; set; }
 		public bool IsPrimary { get; set; }
+	}
+
+	private async Task OpenScheduleManagement()
+	{
+		await LoadSchedules();
+		var parameters = new DialogParameters
+		{
+			["EmployeeId"] = EmployeeId,
+			["Schedules"] = _schedules,
+			["OnScheduleChanged"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await LoadSchedules();
+				await LoadDataForDate(_currentDate);
+			})
+		};
+
+		var options = new DialogOptions
+		{
+			CloseButton = true,
+			MaxWidth = MaxWidth.Medium,
+			FullWidth = true
+		};
+
+		await DialogService.ShowAsync<ScheduleListDialog>("Управление расписанием", parameters, options);
+	}
+
+	private async Task LoadSchedules()
+	{
+		try
+		{
+			_schedules = await ScheduleService.GetSchedulesByEmployeeAsync(EmployeeId);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки графиков: {ex.Message}");
+		}
+	}
+
+	private async Task OpenExceptionManagement()
+	{
+		var parameters = new DialogParameters
+		{
+			["EmployeeId"] = EmployeeId,
+			["OnExceptionChanged"] = EventCallback.Factory.Create(this, async () =>
+			{
+				await LoadDataForDate(_currentDate);
+				await OnExceptionChanged.InvokeAsync();
+			})
+		};
+
+		var options = new DialogOptions
+		{
+			CloseButton = true,
+			MaxWidth = MaxWidth.Medium,
+			FullWidth = true
+		};
+
+		await DialogService.ShowAsync<ScheduleExceptionListDialog>("Управление исключениями", parameters, options);
 	}
 }

@@ -15,7 +15,7 @@ public class EFScheduleExceptionRepository(DataContext context) : IScheduleExcep
 
     public async Task DeleteAsync(Guid id)
     {
-        var schedule = await _context.Schedules.SingleOrDefaultAsync(x => x.Id == id);
+        var schedule = await _context.ScheduleExceptions.SingleOrDefaultAsync(x => x.Id == id);
         if (schedule != null)
         {
             schedule.IsDeleted = true;
@@ -27,18 +27,14 @@ public class EFScheduleExceptionRepository(DataContext context) : IScheduleExcep
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<ScheduleException>> GetAllByIntervalAsync(Guid? employeeId, DateOnly startDate, DateOnly endDate)
+    public async Task<IEnumerable<ScheduleException>> GetAllByIntervalAsync(DateOnly startDate, DateOnly endDate, Guid? employeeId = null)
     {
-        return await _context.ScheduleExceptions.Where(x => employeeId != null? x.EmployeeId == employeeId : true && ((x.EffectiveTo != null && x.EffectiveTo > startDate && x.EffectiveFrom <= endDate) || (x.EffectiveTo == null))).ToListAsync();
-    }
-    public async Task<IEnumerable<ScheduleException>> GetAllByIntervalAsync(DateOnly startDate, DateOnly endDate)
-    {
-        return await GetAllByIntervalAsync(null, startDate, endDate);
+        return await _context.ScheduleExceptions.Where(x => employeeId != null ? (x.EmployeeId == employeeId && !x.IsDeleted) : true && ((x.EffectiveTo != null && x.EffectiveTo > startDate && x.EffectiveFrom <= endDate) || (x.EffectiveTo == null))).ToListAsync();
     }
 
     public async Task<IEnumerable<ScheduleException>> GetByEmployeePaged(Guid employeeId, int page, int pageSize)
     {
-        return  await _context.ScheduleExceptions.Where(x=>x.EmployeeId==employeeId).Skip(pageSize*(page-1)).Take(pageSize).ToListAsync();
+        return await _context.ScheduleExceptions.Where(x => x.EmployeeId == employeeId && !x.IsDeleted).Skip(pageSize * (page - 1)).Take(pageSize).ToListAsync();
     }
 
     public async Task<ScheduleException?> GetByIdAsync(Guid id)

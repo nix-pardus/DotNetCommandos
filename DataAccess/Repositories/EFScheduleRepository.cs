@@ -27,14 +27,18 @@ public class EFScheduleRepository(DataContext context) : IScheduleRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Schedule>> GetAllByIntervalAsync(Guid? employeeId, DateOnly startDate, DateOnly endDate)
+    public async Task<IEnumerable<Schedule>> GetAllByIntervalAsync(DateOnly startDate, DateOnly endDate, Guid? employeeId = null)
     {
-        return  await _context.Schedules.Where(x=> employeeId !=null ? x.EmployeeId==employeeId : true && ((x.EffectiveTo!=null && x.EffectiveTo>startDate && x.EffectiveFrom<=endDate) || (x.EffectiveTo == null))).ToListAsync();
-    }
+        var query = _context.Schedules.Where(x => !x.IsDeleted);
 
-    public async Task<IEnumerable<Schedule>> GetAllByIntervalAsync(DateOnly startDate, DateOnly endDate)
-    {
-        return await GetAllByIntervalAsync(null, startDate, endDate);
+        if(employeeId.HasValue)
+            query = query.Where(x => x.EmployeeId == employeeId.Value);
+
+        query = query.Where(x =>
+        (x.EffectiveTo != null && x.EffectiveTo > startDate && x.EffectiveFrom <= endDate) ||
+        (x.EffectiveTo == null));
+
+        return await query.ToListAsync();
     }
 
     public async Task UpdateAsync(Schedule schedule)

@@ -20,7 +20,7 @@ public class ScheduleController(IScheduleService service) : ControllerBase
 
     [HttpDelete("delete")]
     [Authorize(Policy = "Operator")]
-    public async Task<IActionResult> DeleteById([FromBody] Guid id)
+    public async Task<IActionResult> DeleteById([FromQuery] Guid id)
     {
         try
         {
@@ -56,5 +56,21 @@ public class ScheduleController(IScheduleService service) : ControllerBase
             ScheduleDays = kvp.Value.ToList()
         }).ToList();
         return Ok(response);
+    }
+
+    [HttpGet("by-employee")]
+    [Authorize(Policy = "All")]
+    public async Task<IActionResult> GetByEmployee([FromQuery] Guid employeeId)
+    {
+        var schedules = await service.GetSchedulesByEmployeeAsync(employeeId);
+        return Ok(schedules);
+    }
+
+    [HttpPut("update")]
+    [Authorize(Policy = "Operator")]
+    public async Task<IActionResult> Update([FromBody] ScheduleUpdateRequest schedule)
+    {
+        var updated = await service.UpdateAsync(schedule);
+        return Ok(updated);
     }
 }
