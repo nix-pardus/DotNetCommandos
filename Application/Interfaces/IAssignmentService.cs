@@ -1,6 +1,7 @@
 ﻿using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.DTO.Shared;
+using ServiceCenter.Domain.ValueObjects.Enums;
 
 namespace ServiceCenter.Application.Interfaces;
 
@@ -56,4 +57,15 @@ public interface IAssignmentService
     Task<Dictionary<Guid, List<OrderConflictInfo>>> CheckConflictsAsync(AssignmentConflictCheckRequest request);
 
     Task<List<OrderAssignmentResponse>> GetAssignmentsByEmployeeAndPeriodAsync(Guid employeeId, DateTime start, DateTime end);
+
+    Task<PagedResponse<OrderAssignmentResponse>> GetPagedAssignmentsByEmployeeAsync(
+        Guid employeeId,
+        DateTime? start,
+        DateTime? end,
+        OrderStatus? status,
+        int page,
+        int pageSize,
+        string? sortBy,
+        bool sortDesc
+    );
 }

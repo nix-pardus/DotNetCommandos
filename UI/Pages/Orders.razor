@@ -1,6 +1,7 @@
 ﻿@page "/orders"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.WebUtilities
+@using UI.Helpers
 @using UI.Models
 @using UI.Models.Orders
 @using UI.Services
@@ -104,58 +105,15 @@
 		</PropertyColumn>
 		<PropertyColumn Property="x => x.Priority" Title="Приоритет">
 			<CellTemplate>
-				@switch (context.Item.Priority)
-				{
-					case 0:
-						<MudChip Color="Color.Success" Variant="Variant.Filled" Size="Size.Small">Низкий</MudChip>
-						break;
-					case 1:
-						<MudChip Color="Color.Info" Variant="Variant.Filled" Size="Size.Small">Обычный</MudChip>
-						break;
-					case 2:
-						<MudChip Color="Color.Warning" Variant="Variant.Filled" Size="Size.Small">Высокий</MudChip>
-						break;
-					case 3:
-						<MudChip Color="Color.Error" Variant="Variant.Filled" Size="Size.Small">Критический</MudChip>
-						break;
-				}
+				<MudChip Color="@context.Item.Priority.OrderPriorityToColor()" Variant="Variant.Filled" Size="Size.Small">@context.Item.Priority.OrderPriorityToString()</MudChip>
 			</CellTemplate>
 		</PropertyColumn>
 		<PropertyColumn Property="x => x.Status" Title="Статус заявки">
 			<CellTemplate>
-				@switch (context.Item.Status)
-				{
-					case OrderStatus.Canceled:
-						<MudStack Row>
-							<MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" />
-							<MudText Typo="Typo.body2">Отменено</MudText>
-						</MudStack>
-						break;
-					case OrderStatus.Created:
-						<MudStack Row>
-							<MudIcon Icon="@Icons.Material.Filled.Create" Color="Color.Info" />
-							<MudText Typo="Typo.body2">Создано</MudText>
-						</MudStack>
-						break;
-					case OrderStatus.Done:
-						<MudStack Row>
-							<MudIcon Icon="@Icons.Material.Filled.Done" Color="Color.Success" />
-							<MudText Typo="Typo.body2">Выполнено</MudText>
-						</MudStack>
-						break;
-					case OrderStatus.Planned:
-						<MudStack Row>
-							<MudIcon Icon="@Icons.Material.Filled.NextPlan" />
-							<MudText Typo="Typo.body2">Запланировано</MudText>
-						</MudStack>
-						break;
-					case OrderStatus.Processing:
-						<MudStack Row>
-							<MudIcon Icon="@Icons.Material.Filled.RunCircle" Color="Color.Primary" />
-							<MudText Typo="Typo.body2">Выполняется</MudText>
-						</MudStack>
-						break;
-				}
+				<MudStack Row>
+					<MudIcon Icon="@context.Item.Status.GetIcon()" Color="@context.Item.Status.GetColor()" />
+					<MudText Typo="Typo.body2">@context.Item.Status.ToDisplayString()</MudText>
+				</MudStack>
 			</CellTemplate>
 		</PropertyColumn>
 		<PropertyColumn Property="x => x.CreatedDate" Title="Дата создания">

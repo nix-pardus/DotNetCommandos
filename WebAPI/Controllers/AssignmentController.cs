@@ -4,6 +4,7 @@ using ServiceCenter.Application.DTO.Requests;
 using ServiceCenter.Application.DTO.Responses;
 using ServiceCenter.Application.DTO.Shared;
 using ServiceCenter.Application.Interfaces;
+using ServiceCenter.Domain.ValueObjects.Enums;
 
 namespace ServiceCenter.WebAPI.Controllers;
 
@@ -60,5 +61,22 @@ public class AssignmentController(IAssignmentService assignmentService) : Contro
     {
         var assignments = await assignmentService.GetAssignmentsByEmployeeAndPeriodAsync(employeeId, start, end);
         return Ok(assignments);
+    }
+
+    [HttpGet("paged-by-employee")]
+    [Authorize(Policy = "All")]
+    [ProducesResponseType(typeof(PagedResponse<OrderAssignmentResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPagedByEmployee(
+        [FromQuery] Guid employeeId,
+        [FromQuery] DateTime? start,
+        [FromQuery] DateTime? end,
+        [FromQuery] OrderStatus? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] bool sortDesc = false)
+    {
+        var result = await assignmentService.GetPagedAssignmentsByEmployeeAsync(employeeId, start, end, status, page, pageSize, sortBy, sortDesc);
+        return Ok(result);
     }
 }
