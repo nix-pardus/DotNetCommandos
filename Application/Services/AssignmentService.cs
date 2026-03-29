@@ -5,6 +5,7 @@ using ServiceCenter.Application.Interfaces;
 using ServiceCenter.Application.Mappers;
 using ServiceCenter.Domain.Entities;
 using ServiceCenter.Domain.Interfaces;
+using ServiceCenter.Domain.ValueObjects.Enums;
 
 namespace ServiceCenter.Application.Services;
 
@@ -17,10 +18,10 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequ
     public async Task<Dictionary<Guid, List<OrderConflictInfo>>> CheckConflictsAsync(AssignmentConflictCheckRequest request)
     {
         var result = new Dictionary<Guid, List<OrderConflictInfo>>();
-        foreach(var employeeId in request.EmployeeIds)
+        foreach (var employeeId in request.EmployeeIds)
         {
             var conflicts = await _repository.GetConflictingAssignmentsAsync(employeeId, request.Start, request.End, request.ExcludeOrderId);
-            if(conflicts.Any())
+            if (conflicts.Any())
             {
                 result[employeeId] = conflicts.Select(oe => new OrderConflictInfo
                 {
@@ -54,7 +55,7 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequ
         if (assignment.TotalCount == 0)
         {
             var newAssignment = AssignmentMapper.ToEntity(request);
-            
+
             newAssignment.Id = Guid.NewGuid();
             newAssignment.CreatedDate = DateTime.UtcNow;
             newAssignment.IsDeleted = false;
@@ -114,6 +115,28 @@ public class AssignmentService : BaseService<OrderEmployee, AssignmentCreateRequ
             a.CreatedById,
             a.ModifiedById
         )).ToList();
+    }
+
+    public async Task<PagedResponse<OrderAssignmentResponse>> GetPagedAssignmentsByEmployeeAsync(Guid employeeId, DateTime? start, DateTime? end, OrderStatus? status, int page, int pageSize, string? sortBy, bool sortDesc)
+    {
+        var (items, totalCount) = await _repository.GetPagedByEmployeeAsync(employeeId, start, end, status, page, pageSize, sortBy, sortDesc);
+
+        return new PagedResponse<OrderAssignmentResponse>
+        {
+            Items = items.Select(a => new OrderAssignmentResponse(
+                a.Id,
+                OrderMapper.ToResponseWithClient(a.Order),
+                a.IsPrimary,
+                a.CreatedDate,
+                a.ModifiedDate,
+                a.IsDeleted,
+                a.CreatedById,
+                a.ModifiedById
+                )).ToList(),
+            TotalCount = totalCount,
+            PageNumber = page,
+            PageSize = pageSize
+        };
     }
 
     protected override AssignmentResponse ToDto(OrderEmployee entity) => AssignmentMapper.ToResponse(entity);

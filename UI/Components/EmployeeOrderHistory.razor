@@ -1,0 +1,135 @@
+﻿@using UI.Helpers
+@using UI.Models
+@using UI.Models.Assignments
+@using UI.Services
+@inject IAssignmentService AssignmentService
+@inject INotificationService NotificationService
+
+<MudPaper Class="pa-6" Elevation="3">
+	<MudText Typo="Typo.h5" Class="mb-4">История заявок</MudText>
+	<MudGrid>
+		<MudItem xs="12" sm="4">
+			<MudDateRangePicker @bind-DateRange="_dateRange" @bind-DateRange:after="ReloadData" Label="Период" Clearable/>
+		</MudItem>
+		<MudItem xs="12" sm="4">
+			<MudSelect T="OrderStatus?" Label="Статус" @bind-Value="_statusFilter" @bind-Value:after="ReloadData">
+				<MudSelectItem T="OrderStatus?" Value="@null">Все</MudSelectItem>
+				@foreach (var status in Enum.GetValues<OrderStatus>())
+				{
+					<MudSelectItem T="OrderStatus?" Value="@status">@status.ToDisplayString()</MudSelectItem>
+				}
+			</MudSelect>
+		</MudItem>
+		<MudItem xs="12" sm="4">
+			<MudButton OnClick="ResetFilters" Variant="Variant.Text">Сбросить фильтры</MudButton>
+		</MudItem>
+	</MudGrid>
+
+	<MudDataGrid T="OrderAssignmentResponse"
+				 @ref="_dataGrid"
+				 ServerData="@LoadServerData"
+				 RowsPerPage="25"
+				 Filterable="false"
+				 Hover
+				 Dense
+				 Bordered
+				 Height="1000px">
+		<Columns>
+			<PropertyColumn Property="x => x.Order.Client.FullName" Title="Клиент" />
+			<PropertyColumn Property="x => x.Order.StartDateTime" Title="Время выезда">
+				<CellTemplate>
+					@(context.Item.Order.StartDateTime?.ToLocalTime().ToString("dd.MM.yyyy HH:mm") ?? "-")
+				</CellTemplate>
+			</PropertyColumn>
+			<PropertyColumn Property="x => x.Order.Status" Title="Статус">
+				<CellTemplate>
+					<MudStack Row>
+						<MudIcon Icon="@context.Item.Order.Status.GetIcon()" Color="@context.Item.Order.Status.GetColor()" />
+						<MudText Typo="Typo.body2">@context.Item.Order.Status.ToDisplayString()</MudText>
+					</MudStack>
+				</CellTemplate>
+			</PropertyColumn>
+			<PropertyColumn Property="x => x.Order.Priority" Title="Приоритет">
+				<CellTemplate>
+					<MudChip Color="@context.Item.Order.Priority.OrderPriorityToColor()" Size="Size.Small">@context.Item.Order.Priority.OrderPriorityToString()</MudChip>
+				</CellTemplate>
+			</PropertyColumn>
+			<PropertyColumn Property="x => x.Order.EquipmentType" Title="Тип техники" />
+			<PropertyColumn Property="x => x.Order.EquipmentModel" Title="Модель" />
+		</Columns>
+		<PagerContent>
+			<MudDataGridPager T="OrderAssignmentResponse" />
+		</PagerContent>
+		<LoadingContent>
+			<MudProgressCircular Indeterminate Size="Size.Small" />
+		</LoadingContent>
+		<NoRecordsContent>
+			<MudText Typo="Typo.body1" Class="pa-4">Нет заявок для отображения</MudText>
+		</NoRecordsContent>
+	</MudDataGrid>
+</MudPaper>
+
+@code {
+	[Parameter] public Guid EmployeeId { get; set; }
+
+	private MudDataGrid<OrderAssignmentResponse>? _dataGrid;
+	private DateRange _dateRange = new();
+	private OrderStatus? _statusFilter = null;
+
+	private async Task<GridData<OrderAssignmentResponse>> LoadServerData(GridState<OrderAssignmentResponse> state)
+	{
+		try
+		{
+			var sort = state.SortDefinitions.FirstOrDefault();
+			var sortBy = sort?.SortBy ?? null;
+			var sortDesc = sort?.Descending ?? false;
+
+			var page = state.Page + 1;
+			var pageSize = state.PageSize;
+
+			DateTime? start = null;
+			if (_dateRange.Start.HasValue)
+			{
+				var startLocal = _dateRange.Start.Value;
+				start = new DateTime(startLocal.Year, startLocal.Month, startLocal.Day, 0, 0, 0, DateTimeKind.Utc);
+			}
+
+			DateTime? end = null;
+			if (_dateRange.End.HasValue)
+			{
+				var endLocal = _dateRange.End.Value;
+				end = new DateTime(endLocal.Year, endLocal.Month, endLocal.Day, 23, 59, 59, DateTimeKind.Utc);
+			}
+
+			var response = await AssignmentService.GetPagedAssignmetsByEmployeeAsync(EmployeeId, start, end, _statusFilter, page, pageSize, sortBy, sortDesc);
+
+			return new GridData<OrderAssignmentResponse>
+			{
+				Items = response.Items,
+				TotalItems = response.TotalCount
+			};
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки истории: {ex.Message}");
+			return new GridData<OrderAssignmentResponse>
+			{
+				Items = new List<OrderAssignmentResponse>(),
+				TotalItems = 0
+			};
+		}
+	}
+
+	private async Task ReloadData()
+	{
+		if (_dataGrid != null)
+			await _dataGrid.ReloadServerData();
+	}
+
+	private async Task ResetFilters()
+	{
+		_dateRange = new DateRange();
+		_statusFilter = null;
+		await ReloadData();
+	}
+}

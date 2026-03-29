@@ -13,7 +13,7 @@
 
 <MudPaper Class="pa-6 mb-4" Elevation="3">
 	<MudContainer Class="d-flex justify-space-between">
-		<MudText Typo="Typo.h5" Class="mb-4">Расписание</MudText>
+		<MudText Typo="Typo.h5" Class="mr-4">Расписание</MudText>
 
 		@if (CanEditSchedule)
 		{
@@ -70,8 +70,8 @@
 					}
 					else
 					{
-						<MudContainer Class="d-flex justify-center">
-							<MudText Color="Color.Tertiary" Typo="Typo.body1">@context.Order.StartDateTime.Value.ToLocalTime().ToString("HH:mm") - @context.Order.EndDateTime.Value.ToLocalTime().ToString("HH:mm")</MudText>
+						<MudContainer Class="d-flex justify-center" Gutters="false">
+							<MudText Color="Color.Tertiary" Typo="Typo.caption">@context.Order.StartDateTime.Value.ToLocalTime().ToString("HH:mm") - @context.Order.EndDateTime.Value.ToLocalTime().ToString("HH:mm")</MudText>
 						</MudContainer>
 					}
 				</div>
@@ -138,7 +138,7 @@
 	}
 </MudPaper>
 
-@code {
+	@code {
 	[Parameter] public Guid EmployeeId { get; set; }
 	[Parameter] public bool CanEditSchedule { get; set; }
 	[Parameter] public EventCallback OnExceptionChanged { get; set; }
@@ -263,14 +263,22 @@
 		{
 			if (!assignment.Order.StartDateTime.HasValue) continue;
 
+			var start = assignment.Order.StartDateTime.Value.ToLocalTime();
+			var end = assignment.Order.EndDateTime?.ToLocalTime();
+
+			if (end == null) continue;
+
+			if (end <= start)
+				end = start.AddMinutes(1);
+
 			items.Add(new CustomItem
 			{
 				AllDay = false,
 				Color = Color.Info,
 				Order = assignment.Order,
 				Text = "Заявка",
-				Start = assignment.Order.StartDateTime.Value.ToLocalTime(),
-				End = assignment.Order.EndDateTime.Value.ToLocalTime()
+				Start = start,
+				End = end.Value
 			});
 		}
 

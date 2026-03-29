@@ -8,86 +8,101 @@
 @inject NavigationManager NavigationManager
 @inject IAuthService AuthService
 
-<MudContainer>
-    @if (_loading)
-    {
-        <MudProgressCircular Indeterminate Size="Size.Large" />
-    }
-    else if (_employee == null)
-    {
-        <MudAlert Severity="Severity.Error">Сотрудник не найден</MudAlert>
-    }
-    else
-    {
-        <MudPaper Class="pa-6" Elevation="2">
-            <MudPaper Class="pa-8 d-flex justify-space-between" Elevation="3">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Class="mt-4">Назад</MudButton>
-                <MudText Typo="Typo.h4">@_employee.FullName</MudText>
-            </MudPaper>
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+	@if (_loading)
+	{
+		<MudProgressCircular Indeterminate Size="Size.Large" />
+	}
+	else if (_employee == null)
+	{
+		<MudAlert Severity="Severity.Error">Сотрудник не найден</MudAlert>
+	}
+	else
+	{
+		<MudGrid Justify="Justify.Center">
+			<MudItem sm="12" lg="10" xl="8" xxl="6">
+				<MudPaper Class="pa-6" Elevation="2">
+					<MudButton 
+						Variant="Variant.Filled" 
+						Color="Color.Primary" 
+						StartIcon="@Icons.Material.Filled.ArrowBack" 
+						OnClick="GoBack" 
+						Class="mb-4">
+						Назад
+					</MudButton>
 
-            <MudDivider Class="my-4" Light />
+					<MudExpansionPanels MultiExpansion Elevation="3">
+						<MudExpansionPanel>
+							<TitleContent>
+								<MudText Typo="Typo.h6">@_employee.FullName</MudText>
+							</TitleContent>
+							<ChildContent>
+								<MudGrid>
+									<MudItem xs="12" sm="6">
+										<strong>Email:</strong>
+										<MudLink Typo="Typo.body1" Href="@($"mailto:{@_employee.Email}")">@_employee.Email</MudLink>
+										<MudText Typo="Typo.body1"><strong>Телефон:</strong> @_employee.PhoneNumber</MudText>
+										<MudText Typo="Typo.body1"><strong>Адрес:</strong> @_employee.Address</MudText>
+									</MudItem>
+									<MudItem xs="12" sm="6">
+										<MudText Typo="Typo.body1"><strong>Роль:</strong> @_employee.Role</MudText>
+										<MudText Typo="Typo.body1"><strong>Дата создания:</strong> @_employee.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudText>
+										@if (_employee.ModifiedDate.HasValue)
+										{
+											<MudText Typo="Typo.body1"><strong>Изменен:</strong> @_employee.ModifiedDate.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudText>
+										}
+									</MudItem>
+								</MudGrid>
+							</ChildContent>
+						</MudExpansionPanel>
+					</MudExpansionPanels>
 
-            <MudPaper Class="pa-8 d-flex justify-space-between" Elevation="3">
-                <MudText Typo="Typo.h5" Class="mb-4">Общая информация</MudText>
-                <MudGrid>
-                    <MudItem xs="12" sm="6">
-                        <strong>Email:</strong>
-                        <MudLink Typo="Typo.body1" Href="@($"mailto:{@_employee.Email}")">@_employee.Email</MudLink>
-                        <MudText Typo="Typo.body1"><strong>Телефон:</strong> @_employee.PhoneNumber</MudText>
-                        <MudText Typo="Typo.body1"><strong>Адрес:</strong> @_employee.Address</MudText>
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudText Typo="Typo.body1"><strong>Роль:</strong> @_employee.Role</MudText>
-                        <MudText Typo="Typo.body1"><strong>Дата создания:</strong> @_employee.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudText>
-                        @if (_employee.ModifiedDate.HasValue)
-                        {
-                            <MudText Typo="Typo.body1"><strong>Изменен:</strong> @_employee.ModifiedDate.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudText>
-                        }
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
+					<MudDivider Class="my-4" Light />
 
-            <MudDivider Class="my-4" Light />
-
-            <EmployeeScheduleCalendar EmployeeId="Id" CanEditSchedule="_canEditSchedule" />
-        </MudPaper>
-    }
+					<EmployeeScheduleCalendar EmployeeId="Id" CanEditSchedule="_canEditSchedule" />
+				</MudPaper>
+			</MudItem>
+			<MudItem sm="12" xxl="6">
+				<EmployeeOrderHistory EmployeeId="Id" />
+			</MudItem>
+		</MudGrid>
+	}
 </MudContainer>
 
 @code {
-    [Parameter] public Guid Id { get; set; }
+	[Parameter] public Guid Id { get; set; }
 
-    private Employee? _employee;
-    private bool _loading = true;
-    private bool _canEditSchedule;
+	private Employee? _employee;
+	private bool _loading = true;
+	private bool _canEditSchedule;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadEmployee();
-        await CheckPermissions();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadEmployee();
+		await CheckPermissions();
+	}
 
-    private async Task LoadEmployee()
-    {
-        try
-        {
-            _employee = await EmployeeService.GetEmployeeByIdAsync(Id);
-        }
-        catch (Exception ex)
-        {
-            NotificationService.ShowError($"Ошибка загрузки данных: {ex.Message}");
-        }
-        finally
-        {
-            _loading = false;
-        }
-    }
+	private async Task LoadEmployee()
+	{
+		try
+		{
+			_employee = await EmployeeService.GetEmployeeByIdAsync(Id);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.ShowError($"Ошибка загрузки данных: {ex.Message}");
+		}
+		finally
+		{
+			_loading = false;
+		}
+	}
 
-    private async Task CheckPermissions()
-    {
-        var user = await AuthService.GetCurrentEmployeeAsync();
-        _canEditSchedule = user != null && (user.Role == RoleType.Administrator || user.Role == RoleType.Operator);
-    }
+	private async Task CheckPermissions()
+	{
+		var user = await AuthService.GetCurrentEmployeeAsync();
+		_canEditSchedule = user != null && (user.Role == RoleType.Administrator || user.Role == RoleType.Operator);
+	}
 
-    private void GoBack() => NavigationManager.NavigateTo("/employees");
+	private void GoBack() => NavigationManager.NavigateTo("/employees");
 }

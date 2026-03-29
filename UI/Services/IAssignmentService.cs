@@ -11,4 +11,5 @@ public interface IAssignmentService
     Task DeleteAssignmentAsync(Guid id);
     Task<Dictionary<Guid, List<OrderConflictInfo>>> CheckConflictsAsync(List<Guid> employeeIds, DateTime start, DateTime end, Guid? excludeOrderId = null);
     Task<List<OrderAssignmentResponse>> GetEmployeeAssignmentsAsync(Guid employeeId, DateTime start, DateTime end);
+    Task<PagingResponse<OrderAssignmentResponse>> GetPagedAssignmetsByEmployeeAsync(Guid employeeId, DateTime? start, DateTime? end, OrderStatus? status, int page, int pageSize, string? sortBy, bool sortDesc);
 }

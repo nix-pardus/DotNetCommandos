@@ -44,4 +44,16 @@ public class AssignmentService(IApiService apiClient) : IAssignmentService
         var url = $"api/Assignment/by-employee-poriod?employeeId={employeeId}&start={start:yyyy-MM-ddTHH:mm:ssZ}&end={end:yyyy-MM-ddTHH:mm:ssZ}";
         return await apiClient.GetFromJsonAsync<List<OrderAssignmentResponse>>(url);
     }
+
+    public async Task<PagingResponse<OrderAssignmentResponse>> GetPagedAssignmetsByEmployeeAsync(Guid employeeId, DateTime? start, DateTime? end, OrderStatus? status, int page, int pageSize, string? sortBy, bool sortDesc)
+    {
+        var query = $"?employeeId={employeeId}&page={page}&pageSize={pageSize}";
+        if (start.HasValue) query += $"&start={start.Value:yyyy-MM-ddTHH:mm:ssZ}";
+        if (end.HasValue) query += $"&end={end.Value:yyyy-MM-ddTHH:mm:ssZ}";
+        if (status.HasValue) query += $"&status={status.Value}";
+        if (!string.IsNullOrEmpty(sortBy)) query += $"&sortBy={sortBy}";
+        query += $"&sortDesc={sortDesc}";
+
+        return await apiClient.GetFromJsonAsync<PagingResponse<OrderAssignmentResponse>>($"api/Assignment/paged-by-employee{query}");
+    }
 }
